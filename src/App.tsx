@@ -4,7 +4,12 @@ import { ProductTable } from "@/components/table/ProductTable";
 import { UploadModal } from "@/components/upload/UploadModal";
 import { mockProducts } from "@/data/mockData";
 import type { Product } from "@/types/product";
-import { Search, SlidersHorizontal } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -143,21 +148,7 @@ function App() {
                 disabled
                 className="h-8 w-8"
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  className="text-gray-400"
-                >
-                  <path
-                    d="M8 2L4 6L8 10"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ChevronLeft className="h-4 w-4 text-gray-400" />
               </Button>
               <Button variant="outline" size="sm" className="h-8 min-w-8 px-2">
                 1
@@ -168,21 +159,7 @@ function App() {
                 disabled
                 className="h-8 w-8"
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  className="text-gray-400"
-                >
-                  <path
-                    d="M4 2L8 6L4 10"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ChevronRight className="h-4 w-4 text-gray-400" />
               </Button>
             </div>
           </div>

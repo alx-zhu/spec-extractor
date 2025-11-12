@@ -35,7 +35,7 @@ export const productColumns: ColumnDef<Product>[] = [
     cell: ({ row }) => (
       <div className="flex flex-col gap-0.5 min-w-0 w-full">
         <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
-          {row.original.itemName}
+          {row.original.itemName || "—"}
         </div>
         <div className="text-xs text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">
           {row.original.manufacturer} {row.original.specIdNumber}
@@ -49,7 +49,9 @@ export const productColumns: ColumnDef<Product>[] = [
     accessorKey: "manufacturer",
     size: 140,
     cell: ({ row }) => (
-      <div className="text-sm text-gray-900">{row.original.manufacturer}</div>
+      <div className="text-sm text-gray-900">
+        {row.original.manufacturer || "—"}
+      </div>
     ),
   },
   {
@@ -59,7 +61,7 @@ export const productColumns: ColumnDef<Product>[] = [
     size: 140,
     cell: ({ row }) => (
       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
-        {row.original.specIdNumber}
+        {row.original.specIdNumber || "—"}
       </span>
     ),
   },
@@ -69,7 +71,7 @@ export const productColumns: ColumnDef<Product>[] = [
     accessorKey: "color",
     size: 140,
     cell: ({ row }) => (
-      <div className="text-sm text-gray-600">{row.original.color}</div>
+      <div className="text-sm text-gray-600">{row.original.color || "—"}</div>
     ),
   },
   {
@@ -78,7 +80,7 @@ export const productColumns: ColumnDef<Product>[] = [
     accessorKey: "size",
     size: 140,
     cell: ({ row }) => (
-      <div className="text-sm text-gray-600">{row.original.size}</div>
+      <div className="text-sm text-gray-600">{row.original.size || "—"}</div>
     ),
   },
   {
@@ -87,7 +89,7 @@ export const productColumns: ColumnDef<Product>[] = [
     accessorKey: "price",
     size: 140,
     cell: ({ row }) => (
-      <div className="text-sm text-gray-600">{row.original.price}</div>
+      <div className="text-sm text-gray-600">{row.original.price || "—"}</div>
     ),
   },
   {
@@ -96,7 +98,7 @@ export const productColumns: ColumnDef<Product>[] = [
     accessorKey: "project",
     size: 140,
     cell: ({ row }) => (
-      <div className="text-sm text-gray-600">{row.original.project}</div>
+      <div className="text-sm text-gray-600">{row.original.project || "—"}</div>
     ),
   },
 ];
