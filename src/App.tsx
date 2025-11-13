@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProductTable } from "@/components/table/ProductTable";
 import { UploadModal } from "@/components/upload/UploadModal";
+import { PdfViewer } from "@/components/pdf-viewer/PDFViewer";
 import { mockProducts } from "@/data/mockData";
 import type { Product } from "@/types/product";
 import {
@@ -18,6 +19,7 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   // Filter products based on search query
   const filteredProducts = products.filter((product) => {
@@ -41,8 +43,15 @@ function App() {
 
   const handleRowClick = (product: Product) => {
     setSelectedProduct(product);
-    // TODO: Open PDF viewer with highlighted section
-    console.log("Selected product:", product);
+
+    // Reference a PDF from the public folder
+    // Place your PDF in /public and reference it like this:
+    setPdfUrl("/sample_spec.pdf");
+  };
+
+  const handleClosePdfViewer = () => {
+    setSelectedProduct(null);
+    setPdfUrl(null);
   };
 
   const handleUploadComplete = (files: File[]) => {
@@ -95,9 +104,13 @@ function App() {
         onExportClick={handleExportClick}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden p-8">
+      <main className="flex-1 flex overflow-hidden p-8 gap-8">
         {/* Table Panel */}
-        <div className="flex-1 flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div
+          className={`flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 ${
+            selectedProduct && pdfUrl ? "flex-[0.5]" : "flex-1"
+          }`}
+        >
           {/* Panel Header */}
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white">
             <div className="flex items-center gap-3">
@@ -164,6 +177,19 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* PDF Viewer Panel - Only show when a product is selected */}
+        {selectedProduct && pdfUrl && (
+          <div className="flex-[0.5] animate-in slide-in-from-right duration-300">
+            <div className="h-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <PdfViewer
+                product={selectedProduct}
+                pdfUrl={pdfUrl}
+                onClose={handleClosePdfViewer}
+              />
+            </div>
+          </div>
+        )}
       </main>
 
       <UploadModal

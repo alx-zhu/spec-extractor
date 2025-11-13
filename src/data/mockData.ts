@@ -3,19 +3,22 @@ import type { Product, SpecDocument } from "@/types/product";
 export const mockDocuments: SpecDocument[] = [
   {
     id: "doc-1",
-    filename: "Division_09_Finishes.pdf",
+    filename:
+      "/Users/azhu/Sabana/Docs for Testing/Gensler_Plastic Laminate Lockers.pdf",
     uploadDate: new Date("2024-01-15"),
     status: "completed",
   },
   {
     id: "doc-2",
-    filename: "Division_26_Electrical.pdf",
+    filename:
+      "/Users/azhu/Sabana/Docs for Testing/Gensler_Frameless Shower Doors.pdf",
     uploadDate: new Date("2024-01-16"),
     status: "completed",
   },
   {
     id: "doc-3",
-    filename: "Division_08_Openings.pdf",
+    filename:
+      "/Users/azhu/Sabana/Docs for Testing/Gensler_Wood Athletic Flooring.pdf",
     uploadDate: new Date("2024-01-17"),
     status: "completed",
   },
@@ -33,7 +36,7 @@ export const mockProducts: Product[] = [
     project: "Downtown Office",
     linkToProduct: "",
     specDocumentId: "doc-1",
-    pageNumber: 5,
+    pageNumber: 1,
     bbox: { x: 100, y: 200, width: 400, height: 60 },
     extractedText: "Armstrong World Industries - Ultima Ceiling Panels",
     createdAt: new Date("2024-01-15"),
@@ -49,7 +52,7 @@ export const mockProducts: Product[] = [
     project: "Downtown Office",
     linkToProduct: "https://lithonia.com/2x4-troffer",
     specDocumentId: "doc-2",
-    pageNumber: 12,
+    pageNumber: 3,
     bbox: { x: 120, y: 350, width: 380, height: 55 },
     extractedText: "Lithonia 2x4 Troffer LED Panel Light",
     createdAt: new Date("2024-01-16"),
@@ -65,7 +68,7 @@ export const mockProducts: Product[] = [
     project: "Tech Campus",
     linkToProduct: "",
     specDocumentId: "doc-1",
-    pageNumber: 18,
+    pageNumber: 2,
     bbox: { x: 95, y: 480, width: 420, height: 65 },
     extractedText: "Crossville Laminam Porcelain Tile",
     createdAt: new Date("2024-01-15"),
@@ -81,7 +84,7 @@ export const mockProducts: Product[] = [
     project: "Downtown Office",
     linkToProduct: "https://dorma.com/ts-93",
     specDocumentId: "doc-3",
-    pageNumber: 8,
+    pageNumber: 4,
     bbox: { x: 110, y: 290, width: 390, height: 58 },
     extractedText: "Dorma TS 93 Door Closer",
     createdAt: new Date("2024-01-17"),
