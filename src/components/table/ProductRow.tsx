@@ -17,7 +17,7 @@ export function ProductRow({ row, onClick, isSelected }: ProductRowProps) {
       className={cn(
         "flex border-b border-gray-100 transition-colors duration-150 relative",
         !isVisuallySelected && "bg-white",
-        isSelected && "shadow-md z-20",
+        isSelected && "shadow-md z-10",
         // Left inset border
         isSelected &&
           "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-500 before:z-10",

@@ -29,7 +29,7 @@ export function ProductTable({
     <div className="flex flex-col h-full overflow-x-auto">
       <div className="flex-1 flex flex-col min-w-min">
         {/* Table Header */}
-        <div className="flex bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+        <div className="flex bg-gray-50 border-b border-gray-200 sticky top-0 z-50">
           {table.getHeaderGroups().map((headerGroup) =>
             headerGroup.headers.map((header) => {
               const size = header.column.columnDef.size;
