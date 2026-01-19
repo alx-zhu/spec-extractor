@@ -273,49 +273,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-5",
-    itemName: createField("Window Shade System", 23, {
+    itemName: createField("Window Shade System", 5, {
       left: 0.1,
       top: 0.72,
       width: 0.38,
       height: 0.03,
     }),
-    manufacturer: createField("MechoShade", 23, {
+    manufacturer: createField("MechoShade", 5, {
       left: 0.1,
       top: 0.76,
       width: 0.2,
       height: 0.025,
     }),
-    specIdNumber: createField("12 24 00", 23, {
+    specIdNumber: createField("12 24 00", 5, {
       left: 0.55,
       top: 0.72,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Charcoal", 23, {
+    color: createField("Charcoal", 5, {
       left: 0.1,
       top: 0.8,
       width: 0.14,
       height: 0.025,
     }),
-    size: createField("Custom", 23, {
+    size: createField("Custom", 5, {
       left: 0.32,
       top: 0.8,
       width: 0.12,
       height: 0.025,
     }),
-    price: createField("", 23, {
+    price: createField("", 5, {
       left: 0.5,
       top: 0.8,
       width: 0.12,
       height: 0.025,
     }),
-    project: createField("Residential Tower", 23, {
+    project: createField("Residential Tower", 5, {
       left: 0.1,
       top: 0.84,
       width: 0.28,
       height: 0.025,
     }),
-    linkToProduct: createField("", 23, {
+    linkToProduct: createField("", 5, {
       left: 0.1,
       top: 0.88,
       width: 0.4,
@@ -327,49 +327,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-6",
-    itemName: createField("Paint System", 31, {
+    itemName: createField("Paint System", 6, {
       left: 0.22,
       top: 0.08,
       width: 0.28,
       height: 0.03,
     }),
-    manufacturer: createField("Benjamin Moore", 31, {
+    manufacturer: createField("Benjamin Moore", 6, {
       left: 0.22,
       top: 0.12,
       width: 0.24,
       height: 0.025,
     }),
-    specIdNumber: createField("09 91 00", 31, {
+    specIdNumber: createField("09 91 00", 6, {
       left: 0.62,
       top: 0.08,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Swiss Coffee", 31, {
+    color: createField("Swiss Coffee", 6, {
       left: 0.22,
       top: 0.16,
       width: 0.18,
       height: 0.025,
     }),
-    size: createField("", 31, {
+    size: createField("", 6, {
       left: 0.48,
       top: 0.16,
       width: 0.1,
       height: 0.025,
     }),
-    price: createField("$68.99/gal", 31, {
+    price: createField("$68.99/gal", 6, {
       left: 0.62,
       top: 0.16,
       width: 0.16,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 31, {
+    project: createField("Tech Campus", 6, {
       left: 0.22,
       top: 0.2,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("https://benjaminmoore.com/aura", 31, {
+    linkToProduct: createField("https://benjaminmoore.com/aura", 6, {
       left: 0.22,
       top: 0.24,
       width: 0.48,
@@ -381,49 +381,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-7",
-    itemName: createField("Carpet Tile", 15, {
+    itemName: createField("Carpet Tile", 7, {
       left: 0.14,
       top: 0.35,
       width: 0.26,
       height: 0.03,
     }),
-    manufacturer: createField("Interface", 15, {
+    manufacturer: createField("Interface", 7, {
       left: 0.14,
       top: 0.39,
       width: 0.16,
       height: 0.025,
     }),
-    specIdNumber: createField("09 68 00", 15, {
+    specIdNumber: createField("09 68 00", 7, {
       left: 0.52,
       top: 0.35,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Ash", 15, {
+    color: createField("Ash", 7, {
       left: 0.14,
       top: 0.43,
       width: 0.08,
       height: 0.025,
     }),
-    size: createField('24"x24"', 15, {
+    size: createField('24"x24"', 7, {
       left: 0.28,
       top: 0.43,
       width: 0.14,
       height: 0.025,
     }),
-    price: createField("$3.25/sf", 15, {
+    price: createField("$3.25/sf", 7, {
       left: 0.48,
       top: 0.43,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 15, {
+    project: createField("Tech Campus", 7, {
       left: 0.14,
       top: 0.47,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("https://interface.com/carpet-tile", 15, {
+    linkToProduct: createField("https://interface.com/carpet-tile", 7, {
       left: 0.14,
       top: 0.51,
       width: 0.5,
@@ -435,49 +435,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-8",
-    itemName: createField("Pendant Light Fixture", 19, {
+    itemName: createField("Pendant Light Fixture", 3, {
       left: 0.16,
       top: 0.62,
       width: 0.38,
       height: 0.03,
     }),
-    manufacturer: createField("Artemide", 19, {
+    manufacturer: createField("Artemide", 3, {
       left: 0.16,
       top: 0.66,
       width: 0.16,
       height: 0.025,
     }),
-    specIdNumber: createField("26 51 00", 19, {
+    specIdNumber: createField("26 51 00", 3, {
       left: 0.58,
       top: 0.62,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Matte Black", 19, {
+    color: createField("Matte Black", 3, {
       left: 0.16,
       top: 0.7,
       width: 0.18,
       height: 0.025,
     }),
-    size: createField('12" diameter', 19, {
+    size: createField('12" diameter', 3, {
       left: 0.4,
       top: 0.7,
       width: 0.18,
       height: 0.025,
     }),
-    price: createField("$425.00", 19, {
+    price: createField("$425.00", 3, {
       left: 0.62,
       top: 0.7,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Downtown Office", 19, {
+    project: createField("Downtown Office", 3, {
       left: 0.16,
       top: 0.74,
       width: 0.25,
       height: 0.025,
     }),
-    linkToProduct: createField("https://artemide.com/pendant", 19, {
+    linkToProduct: createField("https://artemide.com/pendant", 3, {
       left: 0.16,
       top: 0.78,
       width: 0.45,
@@ -543,49 +543,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-10",
-    itemName: createField("Stainless Steel Handrail", 14, {
+    itemName: createField("Stainless Steel Handrail", 4, {
       left: 0.19,
       top: 0.42,
       width: 0.42,
       height: 0.03,
     }),
-    manufacturer: createField("Wagner", 14, {
+    manufacturer: createField("Wagner", 4, {
       left: 0.19,
       top: 0.46,
       width: 0.14,
       height: 0.025,
     }),
-    specIdNumber: createField("05 52 00", 14, {
+    specIdNumber: createField("05 52 00", 4, {
       left: 0.63,
       top: 0.42,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Brushed Stainless", 14, {
+    color: createField("Brushed Stainless", 4, {
       left: 0.19,
       top: 0.5,
       width: 0.26,
       height: 0.025,
     }),
-    size: createField('1.5" diameter', 14, {
+    size: createField('1.5" diameter', 4, {
       left: 0.5,
       top: 0.5,
       width: 0.18,
       height: 0.025,
     }),
-    price: createField("$42.50/lf", 14, {
+    price: createField("$42.50/lf", 4, {
       left: 0.7,
       top: 0.5,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Residential Tower", 14, {
+    project: createField("Residential Tower", 4, {
       left: 0.19,
       top: 0.54,
       width: 0.28,
       height: 0.025,
     }),
-    linkToProduct: createField("https://wagner-arch.com/handrail", 14, {
+    linkToProduct: createField("https://wagner-arch.com/handrail", 4, {
       left: 0.19,
       top: 0.58,
       width: 0.5,
@@ -651,49 +651,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-12",
-    itemName: createField("Rubber Flooring", 21, {
+    itemName: createField("Rubber Flooring", 6, {
       left: 0.13,
       top: 0.55,
       width: 0.32,
       height: 0.03,
     }),
-    manufacturer: createField("Mondo", 21, {
+    manufacturer: createField("Mondo", 6, {
       left: 0.13,
       top: 0.59,
       width: 0.12,
       height: 0.025,
     }),
-    specIdNumber: createField("09 65 00", 21, {
+    specIdNumber: createField("09 65 00", 6, {
       left: 0.53,
       top: 0.55,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Graphite", 21, {
+    color: createField("Graphite", 6, {
       left: 0.13,
       top: 0.63,
       width: 0.14,
       height: 0.025,
     }),
-    size: createField("Custom", 21, {
+    size: createField("Custom", 6, {
       left: 0.33,
       top: 0.63,
       width: 0.12,
       height: 0.025,
     }),
-    price: createField("$8.75/sf", 21, {
+    price: createField("$8.75/sf", 6, {
       left: 0.5,
       top: 0.63,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 21, {
+    project: createField("Tech Campus", 6, {
       left: 0.13,
       top: 0.67,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("https://mondo.com/rubber-flooring", 21, {
+    linkToProduct: createField("https://mondo.com/rubber-flooring", 6, {
       left: 0.13,
       top: 0.71,
       width: 0.52,
@@ -705,49 +705,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-13",
-    itemName: createField("Metal Stud Framing", 9, {
+    itemName: createField("Metal Stud Framing", 1, {
       left: 0.21,
       top: 0.12,
       width: 0.34,
       height: 0.03,
     }),
-    manufacturer: createField("ClarkDietrich", 9, {
+    manufacturer: createField("ClarkDietrich", 1, {
       left: 0.21,
       top: 0.16,
       width: 0.22,
       height: 0.025,
     }),
-    specIdNumber: createField("09 22 00", 9, {
+    specIdNumber: createField("09 22 00", 1, {
       left: 0.61,
       top: 0.12,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Galvanized", 9, {
+    color: createField("Galvanized", 1, {
       left: 0.21,
       top: 0.2,
       width: 0.16,
       height: 0.025,
     }),
-    size: createField('3-5/8"', 9, {
+    size: createField('3-5/8"', 1, {
       left: 0.43,
       top: 0.2,
       width: 0.12,
       height: 0.025,
     }),
-    price: createField("$1.85/lf", 9, {
+    price: createField("$1.85/lf", 1, {
       left: 0.6,
       top: 0.2,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 9, {
+    project: createField("Tech Campus", 1, {
       left: 0.21,
       top: 0.24,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("", 9, {
+    linkToProduct: createField("", 1, {
       left: 0.21,
       top: 0.28,
       width: 0.4,
@@ -759,49 +759,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-14",
-    itemName: createField("Fire Sprinkler Head", 27, {
+    itemName: createField("Fire Sprinkler Head", 2, {
       left: 0.08,
       top: 0.38,
       width: 0.36,
       height: 0.03,
     }),
-    manufacturer: createField("Viking", 27, {
+    manufacturer: createField("Viking", 2, {
       left: 0.08,
       top: 0.42,
       width: 0.12,
       height: 0.025,
     }),
-    specIdNumber: createField("21 13 00", 27, {
+    specIdNumber: createField("21 13 00", 2, {
       left: 0.5,
       top: 0.38,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("White", 27, {
+    color: createField("White", 2, {
       left: 0.08,
       top: 0.46,
       width: 0.1,
       height: 0.025,
     }),
-    size: createField('1/2"', 27, {
+    size: createField('1/2"', 2, {
       left: 0.24,
       top: 0.46,
       width: 0.08,
       height: 0.025,
     }),
-    price: createField("$12.50", 27, {
+    price: createField("$12.50", 2, {
       left: 0.38,
       top: 0.46,
       width: 0.12,
       height: 0.025,
     }),
-    project: createField("Downtown Office", 27, {
+    project: createField("Downtown Office", 2, {
       left: 0.08,
       top: 0.5,
       width: 0.25,
       height: 0.025,
     }),
-    linkToProduct: createField("https://viking.com/sprinkler", 27, {
+    linkToProduct: createField("https://viking.com/sprinkler", 2, {
       left: 0.08,
       top: 0.54,
       width: 0.42,
@@ -813,49 +813,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-15",
-    itemName: createField("Toilet Partition", 28, {
+    itemName: createField("Toilet Partition", 3, {
       left: 0.24,
       top: 0.65,
       width: 0.32,
       height: 0.03,
     }),
-    manufacturer: createField("Bobrick", 28, {
+    manufacturer: createField("Bobrick", 3, {
       left: 0.24,
       top: 0.69,
       width: 0.14,
       height: 0.025,
     }),
-    specIdNumber: createField("10 21 00", 28, {
+    specIdNumber: createField("10 21 00", 3, {
       left: 0.64,
       top: 0.65,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Stainless Steel", 28, {
+    color: createField("Stainless Steel", 3, {
       left: 0.24,
       top: 0.73,
       width: 0.24,
       height: 0.025,
     }),
-    size: createField("Standard", 28, {
+    size: createField("Standard", 3, {
       left: 0.54,
       top: 0.73,
       width: 0.14,
       height: 0.025,
     }),
-    price: createField("", 28, {
+    price: createField("", 3, {
       left: 0.7,
       top: 0.73,
       width: 0.12,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 28, {
+    project: createField("Tech Campus", 3, {
       left: 0.24,
       top: 0.77,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("", 28, {
+    linkToProduct: createField("", 3, {
       left: 0.24,
       top: 0.81,
       width: 0.4,
@@ -867,49 +867,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-16",
-    itemName: createField("Outlet Box", 8, {
+    itemName: createField("Outlet Box", 1, {
       left: 0.09,
       top: 0.22,
       width: 0.24,
       height: 0.03,
     }),
-    manufacturer: createField("Legrand", 8, {
+    manufacturer: createField("Legrand", 1, {
       left: 0.09,
       top: 0.26,
       width: 0.14,
       height: 0.025,
     }),
-    specIdNumber: createField("26 05 00", 8, {
+    specIdNumber: createField("26 05 00", 1, {
       left: 0.48,
       top: 0.22,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Blue", 8, {
+    color: createField("Blue", 1, {
       left: 0.09,
       top: 0.3,
       width: 0.08,
       height: 0.025,
     }),
-    size: createField("2-gang", 8, {
+    size: createField("2-gang", 1, {
       left: 0.23,
       top: 0.3,
       width: 0.12,
       height: 0.025,
     }),
-    price: createField("$3.75", 8, {
+    price: createField("$3.75", 1, {
       left: 0.4,
       top: 0.3,
       width: 0.1,
       height: 0.025,
     }),
-    project: createField("Downtown Office", 8, {
+    project: createField("Downtown Office", 1, {
       left: 0.09,
       top: 0.34,
       width: 0.25,
       height: 0.025,
     }),
-    linkToProduct: createField("https://legrand.com/outlet-box", 8, {
+    linkToProduct: createField("https://legrand.com/outlet-box", 1, {
       left: 0.09,
       top: 0.38,
       width: 0.46,
@@ -921,49 +921,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-17",
-    itemName: createField("Acoustic Wall Panel", 11, {
+    itemName: createField("Acoustic Wall Panel", 2, {
       left: 0.26,
       top: 0.08,
       width: 0.36,
       height: 0.03,
     }),
-    manufacturer: createField("Kirei", 11, {
+    manufacturer: createField("Kirei", 2, {
       left: 0.26,
       top: 0.12,
       width: 0.1,
       height: 0.025,
     }),
-    specIdNumber: createField("09 51 00", 11, {
+    specIdNumber: createField("09 51 00", 2, {
       left: 0.66,
       top: 0.08,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Natural", 11, {
+    color: createField("Natural", 2, {
       left: 0.26,
       top: 0.16,
       width: 0.12,
       height: 0.025,
     }),
-    size: createField("2'x4'", 11, {
+    size: createField("2'x4'", 2, {
       left: 0.44,
       top: 0.16,
       width: 0.1,
       height: 0.025,
     }),
-    price: createField("$85.00", 11, {
+    price: createField("$85.00", 2, {
       left: 0.6,
       top: 0.16,
       width: 0.12,
       height: 0.025,
     }),
-    project: createField("Residential Tower", 11, {
+    project: createField("Residential Tower", 2, {
       left: 0.26,
       top: 0.2,
       width: 0.28,
       height: 0.025,
     }),
-    linkToProduct: createField("https://kireiusa.com/acoustic", 11, {
+    linkToProduct: createField("https://kireiusa.com/acoustic", 2, {
       left: 0.26,
       top: 0.24,
       width: 0.46,
@@ -975,49 +975,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-18",
-    itemName: createField("Door Lockset", 11, {
+    itemName: createField("Door Lockset", 3, {
       left: 0.2,
       top: 0.32,
       width: 0.28,
       height: 0.03,
     }),
-    manufacturer: createField("Schlage", 11, {
+    manufacturer: createField("Schlage", 3, {
       left: 0.2,
       top: 0.36,
       width: 0.14,
       height: 0.025,
     }),
-    specIdNumber: createField("08 71 00", 11, {
+    specIdNumber: createField("08 71 00", 3, {
       left: 0.58,
       top: 0.32,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Satin Nickel", 11, {
+    color: createField("Satin Nickel", 3, {
       left: 0.2,
       top: 0.4,
       width: 0.18,
       height: 0.025,
     }),
-    size: createField("", 11, {
+    size: createField("", 3, {
       left: 0.44,
       top: 0.4,
       width: 0.1,
       height: 0.025,
     }),
-    price: createField("$195.00", 11, {
+    price: createField("$195.00", 3, {
       left: 0.58,
       top: 0.4,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 11, {
+    project: createField("Tech Campus", 3, {
       left: 0.2,
       top: 0.44,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("https://schlage.com/commercial", 11, {
+    linkToProduct: createField("https://schlage.com/commercial", 3, {
       left: 0.2,
       top: 0.48,
       width: 0.48,
@@ -1029,49 +1029,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-19",
-    itemName: createField("Recessed Light Fixture", 16, {
+    itemName: createField("Recessed Light Fixture", 4, {
       left: 0.11,
       top: 0.48,
       width: 0.4,
       height: 0.03,
     }),
-    manufacturer: createField("Juno", 16, {
+    manufacturer: createField("Juno", 4, {
       left: 0.11,
       top: 0.52,
       width: 0.1,
       height: 0.025,
     }),
-    specIdNumber: createField("26 51 00", 16, {
+    specIdNumber: createField("26 51 00", 4, {
       left: 0.56,
       top: 0.48,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("White Trim", 16, {
+    color: createField("White Trim", 4, {
       left: 0.11,
       top: 0.56,
       width: 0.16,
       height: 0.025,
     }),
-    size: createField('6" diameter', 16, {
+    size: createField('6" diameter', 4, {
       left: 0.33,
       top: 0.56,
       width: 0.16,
       height: 0.025,
     }),
-    price: createField("$45.00", 16, {
+    price: createField("$45.00", 4, {
       left: 0.54,
       top: 0.56,
       width: 0.12,
       height: 0.025,
     }),
-    project: createField("Residential Tower", 16, {
+    project: createField("Residential Tower", 4, {
       left: 0.11,
       top: 0.6,
       width: 0.28,
       height: 0.025,
     }),
-    linkToProduct: createField("", 16, {
+    linkToProduct: createField("", 4, {
       left: 0.11,
       top: 0.64,
       width: 0.4,
@@ -1083,49 +1083,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-20",
-    itemName: createField("Wall Protection Panel", 26, {
+    itemName: createField("Wall Protection Panel", 5, {
       left: 0.23,
       top: 0.82,
       width: 0.4,
       height: 0.03,
     }),
-    manufacturer: createField("Pawling", 26, {
+    manufacturer: createField("Pawling", 5, {
       left: 0.23,
       top: 0.86,
       width: 0.14,
       height: 0.025,
     }),
-    specIdNumber: createField("10 26 00", 26, {
+    specIdNumber: createField("10 26 00", 5, {
       left: 0.68,
       top: 0.82,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Beige", 26, {
+    color: createField("Beige", 5, {
       left: 0.23,
       top: 0.9,
       width: 0.1,
       height: 0.02,
     }),
-    size: createField("4'x8'", 26, {
+    size: createField("4'x8'", 5, {
       left: 0.38,
       top: 0.9,
       width: 0.1,
       height: 0.02,
     }),
-    price: createField("$62.00", 26, {
+    price: createField("$62.00", 5, {
       left: 0.53,
       top: 0.9,
       width: 0.12,
       height: 0.02,
     }),
-    project: createField("Downtown Office", 26, {
+    project: createField("Downtown Office", 5, {
       left: 0.23,
       top: 0.93,
       width: 0.25,
       height: 0.02,
     }),
-    linkToProduct: createField("https://pawling.com/wall-protection", 26, {
+    linkToProduct: createField("https://pawling.com/wall-protection", 5, {
       left: 0.23,
       top: 0.96,
       width: 0.52,
@@ -1137,49 +1137,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-21",
-    itemName: createField("HVAC Diffuser", 22, {
+    itemName: createField("HVAC Diffuser", 6, {
       left: 0.15,
       top: 0.28,
       width: 0.3,
       height: 0.03,
     }),
-    manufacturer: createField("Titus", 22, {
+    manufacturer: createField("Titus", 6, {
       left: 0.15,
       top: 0.32,
       width: 0.1,
       height: 0.025,
     }),
-    specIdNumber: createField("23 37 00", 22, {
+    specIdNumber: createField("23 37 00", 6, {
       left: 0.54,
       top: 0.28,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("White", 22, {
+    color: createField("White", 6, {
       left: 0.15,
       top: 0.36,
       width: 0.1,
       height: 0.025,
     }),
-    size: createField('24"x24"', 22, {
+    size: createField('24"x24"', 6, {
       left: 0.31,
       top: 0.36,
       width: 0.14,
       height: 0.025,
     }),
-    price: createField("$125.00", 22, {
+    price: createField("$125.00", 6, {
       left: 0.5,
       top: 0.36,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 22, {
+    project: createField("Tech Campus", 6, {
       left: 0.15,
       top: 0.4,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("", 22, {
+    linkToProduct: createField("", 6, {
       left: 0.15,
       top: 0.44,
       width: 0.4,
@@ -1245,49 +1245,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-23",
-    itemName: createField("Toilet Accessory Set", 29, {
+    itemName: createField("Toilet Accessory Set", 7, {
       left: 0.17,
       top: 0.52,
       width: 0.38,
       height: 0.03,
     }),
-    manufacturer: createField("American Specialties", 29, {
+    manufacturer: createField("American Specialties", 7, {
       left: 0.17,
       top: 0.56,
       width: 0.32,
       height: 0.025,
     }),
-    specIdNumber: createField("10 28 00", 29, {
+    specIdNumber: createField("10 28 00", 7, {
       left: 0.63,
       top: 0.52,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Satin Stainless", 29, {
+    color: createField("Satin Stainless", 7, {
       left: 0.17,
       top: 0.6,
       width: 0.22,
       height: 0.025,
     }),
-    size: createField("", 29, {
+    size: createField("", 7, {
       left: 0.45,
       top: 0.6,
       width: 0.1,
       height: 0.025,
     }),
-    price: createField("$285.00", 29, {
+    price: createField("$285.00", 7, {
       left: 0.6,
       top: 0.6,
       width: 0.14,
       height: 0.025,
     }),
-    project: createField("Downtown Office", 29, {
+    project: createField("Downtown Office", 7, {
       left: 0.17,
       top: 0.64,
       width: 0.25,
       height: 0.025,
     }),
-    linkToProduct: createField("https://americanspecialties.com", 29, {
+    linkToProduct: createField("https://americanspecialties.com", 7, {
       left: 0.17,
       top: 0.68,
       width: 0.48,
@@ -1299,49 +1299,49 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-24",
-    itemName: createField("Emergency Exit Sign", 24, {
+    itemName: createField("Emergency Exit Sign", 1, {
       left: 0.14,
       top: 0.18,
       width: 0.36,
       height: 0.03,
     }),
-    manufacturer: createField("Lithonia", 24, {
+    manufacturer: createField("Lithonia", 1, {
       left: 0.14,
       top: 0.22,
       width: 0.15,
       height: 0.025,
     }),
-    specIdNumber: createField("26 56 00", 24, {
+    specIdNumber: createField("26 56 00", 1, {
       left: 0.57,
       top: 0.18,
       width: 0.12,
       height: 0.025,
     }),
-    color: createField("Red/White", 24, {
+    color: createField("Red/White", 1, {
       left: 0.14,
       top: 0.26,
       width: 0.14,
       height: 0.025,
     }),
-    size: createField("Standard", 24, {
+    size: createField("Standard", 1, {
       left: 0.34,
       top: 0.26,
       width: 0.14,
       height: 0.025,
     }),
-    price: createField("$38.50", 24, {
+    price: createField("$38.50", 1, {
       left: 0.53,
       top: 0.26,
       width: 0.12,
       height: 0.025,
     }),
-    project: createField("Tech Campus", 24, {
+    project: createField("Tech Campus", 1, {
       left: 0.14,
       top: 0.3,
       width: 0.22,
       height: 0.025,
     }),
-    linkToProduct: createField("https://lithonia.com/exit-signs", 24, {
+    linkToProduct: createField("https://lithonia.com/exit-signs", 1, {
       left: 0.14,
       top: 0.34,
       width: 0.48,

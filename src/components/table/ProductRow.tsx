@@ -9,11 +9,19 @@ interface ProductRowProps {
 }
 
 export function ProductRow({ row, onClick, isSelected }: ProductRowProps) {
+  const isChecked = row.getIsSelected();
+  const isVisuallySelected = isSelected || isChecked;
+
   return (
     <div
       className={cn(
-        "flex border-b border-gray-100 transition-colors duration-150",
-        isSelected ? "bg-blue-50" : "hover:bg-gray-50",
+        "flex border-b border-gray-100 transition-colors duration-150 relative",
+        !isVisuallySelected && "bg-white",
+        isSelected && "shadow-md z-20",
+        // Left inset border
+        isSelected &&
+          "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-500 before:z-10",
+        isChecked && "bg-blue-50",
       )}
     >
       {row.getVisibleCells().map((cell) => {
@@ -26,10 +34,12 @@ export function ProductRow({ row, onClick, isSelected }: ProductRowProps) {
           <div
             key={cell.id}
             className={cn(
-              "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0",
+              "px-3 py-3 flex items-center border-r border-gray-200 last:border-r-0 transition-colors box-border",
               cell.column.id === "select" && "justify-center",
+              // Different hover colors: darker blue for selected rows, light blue for non-selected
+              fieldName && "cursor-pointer",
               fieldName &&
-                "cursor-pointer hover:bg-blue-50/50 transition-colors",
+                (isChecked ? "hover:bg-blue-100/80" : "hover:bg-blue-50"),
             )}
             style={{
               width: size ? `${size}px` : undefined,
