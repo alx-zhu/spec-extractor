@@ -1,5 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import type { Product } from "@/types/product";
+import type { Product, ProductFieldKey } from "@/types/product";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export const productColumns: ColumnDef<Product>[] = [
@@ -32,6 +32,9 @@ export const productColumns: ColumnDef<Product>[] = [
     id: "itemName",
     header: "Item Name",
     accessorKey: "itemName",
+    meta: {
+      fieldName: "itemName" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <div className="flex flex-col gap-0.5 min-w-0 w-full">
         <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -48,6 +51,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Manufacturer",
     accessorKey: "manufacturer",
     size: 140,
+    meta: {
+      fieldName: "manufacturer" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <div className="text-sm text-gray-900">
         {row.original.manufacturer.value || "—"}
@@ -59,6 +65,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Spec ID",
     accessorKey: "specIdNumber",
     size: 140,
+    meta: {
+      fieldName: "specIdNumber" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
         {row.original.specIdNumber.value || "—"}
@@ -70,6 +79,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Color",
     accessorKey: "color",
     size: 140,
+    meta: {
+      fieldName: "color" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <div className="text-sm text-gray-600">
         {row.original.color.value || "—"}
@@ -81,6 +93,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Size",
     accessorKey: "size",
     size: 140,
+    meta: {
+      fieldName: "size" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <div className="text-sm text-gray-600">
         {row.original.size.value || "—"}
@@ -92,6 +107,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Price",
     accessorKey: "price",
     size: 140,
+    meta: {
+      fieldName: "price" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <div className="text-sm text-gray-600">
         {row.original.price.value || "—"}
@@ -103,6 +121,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Project",
     accessorKey: "project",
     size: 140,
+    meta: {
+      fieldName: "project" as ProductFieldKey,
+    },
     cell: ({ row }) => (
       <div className="text-sm text-gray-600">
         {row.original.project.value || "—"}

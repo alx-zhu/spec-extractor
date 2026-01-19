@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface ProductTableProps {
   data: Product[];
-  onRowClick?: (product: Product) => void;
+  onRowClick?: (product: Product, fieldKey?: string) => void;
   selectedProductId?: string;
 }
 
@@ -41,7 +41,7 @@ export function ProductTable({
                   key={header.id}
                   className={cn(
                     "px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center border-r border-gray-200 last:border-r-0",
-                    header.column.id === "select" && "justify-center"
+                    header.column.id === "select" && "justify-center",
                   )}
                   style={{
                     width: size ? `${size}px` : undefined,
@@ -51,11 +51,11 @@ export function ProductTable({
                 >
                   {flexRender(
                     header.column.columnDef.header,
-                    header.getContext()
+                    header.getContext(),
                   )}
                 </div>
               );
-            })
+            }),
           )}
         </div>
 
@@ -72,7 +72,7 @@ export function ProductTable({
                 <ProductRow
                   key={row.id}
                   row={row}
-                  onClick={() => onRowClick?.(row.original)}
+                  onClick={(fieldKey) => onRowClick?.(row.original, fieldKey)}
                   isSelected={selectedProductId === row.original.id}
                 />
               ))

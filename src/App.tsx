@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 function App() {
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedFieldKey, setSelectedFieldKey] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -41,8 +42,9 @@ function App() {
     console.log("Export clicked");
   };
 
-  const handleRowClick = (product: Product) => {
+  const handleRowClick = (product: Product, fieldKey?: string) => {
     setSelectedProduct(product);
+    setSelectedFieldKey(fieldKey || null);
 
     // Reference a PDF from the public folder
     // Place your PDF in /public and reference it like this:
@@ -51,6 +53,7 @@ function App() {
 
   const handleClosePdfViewer = () => {
     setSelectedProduct(null);
+    setSelectedFieldKey(null);
     setPdfUrl(null);
   };
 
@@ -194,6 +197,7 @@ function App() {
               <PdfViewer
                 product={selectedProduct}
                 pdfUrl={pdfUrl}
+                selectedFieldKey={selectedFieldKey}
                 onClose={handleClosePdfViewer}
               />
             </div>

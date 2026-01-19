@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/types/product";
+import type { Product, ProductFieldKey, FieldWithBBox } from "@/types/product";
 import { cn } from "@/lib/utils";
 
 // Set up PDF.js worker
@@ -11,10 +11,16 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 interface PdfViewerProps {
   product: Product;
   pdfUrl: string;
+  selectedFieldKey?: string | null;
   onClose: () => void;
 }
 
-export function PdfViewer({ product, pdfUrl, onClose }: PdfViewerProps) {
+export function PdfViewer({
+  product,
+  pdfUrl,
+  selectedFieldKey,
+  onClose,
+}: PdfViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
@@ -74,6 +80,11 @@ export function PdfViewer({ product, pdfUrl, onClose }: PdfViewerProps) {
           </h2>
           <p className="text-sm text-gray-500">
             {product.itemName.value} • Page {pageNumber}
+            {selectedFieldKey && (
+              <span className="ml-2 text-blue-600 font-medium">
+                • Highlighting: {selectedFieldKey}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -159,20 +170,30 @@ export function PdfViewer({ product, pdfUrl, onClose }: PdfViewerProps) {
               />
             </Document>
 
-            {/* Highlight Box - Show the itemName bbox */}
-            {pageNumber === productPage && (
-              <div
-                className={cn(
-                  "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
-                )}
-                style={{
-                  left: `${product.itemName.bbox.left * 100}%`,
-                  top: `${product.itemName.bbox.top * 100}%`,
-                  width: `${product.itemName.bbox.width * 100}%`,
-                  height: `${product.itemName.bbox.height * 100}%`,
-                }}
-              />
-            )}
+            {/* Highlight Box - Show the selected field's bbox or default to itemName */}
+            {pageNumber === productPage &&
+              (() => {
+                // Get the field to highlight - default to itemName if no specific field selected
+                const fieldKey =
+                  (selectedFieldKey as ProductFieldKey) || "itemName";
+                const field = product[fieldKey] as FieldWithBBox<string>;
+
+                if (!field?.bbox) return null;
+
+                return (
+                  <div
+                    className={cn(
+                      "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
+                    )}
+                    style={{
+                      left: `${field.bbox.left * 100}%`,
+                      top: `${field.bbox.top * 100}%`,
+                      width: `${field.bbox.width * 100}%`,
+                      height: `${field.bbox.height * 100}%`,
+                    }}
+                  />
+                );
+              })()}
           </div>
         </div>
       </div>
