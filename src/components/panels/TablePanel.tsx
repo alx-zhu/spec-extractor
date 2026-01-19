@@ -13,6 +13,7 @@ import type { Product } from "@/types/product";
 interface TablePanelProps {
   products: Product[];
   selectedProduct: Product | null;
+  selectedFieldKey: string | null;
   onRowClick: (product: Product, fieldKey?: string) => void;
   isPdfViewerOpen: boolean;
 }
@@ -20,6 +21,7 @@ interface TablePanelProps {
 export function TablePanel({
   products,
   selectedProduct,
+  selectedFieldKey,
   onRowClick,
   isPdfViewerOpen,
 }: TablePanelProps) {
@@ -76,6 +78,7 @@ export function TablePanel({
           data={filteredProducts}
           onRowClick={onRowClick}
           selectedProductId={selectedProduct?.id}
+          selectedFieldKey={selectedFieldKey}
         />
       </div>
 

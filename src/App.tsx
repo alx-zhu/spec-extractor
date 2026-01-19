@@ -101,6 +101,7 @@ function App() {
         <TablePanel
           products={products}
           selectedProduct={selectedProduct}
+          selectedFieldKey={selectedFieldKey}
           onRowClick={handleRowClick}
           isPdfViewerOpen={!!(selectedProduct && pdfUrl)}
         />

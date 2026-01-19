@@ -6,9 +6,15 @@ interface ProductRowProps {
   row: Row<Product>;
   onClick?: (fieldKey?: string) => void;
   isSelected?: boolean;
+  selectedFieldKey?: string | null;
 }
 
-export function ProductRow({ row, onClick, isSelected }: ProductRowProps) {
+export function ProductRow({
+  row,
+  onClick,
+  isSelected,
+  selectedFieldKey,
+}: ProductRowProps) {
   const isChecked = row.getIsSelected();
   const isVisuallySelected = isSelected || isChecked;
 
@@ -30,12 +36,18 @@ export function ProductRow({ row, onClick, isSelected }: ProductRowProps) {
         const minWidth = isItemName ? 250 : size;
         const fieldName = cell.column.columnDef.meta?.fieldName;
 
+        // Check if this field is the selected field for the selected row
+        const isSelectedField =
+          isSelected && selectedFieldKey && fieldName === selectedFieldKey;
+
         return (
           <div
             key={cell.id}
             className={cn(
-              "px-3 py-3 flex items-center border-r border-gray-200 last:border-r-0 transition-colors box-border",
+              "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border",
               cell.column.id === "select" && "justify-center",
+              // Apply blue background for selected field
+              isSelectedField && "bg-blue-50",
               // Different hover colors: darker blue for selected rows, light blue for non-selected
               fieldName && "cursor-pointer",
               fieldName &&

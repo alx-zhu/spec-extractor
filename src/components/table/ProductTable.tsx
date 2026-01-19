@@ -12,12 +12,14 @@ interface ProductTableProps {
   data: Product[];
   onRowClick?: (product: Product, fieldKey?: string) => void;
   selectedProductId?: string;
+  selectedFieldKey?: string | null;
 }
 
 export function ProductTable({
   data,
   onRowClick,
   selectedProductId,
+  selectedFieldKey,
 }: ProductTableProps) {
   const table = useReactTable({
     data,
@@ -74,6 +76,7 @@ export function ProductTable({
                   row={row}
                   onClick={(fieldKey) => onRowClick?.(row.original, fieldKey)}
                   isSelected={selectedProductId === row.original.id}
+                  selectedFieldKey={selectedFieldKey}
                 />
               ))
           )}
