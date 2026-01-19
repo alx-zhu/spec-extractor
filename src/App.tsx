@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ProductTable } from "@/components/table/ProductTable";
 import { UploadModal } from "@/components/upload/UploadModal";
-import { PdfViewer } from "@/components/pdf-viewer/PDFViewer";
+import { PdfViewer } from "@/components/pdf-viewer/PdfViewer";
 import { mockProducts } from "@/data/mockData";
 import type { Product } from "@/types/product";
 import {
@@ -25,10 +25,10 @@ function App() {
   const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase();
     return (
-      product.itemName.toLowerCase().includes(query) ||
-      product.manufacturer.toLowerCase().includes(query) ||
-      product.specIdNumber.toLowerCase().includes(query) ||
-      product.project.toLowerCase().includes(query)
+      product.itemName.value.toLowerCase().includes(query) ||
+      product.manufacturer.value.toLowerCase().includes(query) ||
+      product.specIdNumber.value.toLowerCase().includes(query) ||
+      product.project.value.toLowerCase().includes(query)
     );
   });
 
@@ -65,26 +65,35 @@ function App() {
         const manufacturers = ["Pending", "Processing", "To Be Extracted"];
         const colors = ["—", "TBD", "Pending"];
         const sizes = ["—", "Standard", "Custom"];
+        const pageNum = Math.floor(Math.random() * 50) + 1;
+
+        // Helper to create field with bbox
+        const createField = (value: string) => ({
+          value,
+          bbox: {
+            left: 0.1,
+            top: 0.2 + productIndex * 0.1,
+            width: 0.4,
+            height: 0.06,
+            page: pageNum,
+          },
+        });
 
         return {
           id,
-          itemName: `Product ${productIndex + 1} from ${file.name}`,
-          manufacturer:
+          itemName: createField(
+            `Product ${productIndex + 1} from ${file.name}`,
+          ),
+          manufacturer: createField(
             manufacturers[Math.floor(Math.random() * manufacturers.length)],
-          specIdNumber: "00 00 00",
-          color: colors[Math.floor(Math.random() * colors.length)],
-          size: sizes[Math.floor(Math.random() * sizes.length)],
-          price: "—",
-          project: "Pending Classification",
-          linkToProduct: "—",
+          ),
+          specIdNumber: createField("00 00 00"),
+          color: createField(colors[Math.floor(Math.random() * colors.length)]),
+          size: createField(sizes[Math.floor(Math.random() * sizes.length)]),
+          price: createField("—"),
+          project: createField("Pending Classification"),
+          linkToProduct: createField("—"),
           specDocumentId: id,
-          pageNumber: Math.floor(Math.random() * 50) + 1,
-          bbox: {
-            x: 100,
-            y: 200 + productIndex * 100,
-            width: 400,
-            height: 60,
-          },
           extractedText: `Placeholder text from ${file.name}`,
           createdAt: new Date(),
         };
@@ -93,7 +102,7 @@ function App() {
 
     setProducts((prev) => [...newProducts, ...prev]);
     console.log(
-      `Added ${newProducts.length} placeholder products from ${files.length} files`
+      `Added ${newProducts.length} placeholder products from ${files.length} files`,
     );
   };
 

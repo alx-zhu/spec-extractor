@@ -1,26 +1,63 @@
+import type { ReductoCitation, ReductoBBox } from "./reducto";
+
+export interface FieldWithBBox<T> {
+  value: T;
+  bbox: ReductoBBox;
+  citation?: ReductoCitation; // Keep full Reducto citation for reference
+}
+
 export interface Product {
   id: string;
-  itemName: string;
-  manufacturer: string;
-  specIdNumber: string;
-  color: string;
-  size: string;
-  price: string;
-  project: string;
-  linkToProduct: string;
+
+  // Product fields with Reducto bounding boxes
+  itemName: FieldWithBBox<string>;
+  manufacturer: FieldWithBBox<string>;
+  specIdNumber: FieldWithBBox<string>;
+  color: FieldWithBBox<string>;
+  size: FieldWithBBox<string>;
+  price: FieldWithBBox<string>;
+  project: FieldWithBBox<string>;
+  linkToProduct: FieldWithBBox<string>;
 
   // Source tracking from Reducto
   specDocumentId: string;
-  pageNumber: number;
-  bbox: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
   extractedText: string;
 
   createdAt: Date;
+}
+
+// Type for table columns - only the fields with bboxes
+export type ProductFieldKey = keyof Pick<
+  Product,
+  | "itemName"
+  | "manufacturer"
+  | "specIdNumber"
+  | "color"
+  | "size"
+  | "price"
+  | "project"
+  | "linkToProduct"
+>;
+
+// Helper to create FieldWithBBox from Reducto citation
+export function createFieldFromCitation(
+  citation: ReductoCitation,
+): FieldWithBBox<string> {
+  return {
+    value: String(citation.content),
+    bbox: citation.bbox,
+    citation,
+  };
+}
+
+// Helper function to get field value safely
+export function getFieldValue(field: FieldWithBBox<string>): string {
+  return field.value;
+}
+
+// Helper function to get field bbox safely
+export function getFieldBBox(field: FieldWithBBox<string>): ReductoBBox {
+  return field.bbox;
 }
 
 export interface SpecDocument {

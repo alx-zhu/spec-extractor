@@ -21,34 +21,32 @@ export function PdfViewer({ product, pdfUrl, onClose }: PdfViewerProps) {
 
   console.log("pdfUrl:", pdfUrl);
 
+  // Get the page number from the first field with a bbox (use itemName as default)
+  const productPage = product.itemName.bbox.page;
+
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
 
     console.log("Document loaded with", numPages, "pages.");
     // Navigate to the page where the product was found, but ensure it's valid
-    if (
-      product.pageNumber &&
-      product.pageNumber >= 1 &&
-      product.pageNumber <= numPages
-    ) {
-      setPageNumber(product.pageNumber);
+    if (productPage && productPage >= 1 && productPage <= numPages) {
+      setPageNumber(productPage);
     } else {
       setPageNumber(1);
     }
   }
 
-  // TODO: potentially remove this if not needed
   // Update page when product changes
   useEffect(() => {
     if (
       numPages > 0 &&
-      product.pageNumber &&
-      product.pageNumber >= 1 &&
-      product.pageNumber <= numPages
+      productPage &&
+      productPage >= 1 &&
+      productPage <= numPages
     ) {
-      setPageNumber(product.pageNumber);
+      setPageNumber(productPage);
     }
-  }, [product.id, product.pageNumber, numPages]);
+  }, [product.id, productPage, numPages]);
 
   const goToPrevPage = () => {
     setPageNumber((prev) => Math.max(prev - 1, 1));
@@ -75,7 +73,7 @@ export function PdfViewer({ product, pdfUrl, onClose }: PdfViewerProps) {
             Source Document
           </h2>
           <p className="text-sm text-gray-500">
-            {product.itemName} • Page {pageNumber}
+            {product.itemName.value} • Page {pageNumber}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -161,17 +159,17 @@ export function PdfViewer({ product, pdfUrl, onClose }: PdfViewerProps) {
               />
             </Document>
 
-            {/* Highlight Box - Only show if on the correct page */}
-            {pageNumber === product.pageNumber && product.bbox && (
+            {/* Highlight Box - Show the itemName bbox */}
+            {pageNumber === productPage && (
               <div
                 className={cn(
-                  "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none"
+                  "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
                 )}
                 style={{
-                  left: `${product.bbox.x * scale}px`,
-                  top: `${product.bbox.y * scale}px`,
-                  width: `${product.bbox.width * scale}px`,
-                  height: `${product.bbox.height * scale}px`,
+                  left: `${product.itemName.bbox.left * 100}%`,
+                  top: `${product.itemName.bbox.top * 100}%`,
+                  width: `${product.itemName.bbox.width * 100}%`,
+                  height: `${product.itemName.bbox.height * 100}%`,
                 }}
               />
             )}
