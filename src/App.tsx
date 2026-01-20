@@ -3,11 +3,13 @@ import { Header } from "@/components/Header";
 import { TablePanel } from "@/components/panels/TablePanel";
 import { PdfViewerPanel } from "@/components/panels/PdfViewerPanel";
 import { UploadModal } from "@/components/upload/UploadModal";
-import { mockProducts } from "@/data/mockData";
+import { useProducts } from "@/hooks/useProducts";
 import type { Product } from "@/types/product";
 
 function App() {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  // Fetch products from React Query
+  const { data: products = [], isLoading } = useProducts();
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedFieldKey, setSelectedFieldKey] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -37,57 +39,14 @@ function App() {
     setPdfUrl(null);
   };
 
-  const handleUploadComplete = (files: File[]) => {
-    // Generate placeholder products for each uploaded file
-    const newProducts: Product[] = files.flatMap((file, fileIndex) => {
-      // Generate 3-5 products per file
-      const productsPerFile = Math.floor(Math.random() * 3) + 3;
-
-      return Array.from({ length: productsPerFile }, (_, productIndex) => {
-        const id = `upload-${Date.now()}-${fileIndex}-${productIndex}`;
-        const manufacturers = ["Pending", "Processing", "To Be Extracted"];
-        const colors = ["—", "TBD", "Pending"];
-        const sizes = ["—", "Standard", "Custom"];
-        const pageNum = Math.floor(Math.random() * 50) + 1;
-
-        // Helper to create field with bbox
-        const createField = (value: string) => ({
-          value,
-          bbox: {
-            left: 0.1,
-            top: 0.2 + productIndex * 0.1,
-            width: 0.4,
-            height: 0.06,
-            page: pageNum,
-          },
-        });
-
-        return {
-          id,
-          itemName: createField(
-            `Product ${productIndex + 1} from ${file.name}`,
-          ),
-          manufacturer: createField(
-            manufacturers[Math.floor(Math.random() * manufacturers.length)],
-          ),
-          specIdNumber: createField("00 00 00"),
-          color: createField(colors[Math.floor(Math.random() * colors.length)]),
-          size: createField(sizes[Math.floor(Math.random() * sizes.length)]),
-          price: createField("—"),
-          project: createField("Pending Classification"),
-          linkToProduct: createField("—"),
-          specDocumentId: id,
-          extractedText: `Placeholder text from ${file.name}`,
-          createdAt: new Date(),
-        };
-      });
-    });
-
-    setProducts((prev) => [...newProducts, ...prev]);
-    console.log(
-      `Added ${newProducts.length} placeholder products from ${files.length} files`,
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-sm text-gray-500">Loading products...</div>
+      </div>
     );
-  };
+  }
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -120,7 +79,6 @@ function App() {
       <UploadModal
         open={isUploadModalOpen}
         onOpenChange={setIsUploadModalOpen}
-        onUploadComplete={handleUploadComplete}
       />
     </div>
   );

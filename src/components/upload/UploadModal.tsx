@@ -9,21 +9,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCreateDocument } from "@/hooks/useDocuments";
+import { useCreateProducts } from "@/hooks/useProducts";
+import type { Product } from "@/types/product";
 
 interface UploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUploadComplete: (files: File[]) => void;
 }
 
-export function UploadModal({
-  open,
-  onOpenChange,
-  onUploadComplete,
-}: UploadModalProps) {
+export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const createDocument = useCreateDocument();
+  const createProducts = useCreateProducts();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -67,13 +68,31 @@ export function UploadModal({
 
     setIsProcessing(true);
 
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Process each file
+      for (const file of selectedFiles) {
+        // Create document entry
+        const document = await createDocument.mutateAsync({
+          file,
+          localPath: file.name, // In production, this will be a storage URL
+        });
 
-    onUploadComplete(selectedFiles);
-    setIsProcessing(false);
-    setSelectedFiles([]);
-    onOpenChange(false);
+        // Generate mock products for this document
+        const newProducts = generateMockProducts(file, document.id);
+
+        // Create products in batch
+        await createProducts.mutateAsync(newProducts);
+      }
+
+      // Reset and close
+      setSelectedFiles([]);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Failed to upload files. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCancel = () => {
@@ -207,4 +226,50 @@ export function UploadModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Generate mock products from a file
+ * In production, this will be replaced by Reducto API call
+ */
+function generateMockProducts(
+  file: File,
+  documentId: string,
+): Omit<Product, "id" | "createdAt">[] {
+  // Generate 3-5 products per file
+  const productsPerFile = Math.floor(Math.random() * 3) + 3;
+
+  return Array.from({ length: productsPerFile }, (_, productIndex) => {
+    const manufacturers = ["Pending", "Processing", "To Be Extracted"];
+    const colors = ["—", "TBD", "Pending"];
+    const sizes = ["—", "Standard", "Custom"];
+    const pageNum = Math.floor(Math.random() * 50) + 1;
+
+    // Helper to create field with bbox
+    const createField = (value: string) => ({
+      value,
+      bbox: {
+        left: 0.1,
+        top: 0.2 + productIndex * 0.1,
+        width: 0.4,
+        height: 0.06,
+        page: pageNum,
+      },
+    });
+
+    return {
+      itemName: createField(`Product ${productIndex + 1} from ${file.name}`),
+      manufacturer: createField(
+        manufacturers[Math.floor(Math.random() * manufacturers.length)],
+      ),
+      specIdNumber: createField("00 00 00"),
+      color: createField(colors[Math.floor(Math.random() * colors.length)]),
+      size: createField(sizes[Math.floor(Math.random() * sizes.length)]),
+      price: createField("—"),
+      project: createField("Pending Classification"),
+      linkToProduct: createField("—"),
+      specDocumentId: documentId,
+      extractedText: `Placeholder text from ${file.name}`,
+    };
+  });
 }
