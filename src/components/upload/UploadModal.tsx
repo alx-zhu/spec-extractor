@@ -40,7 +40,7 @@ export function UploadModal({
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files).filter(
-      (file) => file.type === "application/pdf"
+      (file) => file.type === "application/pdf",
     );
 
     if (files.length > 0) {
@@ -52,7 +52,7 @@ export function UploadModal({
     const files = e.target.files;
     if (files) {
       const pdfFiles = Array.from(files).filter(
-        (file) => file.type === "application/pdf"
+        (file) => file.type === "application/pdf",
       );
       setSelectedFiles((prev) => [...prev, ...pdfFiles]);
     }
@@ -103,7 +103,7 @@ export function UploadModal({
               "relative border-2 border-dashed rounded-lg transition-all",
               isDragging
                 ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                : "border-gray-200 bg-gray-50 hover:bg-gray-100",
             )}
           >
             <input
@@ -120,7 +120,7 @@ export function UploadModal({
                   "w-12 h-12 rounded-full flex items-center justify-center mb-4 transition-colors",
                   isDragging
                     ? "bg-blue-100 text-blue-600"
-                    : "bg-gray-100 text-gray-400"
+                    : "bg-gray-100 text-gray-400",
                 )}
               >
                 <Upload className="w-6 h-6" />
@@ -149,7 +149,7 @@ export function UploadModal({
                     className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg group hover:border-gray-300 transition-colors"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 rounded bg-red-50 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded bg-red-50 flex items-center justify-center shrink-0">
                         <FileText className="w-4 h-4 text-red-600" />
                       </div>
                       <div className="flex-1 min-w-0">

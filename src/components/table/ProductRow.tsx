@@ -44,14 +44,15 @@ export function ProductRow({
           <div
             key={cell.id}
             className={cn(
-              "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border",
+              "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border ",
               cell.column.id === "select" && "justify-center",
               // Apply blue background for selected field
               isSelectedField && "bg-blue-50",
               // Different hover colors: darker blue for selected rows, light blue for non-selected
-              fieldName && "cursor-pointer",
+              fieldName && "cursor-pointer hover:bg-gray-50",
               fieldName &&
-                (isChecked ? "hover:bg-blue-100/80" : "hover:bg-blue-50"),
+                (isChecked || isSelectedField) &&
+                "hover:bg-blue-100/80",
             )}
             style={{
               width: size ? `${size}px` : undefined,
