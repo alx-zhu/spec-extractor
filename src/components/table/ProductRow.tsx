@@ -1,12 +1,18 @@
-import { flexRender, type Row } from "@tanstack/react-table";
-import type { Product } from "@/types/product";
+import { type Row } from "@tanstack/react-table";
+import type { Product, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
+import { ProductCell } from "./ProductCell";
 
 interface ProductRowProps {
   row: Row<Product>;
   onClick?: (fieldKey?: string) => void;
   isSelected?: boolean;
   selectedFieldKey?: string | null;
+  onCellSave?: (
+    productId: string,
+    fieldKey: ProductFieldKey,
+    newValue: string,
+  ) => void;
 }
 
 export function ProductRow({
@@ -14,9 +20,14 @@ export function ProductRow({
   onClick,
   isSelected,
   selectedFieldKey,
+  onCellSave,
 }: ProductRowProps) {
   const isChecked = row.getIsSelected();
   const isVisuallySelected = isSelected || isChecked;
+
+  const handleCellSave = (fieldKey: ProductFieldKey, newValue: string) => {
+    onCellSave?.(row.original.id, fieldKey, newValue);
+  };
 
   return (
     <div
@@ -31,45 +42,23 @@ export function ProductRow({
       )}
     >
       {row.getVisibleCells().map((cell) => {
-        const size = cell.column.columnDef.size;
-        const isItemName = cell.column.id === "itemName";
-        const minWidth = isItemName ? 250 : size;
-        const fieldName = cell.column.columnDef.meta?.fieldName;
+        const fieldName = cell.column.columnDef.meta?.fieldName as
+          | string
+          | undefined;
 
         // Check if this field is the selected field for the selected row
-        const isSelectedField =
+        const isFieldSelected =
           isSelected && selectedFieldKey && fieldName === selectedFieldKey;
 
         return (
-          <div
+          <ProductCell
             key={cell.id}
-            className={cn(
-              "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border ",
-              cell.column.id === "select" && "justify-center",
-              // Apply blue background for selected field
-              isSelectedField && "bg-blue-50",
-              // Different hover colors: darker blue for selected rows, light blue for non-selected
-              fieldName && "cursor-pointer hover:bg-gray-50",
-              fieldName &&
-                (isChecked || isSelectedField) &&
-                "hover:bg-blue-100/80",
-            )}
-            style={{
-              width: size ? `${size}px` : undefined,
-              minWidth: minWidth ? `${minWidth}px` : undefined,
-              flex: isItemName ? "1" : undefined,
-            }}
-            onClick={(e) => {
-              if (fieldName) {
-                e.stopPropagation();
-                onClick?.(fieldName);
-              } else if (cell.column.id !== "select") {
-                onClick?.();
-              }
-            }}
-          >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </div>
+            cell={cell}
+            isSelected={isSelected ?? false}
+            isFieldSelected={!!isFieldSelected}
+            onClick={onClick}
+            onSave={handleCellSave}
+          />
         );
       })}
     </div>

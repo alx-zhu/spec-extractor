@@ -3,10 +3,11 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import type { Product } from "@/types/product";
+import type { Product, ProductFieldKey } from "@/types/product";
 import { productColumns } from "./columns";
 import { ProductRow } from "./ProductRow";
 import { cn } from "@/lib/utils";
+import { useUpdateProduct } from "@/hooks/useProducts";
 
 interface ProductTableProps {
   data: Product[];
@@ -21,11 +22,36 @@ export function ProductTable({
   selectedProductId,
   selectedFieldKey,
 }: ProductTableProps) {
+  const updateProduct = useUpdateProduct();
+
   const table = useReactTable({
     data,
     columns: productColumns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const handleCellSave = (
+    productId: string,
+    fieldKey: ProductFieldKey,
+    newValue: string,
+  ) => {
+    // Find the product to get the existing bbox
+    const product = data.find((p) => p.id === productId);
+    if (!product) return;
+
+    // Preserve the bbox while updating the value
+    const fieldData = product[fieldKey];
+    updateProduct.mutate({
+      productId,
+      updates: {
+        [fieldKey]: {
+          value: newValue,
+          bbox: fieldData.bbox,
+          citation: fieldData.citation,
+        },
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col h-full overflow-x-auto">
@@ -77,6 +103,7 @@ export function ProductTable({
                   onClick={(fieldKey) => onRowClick?.(row.original, fieldKey)}
                   isSelected={selectedProductId === row.original.id}
                   selectedFieldKey={selectedFieldKey}
+                  onCellSave={handleCellSave}
                 />
               ))
           )}
