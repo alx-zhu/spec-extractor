@@ -26,6 +26,22 @@ export function ProductCell({
     | undefined;
   const isCheckboxColumn = cell.column.id === "select";
 
+  // Guard against undefined row
+  if (!cell.row || !cell.row.original) {
+    return (
+      <div
+        key={cell.id}
+        className="px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border"
+        style={{
+          width: size ? `${size}px` : undefined,
+          minWidth: minWidth ? `${minWidth}px` : undefined,
+        }}
+      >
+        <span className="text-gray-400">—</span>
+      </div>
+    );
+  }
+
   const handleClick = (e: React.MouseEvent) => {
     if (fieldName) {
       e.stopPropagation();
@@ -62,7 +78,7 @@ export function ProductCell({
       }}
       onClick={handleClick}
     >
-      {fieldName ? (
+      {fieldName && cell.row.original[fieldName] ? (
         <EditableCell
           value={cell.row.original[fieldName].value}
           fieldKey={fieldName}

@@ -31,10 +31,10 @@ export function TablePanel({
   const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase();
     return (
-      product.itemName.value.toLowerCase().includes(query) ||
-      product.manufacturer.value.toLowerCase().includes(query) ||
-      product.specIdNumber.value.toLowerCase().includes(query) ||
-      product.project.value.toLowerCase().includes(query)
+      product?.itemName?.value?.toLowerCase().includes(query) ||
+      product?.manufacturer?.value?.toLowerCase().includes(query) ||
+      product?.specIdNumber?.value?.toLowerCase().includes(query) ||
+      product?.project?.value?.toLowerCase().includes(query)
     );
   });
 

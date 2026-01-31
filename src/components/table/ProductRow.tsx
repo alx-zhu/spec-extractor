@@ -26,7 +26,9 @@ export function ProductRow({
   const isVisuallySelected = isSelected || isChecked;
 
   const handleCellSave = (fieldKey: ProductFieldKey, newValue: string) => {
-    onCellSave?.(row.original.id, fieldKey, newValue);
+    if (row.original?.id) {
+      onCellSave?.(row.original.id, fieldKey, newValue);
+    }
   };
 
   return (

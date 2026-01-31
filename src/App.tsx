@@ -5,10 +5,12 @@ import { PdfViewerPanel } from "@/components/panels/PdfViewerPanel";
 import { UploadModal } from "@/components/upload/UploadModal";
 import { useProducts } from "@/hooks/useProducts";
 import type { Product } from "@/types/product";
+import { useDocuments } from "./hooks/useDocuments";
 
 function App() {
   // Fetch products from React Query
   const { data: products = [], isLoading } = useProducts();
+  const { data: documents = [] } = useDocuments();
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedFieldKey, setSelectedFieldKey] = useState<string | null>(null);
@@ -28,9 +30,9 @@ function App() {
     setSelectedProduct(product);
     setSelectedFieldKey(fieldKey || null);
 
-    // Reference a PDF from the public folder
-    // Place your PDF in /public and reference it like this:
-    setPdfUrl("/sample_spec.pdf");
+    const document = documents.find((d) => d.id === product.specDocumentId);
+    console.log(document);
+    setPdfUrl(document?.filename || "sample_spec.pdf");
   };
 
   const handleClosePdfViewer = () => {

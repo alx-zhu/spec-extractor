@@ -28,7 +28,7 @@ export function PdfViewer({
   console.log("pdfUrl:", pdfUrl);
 
   // Get the page number from the first field with a bbox (use itemName as default)
-  const productPage = product.itemName.bbox.page;
+  const productPage = product?.itemName?.bbox?.page || 1;
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -79,7 +79,7 @@ export function PdfViewer({
             Source Document
           </h2>
           <p className="text-sm text-gray-500">
-            {product.itemName.value} • Page {pageNumber}
+            {product?.itemName?.value || "Product"} • Page {pageNumber}
             {selectedFieldKey && (
               <span className="ml-2 text-blue-600 font-medium">
                 • Highlighting: {selectedFieldKey}

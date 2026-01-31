@@ -13,6 +13,7 @@ export interface Product {
   itemName: FieldWithBBox<string>;
   manufacturer: FieldWithBBox<string>;
   specIdNumber: FieldWithBBox<string>;
+  productKey: FieldWithBBox<string>;
   color: FieldWithBBox<string>;
   size: FieldWithBBox<string>;
   price: FieldWithBBox<string>;
@@ -32,6 +33,7 @@ export type ProductFieldKey = keyof Pick<
   | "itemName"
   | "manufacturer"
   | "specIdNumber"
+  | "productKey"
   | "color"
   | "size"
   | "price"

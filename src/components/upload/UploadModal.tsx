@@ -7,11 +7,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, X, Loader2 } from "lucide-react";
+import { Upload, FileText, X, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCreateDocument } from "@/hooks/useDocuments";
+import {
+  useCreateDocument,
+  useUpdateDocumentStatus,
+} from "@/hooks/useDocuments";
 import { useCreateProducts } from "@/hooks/useProducts";
-import type { Product } from "@/types/product";
+import { useReductoExtraction } from "@/hooks/useReductoExtraction";
+import { savePdfToPublic } from "@/utils/storage";
 
 interface UploadModalProps {
   open: boolean;
@@ -22,9 +26,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   const createDocument = useCreateDocument();
+  const updateDocumentStatus = useUpdateDocumentStatus();
   const createProducts = useCreateProducts();
+  const reductoExtraction = useReductoExtraction();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -67,29 +75,92 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     if (selectedFiles.length === 0) return;
 
     setIsProcessing(true);
+    setError(null);
 
     try {
       // Process each file
-      for (const file of selectedFiles) {
-        // Create document entry
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        setProcessingStatus(
+          `Processing ${i + 1}/${selectedFiles.length}: ${file.name}`,
+        );
+
+        console.log(
+          `[Upload] Processing file ${i + 1}/${selectedFiles.length}:`,
+          file.name,
+        );
+
+        // Step 1: Save PDF to public folder (for localhost demo)
+        const pdfPath = await savePdfToPublic(file);
+        console.log(`[Upload] PDF path:`, pdfPath);
+
+        // Step 2: Create document entry in "processing" state
+        setProcessingStatus(`Creating document record...`);
         const document = await createDocument.mutateAsync({
           file,
-          localPath: file.name, // In production, this will be a storage URL
+          localPath: pdfPath,
+        });
+        console.log(`[Upload] Document created:`, document.id);
+
+        // Step 3: Extract products using Reducto
+        setProcessingStatus(`Extracting products with Reducto AI...`);
+        const extractedProducts = await reductoExtraction.mutateAsync({
+          file,
+          documentId: document.id,
+          pdfPath,
         });
 
-        // Generate mock products for this document
-        const newProducts = generateMockProducts(file, document.id);
+        console.log(
+          `[Upload] Extracted ${extractedProducts.length} products from ${file.name}`,
+        );
 
-        // Create products in batch
-        await createProducts.mutateAsync(newProducts);
+        // Step 4: Save extracted products
+        if (extractedProducts.length > 0) {
+          setProcessingStatus(`Saving ${extractedProducts.length} products...`);
+          await createProducts.mutateAsync(
+            extractedProducts.map((p) => ({
+              itemName: p.itemName,
+              manufacturer: p.manufacturer,
+              specIdNumber: p.specIdNumber,
+              productKey: p.productKey,
+              color: p.color,
+              size: p.size,
+              price: p.price,
+              project: p.project,
+              linkToProduct: p.linkToProduct,
+              specDocumentId: p.specDocumentId,
+              extractedText: p.extractedText,
+            })),
+          );
+        }
+
+        // Step 5: Update document status to completed
+        await updateDocumentStatus.mutateAsync({
+          documentId: document.id,
+          status: "completed",
+        });
+
+        console.log(`[Upload] Completed processing ${file.name}`);
       }
 
-      // Reset and close
+      // Success - reset and close
       setSelectedFiles([]);
+      setProcessingStatus("");
       onOpenChange(false);
+
+      // Show success message
+      alert(
+        `Successfully processed ${selectedFiles.length} document(s)!\n\nNote: PDFs are referenced from /public/uploads/. Make sure files are saved there.`,
+      );
     } catch (error) {
-      console.error("Upload failed:", error);
-      alert("Failed to upload files. Please try again.");
+      console.error("[Upload] Processing failed:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      setError(errorMessage);
+      setProcessingStatus("");
+
+      // Update any documents to error state if needed
+      // (In production, you'd track which document failed)
     } finally {
       setIsProcessing(false);
     }
@@ -97,6 +168,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
 
   const handleCancel = () => {
     setSelectedFiles([]);
+    setError(null);
+    setProcessingStatus("");
     onOpenChange(false);
   };
 
@@ -108,7 +181,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
             Upload Specifications
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
-            Upload PDF specification files to extract product information
+            Upload PDF specification files to extract product information using
+            Reducto AI
           </DialogDescription>
         </DialogHeader>
 
@@ -132,6 +206,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               onChange={handleFileSelect}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               id="file-upload"
+              disabled={isProcessing}
             />
             <div className="flex flex-col items-center justify-center py-12 px-6">
               <div
@@ -152,6 +227,27 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               </p>
             </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900">
+                  Extraction Failed
+                </p>
+                <p className="text-xs text-red-700 mt-1">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Processing Status */}
+          {isProcessing && processingStatus && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+              <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0" />
+              <p className="text-sm text-blue-900">{processingStatus}</p>
+            </div>
+          )}
 
           {/* Selected Files */}
           {selectedFiles.length > 0 && (
@@ -185,6 +281,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                       size="icon"
                       onClick={() => removeFile(index)}
                       className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      disabled={isProcessing}
                     >
                       <X className="h-4 w-4 text-gray-400" />
                     </Button>
@@ -216,8 +313,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               ) : (
                 <>
                   <Upload className="h-4 w-4" />
-                  Upload{" "}
-                  {selectedFiles.length > 0 && `(${selectedFiles.length})`}
+                  Extract with Reducto
+                  {selectedFiles.length > 0 && ` (${selectedFiles.length})`}
                 </>
               )}
             </Button>
@@ -226,50 +323,4 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       </DialogContent>
     </Dialog>
   );
-}
-
-/**
- * Generate mock products from a file
- * In production, this will be replaced by Reducto API call
- */
-function generateMockProducts(
-  file: File,
-  documentId: string,
-): Omit<Product, "id" | "createdAt">[] {
-  // Generate 3-5 products per file
-  const productsPerFile = Math.floor(Math.random() * 3) + 3;
-
-  return Array.from({ length: productsPerFile }, (_, productIndex) => {
-    const manufacturers = ["Pending", "Processing", "To Be Extracted"];
-    const colors = ["—", "TBD", "Pending"];
-    const sizes = ["—", "Standard", "Custom"];
-    const pageNum = Math.floor(Math.random() * 50) + 1;
-
-    // Helper to create field with bbox
-    const createField = (value: string) => ({
-      value,
-      bbox: {
-        left: 0.1,
-        top: 0.2 + productIndex * 0.1,
-        width: 0.4,
-        height: 0.06,
-        page: pageNum,
-      },
-    });
-
-    return {
-      itemName: createField(`Product ${productIndex + 1} from ${file.name}`),
-      manufacturer: createField(
-        manufacturers[Math.floor(Math.random() * manufacturers.length)],
-      ),
-      specIdNumber: createField("00 00 00"),
-      color: createField(colors[Math.floor(Math.random() * colors.length)]),
-      size: createField(sizes[Math.floor(Math.random() * sizes.length)]),
-      price: createField("—"),
-      project: createField("Pending Classification"),
-      linkToProduct: createField("—"),
-      specDocumentId: documentId,
-      extractedText: `Placeholder text from ${file.name}`,
-    };
-  });
 }

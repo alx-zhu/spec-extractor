@@ -101,7 +101,7 @@ export function ProductTable({
                   key={row.id}
                   row={row}
                   onClick={(fieldKey) => onRowClick?.(row.original, fieldKey)}
-                  isSelected={selectedProductId === row.original.id}
+                  isSelected={selectedProductId === row.original?.id}
                   selectedFieldKey={selectedFieldKey}
                   onCellSave={handleCellSave}
                 />

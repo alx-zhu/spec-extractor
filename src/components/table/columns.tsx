@@ -35,16 +35,20 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "itemName" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <div className="flex flex-col gap-0.5 min-w-0 w-full">
-        <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
-          {row.original.itemName.value || "—"}
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="flex flex-col gap-0.5 min-w-0 w-full">
+          <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
+            {row.original.itemName?.value || "—"}
+          </div>
+          <div className="text-xs text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">
+            {row.original.manufacturer?.value}{" "}
+            {row.original.specIdNumber?.value}
+          </div>
         </div>
-        <div className="text-xs text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">
-          {row.original.manufacturer.value} {row.original.specIdNumber.value}
-        </div>
-      </div>
-    ),
+      );
+    },
   },
   {
     id: "manufacturer",
@@ -54,11 +58,14 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "manufacturer" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <div className="text-sm text-gray-900">
-        {row.original.manufacturer.value || "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-900">
+          {row.original.manufacturer?.value || "—"}
+        </div>
+      );
+    },
   },
   {
     id: "specId",
@@ -68,11 +75,31 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "specIdNumber" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
-        {row.original.specIdNumber.value || "—"}
-      </span>
-    ),
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
+          {row.original.specIdNumber?.value || "—"}
+        </span>
+      );
+    },
+  },
+  {
+    id: "productKey",
+    header: "Product Key",
+    accessorKey: "productKey",
+    size: 140,
+    meta: {
+      fieldName: "productKey" as ProductFieldKey,
+    },
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.productKey?.value || "—"}
+        </div>
+      );
+    },
   },
   {
     id: "color",
@@ -82,11 +109,14 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "color" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <div className="text-sm text-gray-600">
-        {row.original.color.value || "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.color?.value || "—"}
+        </div>
+      );
+    },
   },
   {
     id: "size",
@@ -96,11 +126,14 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "size" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <div className="text-sm text-gray-600">
-        {row.original.size.value || "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.size?.value || "—"}
+        </div>
+      );
+    },
   },
   {
     id: "price",
@@ -110,11 +143,14 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "price" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <div className="text-sm text-gray-600">
-        {row.original.price.value || "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.price?.value || "—"}
+        </div>
+      );
+    },
   },
   {
     id: "project",
@@ -124,10 +160,13 @@ export const productColumns: ColumnDef<Product>[] = [
     meta: {
       fieldName: "project" as ProductFieldKey,
     },
-    cell: ({ row }) => (
-      <div className="text-sm text-gray-600">
-        {row.original.project.value || "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.project?.value || "—"}
+        </div>
+      );
+    },
   },
 ];

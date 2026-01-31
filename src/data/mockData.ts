@@ -75,6 +75,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("C-01", 1, {
+      left: 0.7,
+      top: 0.25,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("White", 1, {
       left: 0.15,
       top: 0.33,
@@ -127,6 +133,12 @@ export const mockProducts: Product[] = [
       left: 0.5,
       top: 0.45,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("L-02", 3, {
+      left: 0.65,
+      top: 0.45,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("", 3, {
@@ -183,6 +195,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("F-01", 2, {
+      left: 0.75,
+      top: 0.15,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Grigio", 2, {
       left: 0.2,
       top: 0.23,
@@ -235,6 +253,12 @@ export const mockProducts: Product[] = [
       left: 0.58,
       top: 0.52,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("D-03", 4, {
+      left: 0.73,
+      top: 0.52,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Satin Chrome", 4, {
@@ -291,6 +315,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("W-01", 5, {
+      left: 0.7,
+      top: 0.72,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Charcoal", 5, {
       left: 0.1,
       top: 0.8,
@@ -343,6 +373,12 @@ export const mockProducts: Product[] = [
       left: 0.62,
       top: 0.08,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("P-01", 6, {
+      left: 0.77,
+      top: 0.08,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Swiss Coffee", 6, {
@@ -399,6 +435,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("F-02", 7, {
+      left: 0.67,
+      top: 0.35,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Ash", 7, {
       left: 0.14,
       top: 0.43,
@@ -451,6 +493,12 @@ export const mockProducts: Product[] = [
       left: 0.58,
       top: 0.62,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("L-03", 3, {
+      left: 0.73,
+      top: 0.62,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Matte Black", 3, {
@@ -507,6 +555,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("E-01", 7, {
+      left: 0.69,
+      top: 0.18,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Anthracite", 7, {
       left: 0.11,
       top: 0.26,
@@ -559,6 +613,12 @@ export const mockProducts: Product[] = [
       left: 0.63,
       top: 0.42,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("H-01", 4, {
+      left: 0.78,
+      top: 0.42,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Brushed Stainless", 4, {
@@ -615,6 +675,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("G-01", 5, {
+      left: 0.71,
+      top: 0.28,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Clear", 5, {
       left: 0.17,
       top: 0.36,
@@ -667,6 +733,12 @@ export const mockProducts: Product[] = [
       left: 0.53,
       top: 0.55,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("F-03", 6, {
+      left: 0.68,
+      top: 0.55,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Graphite", 6, {
@@ -723,6 +795,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("N/A", 1, {
+      left: 0.76,
+      top: 0.12,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Galvanized", 1, {
       left: 0.21,
       top: 0.2,
@@ -775,6 +853,12 @@ export const mockProducts: Product[] = [
       left: 0.5,
       top: 0.38,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("S-01", 2, {
+      left: 0.65,
+      top: 0.38,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("White", 2, {
@@ -831,6 +915,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("T-01", 3, {
+      left: 0.79,
+      top: 0.65,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Stainless Steel", 3, {
       left: 0.24,
       top: 0.73,
@@ -883,6 +973,12 @@ export const mockProducts: Product[] = [
       left: 0.48,
       top: 0.22,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("E-02", 1, {
+      left: 0.63,
+      top: 0.22,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Blue", 1, {
@@ -939,6 +1035,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("A-01", 2, {
+      left: 0.81,
+      top: 0.08,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Natural", 2, {
       left: 0.26,
       top: 0.16,
@@ -991,6 +1093,12 @@ export const mockProducts: Product[] = [
       left: 0.58,
       top: 0.32,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("D-04", 3, {
+      left: 0.73,
+      top: 0.32,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Satin Nickel", 3, {
@@ -1047,6 +1155,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("L-04", 4, {
+      left: 0.71,
+      top: 0.48,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("White Trim", 4, {
       left: 0.11,
       top: 0.56,
@@ -1099,6 +1213,12 @@ export const mockProducts: Product[] = [
       left: 0.68,
       top: 0.82,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("W-02", 5, {
+      left: 0.83,
+      top: 0.82,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Beige", 5, {
@@ -1155,6 +1275,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("H-02", 6, {
+      left: 0.69,
+      top: 0.28,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("White", 6, {
       left: 0.15,
       top: 0.36,
@@ -1207,6 +1333,12 @@ export const mockProducts: Product[] = [
       left: 0.59,
       top: 0.1,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("N/A", 4, {
+      left: 0.74,
+      top: 0.1,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Black", 4, {
@@ -1263,6 +1395,12 @@ export const mockProducts: Product[] = [
       width: 0.12,
       height: 0.025,
     }),
+    productKey: createField("T-02", 7, {
+      left: 0.78,
+      top: 0.52,
+      width: 0.08,
+      height: 0.025,
+    }),
     color: createField("Satin Stainless", 7, {
       left: 0.17,
       top: 0.6,
@@ -1315,6 +1453,12 @@ export const mockProducts: Product[] = [
       left: 0.57,
       top: 0.18,
       width: 0.12,
+      height: 0.025,
+    }),
+    productKey: createField("S-02", 1, {
+      left: 0.72,
+      top: 0.18,
+      width: 0.08,
       height: 0.025,
     }),
     color: createField("Red/White", 1, {

@@ -1,23 +1,63 @@
-export interface ReductoExtraction {
-  result: {
-    [fieldName: string]: ReductoFieldValue;
+/**
+ * Reducto Extract API Response (with citations enabled)
+ */
+export interface ReductoExtractResponse {
+  result: ReductoExtractedProduct[];
+  job_id: string;
+  usage: {
+    num_fields: number;
+    num_pages: number;
+    credits: number;
   };
+  studio_link: string;
 }
 
-export interface ReductoFieldValue {
-  value: string | number;
+/**
+ * Single extracted product from Reducto (with citations)
+ */
+export interface ReductoExtractedProduct {
+  itemName: ReductoFieldValue<string>;
+  manufacturer: ReductoFieldValue<string>;
+  productKey: ReductoFieldValue<string>;
+  specIdNumber: ReductoFieldValue<string>;
+  color: ReductoFieldValue<string>;
+  size: ReductoFieldValue<string>;
+  price: ReductoFieldValue<string>;
+  project: ReductoFieldValue<string>;
+  linkToProduct: ReductoFieldValue<string>;
+}
+
+/**
+ * Field value with citations
+ */
+export interface ReductoFieldValue<T = string> {
+  value: T;
   citations: ReductoCitation[];
 }
 
+/**
+ * Citation with source location
+ */
 export interface ReductoCitation {
-  type: "Table" | "Text" | "List" | "Image";
+  type:
+    | "Table"
+    | "Text"
+    | "List"
+    | "List Item"
+    | "Image"
+    | "Section Header"
+    | "Header"
+    | "Title";
   content: string;
   bbox: ReductoBBox;
   confidence: "high" | "medium" | "low";
-  granular_confidence: {
-    extract_confidence: number;
+  granular_confidence?: {
+    extract_confidence: number | null;
     parse_confidence: number;
   };
+  image_url?: string | null;
+  chart_data?: unknown | null;
+  extra?: unknown | null;
   parentBlock?: {
     type: string;
     content: string;
@@ -25,6 +65,9 @@ export interface ReductoCitation {
   };
 }
 
+/**
+ * Bounding box coordinates (normalized 0-1)
+ */
 export interface ReductoBBox {
   left: number;
   top: number;
