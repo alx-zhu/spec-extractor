@@ -46,8 +46,7 @@ export function ProductTable({
       updates: {
         [fieldKey]: {
           value: newValue,
-          bbox: fieldData.bbox,
-          citation: fieldData.citation,
+          citations: fieldData?.citations || [],
         },
       },
     });
