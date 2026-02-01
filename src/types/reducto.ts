@@ -16,12 +16,12 @@ export interface ReductoExtractResponse {
  * Single extracted product from Reducto (with citations)
  */
 export interface ReductoExtractedProduct {
-  itemName: ReductoFieldValue<string>;
-  manufacturer: ReductoFieldValue<string>;
-  productKey: ReductoFieldValue<string>;
+  itemName?: ReductoFieldValue<string>;
+  manufacturer?: ReductoFieldValue<string>;
+  productKey?: ReductoFieldValue<string>;
   tag?: ReductoFieldValue<string>; // architect tag (optional)
-  specIdNumber: ReductoFieldValue<string>;
-  project: ReductoFieldValue<string>;
+  specIdNumber?: ReductoFieldValue<string>;
+  project?: ReductoFieldValue<string>;
   color?: ReductoFieldValue<string>;
   size?: ReductoFieldValue<string>;
   price?: ReductoFieldValue<string>;

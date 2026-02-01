@@ -130,7 +130,6 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               project: p.project,
               details: p.details,
               specDocumentId: p.specDocumentId,
-              extractedText: p.extractedText,
             })),
           );
         }

@@ -154,83 +154,18 @@ export class ReductoClient {
         citationsCount: extractedProduct.itemName?.citations?.length,
       });
 
-      // Helper to safely extract field data
-      const extractField = (field: ReductoFieldValue<string> | undefined) => {
-        if (!field) {
-          console.warn("[Reducto] Field is undefined, using defaults");
-          return {
-            value: "",
-            bbox: this.createDefaultBBox(),
-            citation: undefined,
-          };
-        }
-
-        // Get the first citation (primary source)
-        const citation = field.citations?.[0];
-
-        if (!citation) {
-          console.warn("[Reducto] No citations found for field:", field.value);
-        }
-
-        return {
-          value: field.value || "",
-          bbox: citation?.bbox || this.createDefaultBBox(),
-          citation: citation,
-        };
-      };
-
       // Generate product ID
       const productId = `prod-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 9)}`;
 
-      // Create full extracted text from all primary field values
-      const extractedText = [
-        extractedProduct.itemName?.value,
-        extractedProduct.manufacturer?.value,
-        extractedProduct.productKey?.value,
-        extractedProduct.tag?.value,
-      ]
-        .filter(Boolean)
-        .join(" | ");
-
       const product: Product = {
+        ...extractedProduct,
         id: productId,
-        itemName: extractField(extractedProduct.itemName),
-        manufacturer: extractField(extractedProduct.manufacturer),
-        productKey: extractField(extractedProduct.productKey),
-        tag: extractField(extractedProduct.tag),
-        specIdNumber: extractField(extractedProduct.specIdNumber),
-        project: extractField(extractedProduct.project),
-        color: extractField(extractedProduct.color),
-        size: extractField(extractedProduct.size),
-        price: extractField(extractedProduct.price),
-        details: extractField(extractedProduct.details),
         specDocumentId: documentId,
-        extractedText: extractedText || "Extracted from Reducto",
         createdAt: new Date(),
       };
 
-      console.log(`[Reducto] Mapped product ${index + 1}:`, {
-        id: product.id,
-        itemName: product.itemName.value,
-        hasBBox: Boolean(product.itemName.bbox),
-        page: product.itemName.bbox?.page,
-      });
-
       return product;
     });
-  }
-
-  /**
-   * Create default bounding box when citation is missing
-   */
-  private createDefaultBBox() {
-    return {
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0,
-      page: 1,
-    };
   }
 }
 

@@ -1,5 +1,9 @@
-import type { Product, SpecDocument, FieldWithBBox } from "@/types/product";
-import type { ReductoBBox } from "@/types/reducto";
+import type { Product, SpecDocument } from "@/types/product";
+import type {
+  ReductoBBox,
+  ReductoCitation,
+  ReductoFieldValue,
+} from "@/types/reducto";
 
 // Helper to create a field with a mock bbox
 // All coordinates are normalized [0, 1] relative to page dimensions
@@ -11,7 +15,7 @@ function createField(
   value: string,
   page: number = 1,
   bboxOverrides?: Partial<Omit<ReductoBBox, "page">>,
-): FieldWithBBox<string> {
+): ReductoFieldValue<string> {
   const defaultBbox: ReductoBBox = {
     left: 0.1,
     top: 0.1,
@@ -20,13 +24,20 @@ function createField(
     page,
   };
 
-  return {
-    value,
+  const citation: ReductoCitation = {
+    type: "Text",
+    content: "",
+    confidence: "high",
     bbox: {
       ...defaultBbox,
       ...bboxOverrides,
       page, // Always use the provided page number
     },
+  };
+
+  return {
+    value,
+    citations: [citation],
   };
 }
 
@@ -68,7 +79,6 @@ export const mockProducts: Product[] = [
     price: createField("$45.00", 1),
     details: createField("N/A", 1),
     specDocumentId: "doc-1",
-    extractedText: "Armstrong World Industries - Ultima Ceiling Panels",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -84,7 +94,6 @@ export const mockProducts: Product[] = [
     price: createField("$142.50", 3),
     details: createField("Dimmable", 3),
     specDocumentId: "doc-2",
-    extractedText: "Lithonia 2x4 Troffer LED Panel Light",
     createdAt: new Date("2024-01-16"),
   },
   {
@@ -100,7 +109,6 @@ export const mockProducts: Product[] = [
     price: createField("$8.25/sf", 2),
     details: createField("Rectified edge", 2),
     specDocumentId: "doc-1",
-    extractedText: "Crossville Laminam Porcelain Tile",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -116,7 +124,6 @@ export const mockProducts: Product[] = [
     price: createField("$385.00", 4),
     details: createField("ADA compliant", 4),
     specDocumentId: "doc-3",
-    extractedText: "Dorma TS 93 Door Closer",
     createdAt: new Date("2024-01-17"),
   },
   {
@@ -132,7 +139,6 @@ export const mockProducts: Product[] = [
     price: createField("$210.00", 5),
     details: createField("Manual chain", 5),
     specDocumentId: "doc-1",
-    extractedText: "MechoShade EuroShade Roller System",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -148,7 +154,6 @@ export const mockProducts: Product[] = [
     price: createField("$68.99/gal", 6),
     details: createField("Low VOC", 6),
     specDocumentId: "doc-1",
-    extractedText: "Benjamin Moore Aura Interior Paint",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -164,7 +169,6 @@ export const mockProducts: Product[] = [
     price: createField("$3.25/sf", 7),
     details: createField("PVC backing", 7),
     specDocumentId: "doc-1",
-    extractedText: "Interface Carpet Tile System",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -180,7 +184,6 @@ export const mockProducts: Product[] = [
     price: createField("$425.00", 3),
     details: createField("Dimmable, 3000K", 3),
     specDocumentId: "doc-2",
-    extractedText: "Artemide Architectural Pendant",
     createdAt: new Date("2024-01-16"),
   },
   {
@@ -196,7 +199,6 @@ export const mockProducts: Product[] = [
     price: createField("$32.00/sf", 7),
     details: createField("UV resistant", 7),
     specDocumentId: "doc-1",
-    extractedText: "Trespa Meteon Exterior Panels",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -212,7 +214,6 @@ export const mockProducts: Product[] = [
     price: createField("$42.50/lf", 4),
     details: createField("Wall mount", 4),
     specDocumentId: "doc-3",
-    extractedText: "Wagner Architectural Handrail System",
     createdAt: new Date("2024-01-17"),
   },
 ];

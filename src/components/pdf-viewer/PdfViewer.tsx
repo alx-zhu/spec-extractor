@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Product, ProductFieldKey, FieldWithBBox } from "@/types/product";
+import {
+  getFieldCitations,
+  type Product,
+  type ProductFieldKey,
+} from "@/types/product";
 import { cn } from "@/lib/utils";
+import type { ReductoFieldValue } from "@/types/reducto";
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -25,15 +30,19 @@ export function PdfViewer({
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
 
-  console.log("pdfUrl:", pdfUrl);
-
-  // Get the page number from the first field with a bbox (use itemName as default)
-  const productPage = product?.itemName?.bbox?.page || 1;
+  // Get the page number from the first field with a bbox (use first citation of itemName as default)
+  const productPage = (() => {
+    const fieldKey = (selectedFieldKey as ProductFieldKey) || "itemName";
+    const field = product[fieldKey] as ReductoFieldValue<string>;
+    const citations = getFieldCitations(field);
+    if (citations && citations.length > 0) {
+      return citations[0].bbox.page;
+    }
+    return null;
+  })();
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
-
-    console.log("Document loaded with", numPages, "pages.");
     // Navigate to the page where the product was found, but ensure it's valid
     if (productPage && productPage >= 1 && productPage <= numPages) {
       setPageNumber(productPage);
@@ -68,6 +77,29 @@ export function PdfViewer({
 
   const zoomOut = () => {
     setScale((prev) => Math.max(prev - 0.2, 0.5));
+  };
+
+  const displayFieldCitations = () => {
+    // Get the field to highlight - default to itemName if no specific field selected
+    const fieldKey = (selectedFieldKey as ProductFieldKey) || "itemName";
+    const field = product[fieldKey] as ReductoFieldValue<string>;
+    const citations = getFieldCitations(field);
+
+    if (!citations) return null;
+
+    return citations.map((citation) => (
+      <div
+        className={cn(
+          "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
+        )}
+        style={{
+          left: `${citation.bbox.left * 100}%`,
+          top: `${citation.bbox.top * 100}%`,
+          width: `${citation.bbox.width * 100}%`,
+          height: `${citation.bbox.height * 100}%`,
+        }}
+      />
+    ));
   };
 
   return (
@@ -171,29 +203,7 @@ export function PdfViewer({
             </Document>
 
             {/* Highlight Box - Show the selected field's bbox or default to itemName */}
-            {pageNumber === productPage &&
-              (() => {
-                // Get the field to highlight - default to itemName if no specific field selected
-                const fieldKey =
-                  (selectedFieldKey as ProductFieldKey) || "itemName";
-                const field = product[fieldKey] as FieldWithBBox<string>;
-
-                if (!field?.bbox) return null;
-
-                return (
-                  <div
-                    className={cn(
-                      "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
-                    )}
-                    style={{
-                      left: `${field.bbox.left * 100}%`,
-                      top: `${field.bbox.top * 100}%`,
-                      width: `${field.bbox.width * 100}%`,
-                      height: `${field.bbox.height * 100}%`,
-                    }}
-                  />
-                );
-              })()}
+            {pageNumber === productPage && displayFieldCitations()}
           </div>
         </div>
       </div>
