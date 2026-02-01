@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { TablePanel } from "@/components/panels/TablePanel";
 import { PdfViewerPanel } from "@/components/panels/PdfViewerPanel";
@@ -16,6 +16,19 @@ function App() {
   const [selectedFieldKey, setSelectedFieldKey] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClosePdfViewer();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const handleUploadClick = () => {
     setIsUploadModalOpen(true);

@@ -231,7 +231,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           {/* Error Message */}
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-900">
                   Extraction Failed
@@ -244,7 +244,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           {/* Processing Status */}
           {isProcessing && processingStatus && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
-              <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0" />
+              <Loader2 className="w-5 h-5 text-blue-600 animate-spin shrink-0" />
               <p className="text-sm text-blue-900">{processingStatus}</p>
             </div>
           )}

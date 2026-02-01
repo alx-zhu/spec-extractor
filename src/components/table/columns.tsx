@@ -68,7 +68,7 @@ export const productColumns: ColumnDef<Product>[] = [
     },
   },
   {
-    id: "specId",
+    id: "specIdNumber",
     header: "Spec ID",
     accessorKey: "specIdNumber",
     size: 140,
@@ -97,6 +97,23 @@ export const productColumns: ColumnDef<Product>[] = [
       return (
         <div className="text-sm text-gray-600">
           {row.original.productKey?.value || "—"}
+        </div>
+      );
+    },
+  },
+  {
+    id: "tag",
+    header: "Tag",
+    accessorKey: "tag",
+    size: 100,
+    meta: {
+      fieldName: "tag" as ProductFieldKey,
+    },
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.tag?.value || "—"}
         </div>
       );
     },
@@ -153,18 +170,18 @@ export const productColumns: ColumnDef<Product>[] = [
     },
   },
   {
-    id: "project",
-    header: "Project",
-    accessorKey: "project",
-    size: 140,
+    id: "details",
+    header: "Details",
+    accessorKey: "details",
+    size: 220,
     meta: {
-      fieldName: "project" as ProductFieldKey,
+      fieldName: "details" as ProductFieldKey,
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
       return (
-        <div className="text-sm text-gray-600">
-          {row.original.project?.value || "—"}
+        <div className="text-sm text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap">
+          {row.original.details?.value || "—"}
         </div>
       );
     },

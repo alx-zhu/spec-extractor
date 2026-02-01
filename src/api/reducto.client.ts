@@ -182,11 +182,12 @@ export class ReductoClient {
       // Generate product ID
       const productId = `prod-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 9)}`;
 
-      // Create full extracted text from all field values
+      // Create full extracted text from all primary field values
       const extractedText = [
         extractedProduct.itemName?.value,
         extractedProduct.manufacturer?.value,
-        extractedProduct.specIdNumber?.value,
+        extractedProduct.productKey?.value,
+        extractedProduct.tag?.value,
       ]
         .filter(Boolean)
         .join(" | ");
@@ -195,13 +196,17 @@ export class ReductoClient {
         id: productId,
         itemName: extractField(extractedProduct.itemName),
         manufacturer: extractField(extractedProduct.manufacturer),
-        specIdNumber: extractField(extractedProduct.specIdNumber),
         productKey: extractField(extractedProduct.productKey),
+        tag: extractField(extractedProduct.tag),
+        specIdNumber: extractField(extractedProduct.specIdNumber),
+        project: extractField(extractedProduct.project),
         color: extractField(extractedProduct.color),
         size: extractField(extractedProduct.size),
         price: extractField(extractedProduct.price),
-        project: extractField(extractedProduct.project),
-        linkToProduct: extractField(extractedProduct.linkToProduct),
+        details: extractField(extractedProduct.details),
+        linkToProduct: extractedProduct.linkToProduct
+          ? extractField(extractedProduct.linkToProduct)
+          : undefined,
         specDocumentId: documentId,
         extractedText: extractedText || "Extracted from Reducto",
         createdAt: new Date(),

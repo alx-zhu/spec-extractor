@@ -19,12 +19,18 @@ export interface ReductoExtractedProduct {
   itemName: ReductoFieldValue<string>;
   manufacturer: ReductoFieldValue<string>;
   productKey: ReductoFieldValue<string>;
+  tag?: ReductoFieldValue<string>; // architect tag (optional)
   specIdNumber: ReductoFieldValue<string>;
-  color: ReductoFieldValue<string>;
-  size: ReductoFieldValue<string>;
-  price: ReductoFieldValue<string>;
   project: ReductoFieldValue<string>;
-  linkToProduct: ReductoFieldValue<string>;
+  color?: ReductoFieldValue<string>;
+  size?: ReductoFieldValue<string>;
+  price?: ReductoFieldValue<string>;
+  details?: ReductoFieldValue<string>;
+
+  // Legacy / optional fields kept for compatibility
+  linkToProduct?: ReductoFieldValue<string>;
+  quantity?: ReductoFieldValue<string>;
+  extendedPrice?: ReductoFieldValue<string>;
 }
 
 /**

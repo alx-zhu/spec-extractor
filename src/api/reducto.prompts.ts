@@ -23,76 +23,65 @@ export const PRODUCT_EXTRACTION_SCHEMA = {
           itemName: {
             type: "string",
             description:
-              "The complete product name/description (e.g., 'Field Lounge Chair - Edwards Charcoal w/ Plum Base', 'Acoustic Ceiling Panel')",
+              "The product name as it would appear in a manufacturer's catalog, sufficient for an architect to identify and search for the product type. Include the product category and essential distinguishing characteristics that define what the product is. Exclude: brand/manufacturer names, specific model/SKU identifiers, color/finish selections, material specifications, dimensions, fabric grades.",
           },
           manufacturer: {
             type: "string",
             description:
-              "Brand or manufacturer name (look for company names in product codes or descriptions)",
-          },
-          specIdNumber: {
-            type: "string",
-            description:
-              "CSI Masterformat standard codes (e.g., '09 30 00' for Tiling, '09 51 00' for Acoustic Ceilings). This is the product code before the '/' or the model number at the start of the description.",
+              "The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use 'N/A'.",
           },
           productKey: {
             type: "string",
             description:
-              "The key used to reference the product, sometimes referred to as Tag, across the architecture documents like drawings. N/A if not found.",
-          },
-          color: {
-            type: "string",
-            description:
-              "Fabric color, finish color, or material color (e.g., 'Onyx 029', 'Soft-Greige 3553-012', 'Black'). Include both code and description. Material/fabric specifications (e.g., 'Grade 4 Material', 'Maharam Messenger') should be included here. Use 'N/A' if not found.",
-          },
-          size: {
-            type: "string",
-            description:
-              "Dimensions in format WxDxH (e.g., '23w x 22.5d x 32.5h', '60x24', '2\\'x4\\''). Look for patterns like '##w x ##d x ##h' or '##\"L x ##\"W'. Use 'N/A' if not found.",
-          },
-          price: {
-            type: "string",
-            description:
-              "Unit price from 'Sell' column (include currency symbol, e.g., '$142.50', '$3.25/sf'). Use 'N/A' if not found.",
-          },
-          quantity: {
-            type: "string",
-            description: "Number of units ordered. Use 'N/A' if not found.",
-          },
-          extendedPrice: {
-            type: "string",
-            description:
-              "Total price (Quantity × Unit Price) from 'Ext. Sell' column. Use 'N/A' if not found.",
+              "The manufacturer's unique identifier for this product (model number, SKU, series code, or part number). This is the code used to locate this specific product in the manufacturer's catalog system.",
           },
           tag: {
             type: "string",
             description:
-              "Tag/location identifier (e.g., 'C-01', 'T-04', 'B-01'). Use 'N/A' if not found.",
+              "The architect's project-specific reference code used in drawings and project documentation. This is distinct from the manufacturer's product identifier. Format varies (e.g., 'C-01', 'T-04', 'ACC-01', 'B-01'). N/A if not found.",
+          },
+          specIdNumber: {
+            type: "string",
+            description:
+              "CSI Masterformat code following the structure 'DD SS ss' where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Separators may be spaces, periods, dashes, or none. Additional subsection digits may follow. Only extract if the value matches this structural pattern. N/A if not found.",
           },
           project: {
             type: "string",
             description:
-              "Project name from document header, notes section, 'SO Notes', or 'Project:' field. Use 'N/A' if not found.",
+              "The project name or identifier from the document. N/A if not found.",
           },
-          linkToProduct: {
+          color: {
             type: "string",
             description:
-              "URL or web link to product information if available in the document. Use 'N/A' if not found.",
+              "Color names, finish designations, or material color specifications, including any associated codes. N/A if not found.",
+          },
+          size: {
+            type: "string",
+            description:
+              "Product dimensions in any format provided (e.g., WxDxH, LxWxH, diameter measurements, or other dimensional specifications). N/A if not found.",
+          },
+          price: {
+            type: "string",
+            description:
+              "Unit price including currency symbol if present. N/A if not found.",
+          },
+          details: {
+            type: "string",
+            description:
+              "Distinguishes between variants of the same base product (e.g., specific configuration options, model variations). Identifies functional components or mechanisms that are selectable/variable; Notes packaging specifications relevant to procurement (e.g., multi-unit packaging, carton quantities); Highlights critical limitations, requirements, or exceptions that affect product use or installation. This field is for essential differentiators that don't fit other categories. EXCLUDE: color/finish (use Color), dimensions (use Size), manufacturer (use Manufacturer), pricing, fabric/material grades, standard features, installation instructions, and all information already captured in other fields. Default to 'N/A' unless the information is truly necessary for product identification or represents a critical caveat. Limit to 1-3 concise specifications.",
           },
         },
         required: [
           "itemName",
           "manufacturer",
-          "specIdNumber",
           "productKey",
+          "tag",
+          "specIdNumber",
+          "project",
           "color",
           "size",
           "price",
-          "quantity",
-          "extendedPrice",
-          "tag",
-          "project",
-          "linkToProduct",
+          "details",
         ],
       },
       description: "List of all products extracted from the document",
@@ -104,69 +93,41 @@ export const PRODUCT_EXTRACTION_SCHEMA = {
  * System prompt for product extraction
  * Provides context and rules for the LLM to follow
  */
-export const PRODUCT_EXTRACTION_PROMPT = `You are a precise data extraction system for architectural specifications, furniture purchase orders, and sales orders. Extract product information for ALL items listed in the document.
+export const PRODUCT_EXTRACTION_PROMPT = `EXTRACTION TASK: Extract ALL products from furniture purchase orders into precise, structured data for catalog reference.
 
-DOCUMENT TYPES:
-1. **3-Part Specifications** (CSI format): Typically specify a single product per section with detailed requirements in Part 2 (Products). Look for manufacturer, model numbers, and material specifications.
-2. **Purchase Orders/Sales Orders**: Multiple line items with pricing and quantities.
-3. **Product Schedules**: Tables or lists of products with specifications.
+CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
-REQUIRED FIELDS:
-- Item Name: The complete product name/description (e.g., "Field Lounge Chair - Edwards Charcoal w/ Plum Base", "Acoustic Ceiling Panel", "Armstrong Ultima 2x4 Ceiling Tile")
-- Manufacturer: Brand or manufacturer name (look for company names in product codes, descriptions, or Part 2 sections)
-- Spec ID Number: CSI Masterformat standard codes (e.g., "09 30 00" for Tiling, "09 51 00" for Acoustic Ceilings, "08 11 13" for Hollow Metal Doors)
-- Product Key: The key used to reference the product, sometimes referred to as Tag, Mark, or Type across architecture documents. For 3-part specs, this might be a model number or product line designation.
-- Project: Project name from document header, title block, or notes section
+- Item Name: The product name as it would appear in a manufacturer's catalog, sufficient for an architect to identify and search for the product type. Include the product category and essential distinguishing characteristics that define what the product is. Exclude: brand/manufacturer names, specific model/SKU identifiers, color/finish selections, material specifications, dimensions, fabric grades.
+- Manufacturer: The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use "N/A".
+- Product Key: The manufacturer's unique identifier for this product (model number, SKU, series code, or part number). This is the code used to locate this specific product in the manufacturer's catalog system and is NOT the item name.
+- Tag: The architect's project-specific reference code used in drawings and project documentation. This is distinct from the manufacturer's product identifier. Format varies (e.g., "C-01", "T-04", "ACC-01", "B-01")
+- Spec ID Number: CSI Masterformat code following the structure "DD SS ss" where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Separators may be spaces, periods, dashes, or none. Additional subsection digits may follow. Only extract if the value matches this structural pattern.
+Project: The project name or identifier from the document.
 
-OPTIONAL FIELDS (use "N/A" if not found):
-- Color: Fabric color, finish color, or material color (e.g., "Onyx 029", "Soft-Greige 3553-012", "Black", "Satin Chrome")
-- Size: Dimensions in format WxDxH (e.g., "23w x 22.5d x 32.5h", "60x24", "2'x4'")
-- Price: Unit price from "Sell" column (include currency symbol)
-- Quantity: Number of units ordered
-- Tag: Tag/location identifier (e.g., "C-01", "T-04", "B-01", "Door Type A")
-- Extended Price: Total price from "Ext. Sell" column
-- Link to Product: URL or web link to product information
+SECONDARY FIELDS (populate with "N/A" if absent):
 
-EXTRACTION RULES FOR 3-PART SPECIFICATIONS:
-1. **Section Identification**: The spec section number (e.g., "09 51 00") is your Spec ID Number
-2. **Part 2 - Products**: This section contains manufacturer names, product lines, and model numbers
-3. **Basis of Design**: Look for phrases like "Basis of Design", "or approved equal", "as manufactured by" - these indicate the primary specified product
-4. **Manufacturer Names**: Often listed as "Manufacturer: [Name]" or embedded in sentences like "as manufactured by Armstrong"
-5. **Product Line/Model**: Look for specific product names after manufacturer (e.g., "Armstrong Ultima System")
-6. **Acceptable Substitutes**: If multiple manufacturers are listed, create separate product entries for each
-7. **Material Specifications**: Color, finish, and material details are often in Part 2 under product description
-8. **Single Product Specs**: If the spec clearly describes one product, return one product entry
-9. **Product Key/Type**: Look for product type designations (e.g., "Type A", "Model 2400", "Series 100")
+- Color: Color names, finish designations, or material color specifications, including any associated codes.
+- Size: Product dimensions in any format provided (e.g., WxDxH, LxWxH, diameter measurements, or other dimensional specifications).
+- Price: Unit price including currency symbol if present. If there are multiple prices, you MUST list the unit price.
+- Details: Distinguishes between variants of the same base product (e.g., specific configuration options, model variations). Identifies functional components or mechanisms that are selectable/variable; Notes packaging specifications relevant to procurement (e.g., multi-unit packaging, carton quantities); Highlights critical limitations, requirements, or exceptions that affect product use or installation. This field is for essential differentiators that don't fit other categories. EXCLUDE: color/finish (use Color), dimensions (use Size), manufacturer (use Manufacturer), pricing, fabric/material grades, standard features, installation instructions, and all information already captured in other fields. Default to "N/A" unless the information is truly necessary for product identification or represents a critical caveat. Limit to 1-3 concise specifications.
 
-EXTRACTION RULES FOR PURCHASE ORDERS/SCHEDULES:
-1. Process EVERY line item - do not skip any products
-2. Each numbered line represents a separate product entry
-3. Manufacturer may be implied by product code prefix or explicitly stated
-4. Color/finish information is often in specification codes (e.g., "BLKP", "BKO", "MAMG") - extract both code and description
-5. Extract dimensions from descriptions - look for patterns like "##w x ##d x ##h" or "##"L x ##"W"
-6. Material/fabric specifications (e.g., "Grade 4 Material", "Maharam Messenger") should be included in Color field
-7. Tag identifiers (e.g., "Tag 1: C-04") indicate item location/grouping
+EXTRACTION GUIDELINES:
 
-SPECIAL CASES:
-- **"Or Equal" Specifications**: If document says "Product X or approved equal", extract Product X as the primary product
-- **Multiple Acceptable Manufacturers**: Create separate product entries for each manufacturer listed
-- **Multi-line descriptions**: Combine all specification details into Item Name
-- **Option codes**: Include option descriptions (e.g., "W48: Black Hard Wheel Caster - Std")
-- **Custom products**: Preserve all custom specifications and details
-- **Freight line items**: Extract with carrier name as Manufacturer
+Extract every line item that is a product - missing products is a critical error.
+Do not include non-product line items, like services.
+One product entry per line item.
+Consolidate multi-line descriptions into a single entry per product.
+Use "N/A" when information cannot be confidently identified - do not guess or infer.
+Preserve document order in output.
+Only extract explicitly stated information.
 
-OUTPUT FORMAT:
-Return valid JSON as a list of products. Each product should be a complete object with all available fields. 
-- For 3-part specs: Typically return 1-3 products (basis of design + acceptable alternates). Make sure to ONLY return UNIQUE products.
-- For purchase orders: Return all line items in order
-Use "N/A" for any optional field that cannot be found.
+OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
+VALIDATION CHECKLIST:
 
-VALIDATION:
-- If the spec has only a single product DO NOT return multiple. You MUST ensure the products you return are unique.
-- For purchase orders: Verify Quantity * Price = Extended Price when possible
-- Every product must have all 12 fields (itemName, manufacturer, specIdNumber, productKey, color, size, price, quantity, extendedPrice, tag, project, linkToProduct)
-- Spec ID Number should always be a valid CSI Masterformat code when present`;
-/**
- * Alternative simplified prompt for basic extraction
- */
-export const SIMPLE_EXTRACTION_PROMPT = `Extract all products from this architectural specification document. For each product, identify the item name, manufacturer, specification ID number, color, size, price, project name, and any product links. Use "N/A" for fields that are not present.`;
+Item Name: Is this how the product would be listed in a catalog?
+Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
+Product Key: Is this the manufacturer's identifier, not the architect's tag?
+Tag: Is this the architect's identifier, not the manufacturer's code?
+Spec ID Number: Does this match CSI Masterformat structure exactly?
+Details: Are these product variants/features, not colors, sizes, or redundant information?
+`;

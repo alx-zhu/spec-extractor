@@ -12,13 +12,15 @@ export interface Product {
   // Product fields with Reducto bounding boxes
   itemName: FieldWithBBox<string>;
   manufacturer: FieldWithBBox<string>;
-  specIdNumber: FieldWithBBox<string>;
   productKey: FieldWithBBox<string>;
-  color: FieldWithBBox<string>;
-  size: FieldWithBBox<string>;
-  price: FieldWithBBox<string>;
+  tag?: FieldWithBBox<string>;
+  specIdNumber: FieldWithBBox<string>;
   project: FieldWithBBox<string>;
-  linkToProduct: FieldWithBBox<string>;
+  color?: FieldWithBBox<string>;
+  size?: FieldWithBBox<string>;
+  price?: FieldWithBBox<string>;
+  details?: FieldWithBBox<string>;
+  linkToProduct?: FieldWithBBox<string>;
 
   // Source tracking from Reducto
   specDocumentId: string;
@@ -32,12 +34,14 @@ export type ProductFieldKey = keyof Pick<
   Product,
   | "itemName"
   | "manufacturer"
-  | "specIdNumber"
   | "productKey"
+  | "tag"
+  | "specIdNumber"
+  | "project"
   | "color"
   | "size"
   | "price"
-  | "project"
+  | "details"
   | "linkToProduct"
 >;
 
