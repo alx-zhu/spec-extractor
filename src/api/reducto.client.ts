@@ -204,9 +204,6 @@ export class ReductoClient {
         size: extractField(extractedProduct.size),
         price: extractField(extractedProduct.price),
         details: extractField(extractedProduct.details),
-        linkToProduct: extractedProduct.linkToProduct
-          ? extractField(extractedProduct.linkToProduct)
-          : undefined,
         specDocumentId: documentId,
         extractedText: extractedText || "Extracted from Reducto",
         createdAt: new Date(),

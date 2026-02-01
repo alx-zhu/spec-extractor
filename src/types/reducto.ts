@@ -26,11 +26,6 @@ export interface ReductoExtractedProduct {
   size?: ReductoFieldValue<string>;
   price?: ReductoFieldValue<string>;
   details?: ReductoFieldValue<string>;
-
-  // Legacy / optional fields kept for compatibility
-  linkToProduct?: ReductoFieldValue<string>;
-  quantity?: ReductoFieldValue<string>;
-  extendedPrice?: ReductoFieldValue<string>;
 }
 
 /**

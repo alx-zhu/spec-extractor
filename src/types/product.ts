@@ -20,7 +20,6 @@ export interface Product {
   size?: FieldWithBBox<string>;
   price?: FieldWithBBox<string>;
   details?: FieldWithBBox<string>;
-  linkToProduct?: FieldWithBBox<string>;
 
   // Source tracking from Reducto
   specDocumentId: string;
@@ -42,7 +41,6 @@ export type ProductFieldKey = keyof Pick<
   | "size"
   | "price"
   | "details"
-  | "linkToProduct"
 >;
 
 // Helper to create FieldWithBBox from Reducto citation
