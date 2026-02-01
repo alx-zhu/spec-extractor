@@ -1,16 +1,18 @@
 /**
  * PDF Storage Utilities
  *
- * Handles saving uploaded PDFs to the public folder for localhost demo.
- * In production, this would be replaced with cloud storage (S3, Supabase Storage, etc.)
+ * Handles saving uploaded PDFs to Supabase Storage.
  */
+
+import { supabase } from "@/api/supabase.client";
+
+const STORAGE_BUCKET = "uploads";
 
 /**
  * Generate a unique filename while preserving the original base name
  * Example: "My Document.pdf" -> "my-document-1737584920-abc123.pdf"
  */
 export function generateUniqueFilename(originalName: string): string {
-  return originalName;
   // Get extension
   const extension = originalName.split(".").pop() || "pdf";
 
@@ -32,40 +34,57 @@ export function generateUniqueFilename(originalName: string): string {
 }
 
 /**
- * Save PDF to public/uploads folder
+ * Upload PDF to Supabase Storage
  *
- * NOTE: This is a localhost-only solution. In a real browser environment,
- * you cannot write directly to the filesystem. This function returns the
- * path where the file SHOULD be saved, and you need to manually copy files
- * to public/uploads/ for the demo to work.
- *
- * For production, use cloud storage and return the uploaded URL.
+ * @param file - The PDF file to upload
+ * @returns The storage path of the uploaded file
  */
 export async function savePdfToPublic(file: File): Promise<string> {
   const filename = generateUniqueFilename(file.name);
-  const publicPath = `/uploads/${filename}`;
+  const filePath = `public/${filename}`;
 
-  // In a real implementation with a backend:
-  // const formData = new FormData();
-  // formData.append('file', file);
-  // const response = await fetch('/api/upload', { method: 'POST', body: formData });
-  // return response.json().path;
+  console.log(`[Storage] Uploading ${file.name} to Supabase Storage...`);
 
-  // For localhost demo: Return the path where file should be placed
-  // User needs to manually copy uploaded files to public/uploads/
-  console.warn(
-    `[Storage] File should be saved to: public${publicPath}\n` +
-      `For localhost demo, manually copy "${file.name}" to "public/uploads/${filename}"`,
-  );
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
 
-  return publicPath;
+  if (error) {
+    console.error("[Storage] Upload failed:", error);
+    throw new Error(`Failed to upload PDF: ${error.message}`);
+  }
+
+  console.log(`[Storage] Upload successful:`, data.path);
+  return data.path;
 }
 
 /**
- * Get the full URL for a PDF stored in public folder
+ * Get the public URL for a PDF stored in Supabase Storage
+ *
+ * @param path - The storage path of the file
+ * @returns The public URL to access the file
  */
 export function getPdfUrl(path: string): string {
-  // Remove leading slash if present
-  const cleanPath = path.startsWith("/") ? path.substring(1) : path;
-  return `/${cleanPath}`;
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+
+  return data.publicUrl;
+}
+
+/**
+ * Delete a PDF from Supabase Storage
+ *
+ * @param path - The storage path of the file to delete
+ */
+export async function deletePdfFromStorage(path: string): Promise<void> {
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([path]);
+
+  if (error) {
+    console.error("[Storage] Delete failed:", error);
+    throw new Error(`Failed to delete PDF: ${error.message}`);
+  }
+
+  console.log(`[Storage] Deleted file:`, path);
 }

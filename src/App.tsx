@@ -6,6 +6,7 @@ import { UploadModal } from "@/components/upload/UploadModal";
 import { useProducts } from "@/hooks/useProducts";
 import type { Product } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
+import { getPdfUrl } from "./utils/storage";
 
 function App() {
   // Fetch products from React Query
@@ -45,7 +46,14 @@ function App() {
 
     const document = documents.find((d) => d.id === product.specDocumentId);
     console.log(document);
-    setPdfUrl(document?.filename || "sample_spec.pdf");
+
+    // Get the public URL from Supabase Storage
+    if (document?.filename) {
+      const publicUrl = getPdfUrl(document.filename);
+      setPdfUrl(publicUrl);
+    } else {
+      setPdfUrl("sample_spec.pdf");
+    }
   };
 
   const handleClosePdfViewer = () => {

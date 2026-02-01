@@ -29,27 +29,35 @@ export function PdfViewer({
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
+  const [documentError, setDocumentError] = useState<string | null>(null);
 
   // Get the page number from the first field with a bbox (use first citation of itemName as default)
   const productPage = (() => {
     const fieldKey = (selectedFieldKey as ProductFieldKey) || "itemName";
     const field = product[fieldKey] as ReductoFieldValue<string>;
     const citations = getFieldCitations(field);
+    // By default, use the first citation's page, even if there are multiple
     if (citations && citations.length > 0) {
       return citations[0].bbox.page;
     }
     return null;
   })();
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    setDocumentError(null);
     // Navigate to the page where the product was found, but ensure it's valid
     if (productPage && productPage >= 1 && productPage <= numPages) {
       setPageNumber(productPage);
     } else {
       setPageNumber(1);
     }
-  }
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error("Error loading PDF document:", error);
+    setDocumentError(error.message);
+  };
 
   // Update page when product changes
   useEffect(() => {
@@ -87,19 +95,21 @@ export function PdfViewer({
 
     if (!citations) return null;
 
-    return citations.map((citation) => (
-      <div
-        className={cn(
-          "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
-        )}
-        style={{
-          left: `${citation.bbox.left * 100}%`,
-          top: `${citation.bbox.top * 100}%`,
-          width: `${citation.bbox.width * 100}%`,
-          height: `${citation.bbox.height * 100}%`,
-        }}
-      />
-    ));
+    return citations
+      .filter((citation) => citation.bbox.page === pageNumber)
+      .map((citation) => (
+        <div
+          className={cn(
+            "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
+          )}
+          style={{
+            left: `${citation.bbox.left * 100}%`,
+            top: `${citation.bbox.top * 100}%`,
+            width: `${citation.bbox.width * 100}%`,
+            height: `${citation.bbox.height * 100}%`,
+          }}
+        />
+      ));
   };
 
   return (
@@ -181,6 +191,7 @@ export function PdfViewer({
             <Document
               file={pdfUrl}
               onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={onDocumentLoadError}
               loading={
                 <div className="flex items-center justify-center p-12">
                   <div className="text-sm text-gray-500">Loading PDF...</div>
@@ -203,7 +214,7 @@ export function PdfViewer({
             </Document>
 
             {/* Highlight Box - Show the selected field's bbox or default to itemName */}
-            {pageNumber === productPage && displayFieldCitations()}
+            {!documentError && displayFieldCitations()}
           </div>
         </div>
       </div>
