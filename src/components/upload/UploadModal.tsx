@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, X, Loader2, AlertCircle } from "lucide-react";
+import { Upload, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useCreateDocument,
@@ -16,6 +16,7 @@ import {
 import { useCreateProducts } from "@/hooks/useProducts";
 import { useReductoExtraction } from "@/hooks/useReductoExtraction";
 import { savePdfToPublic } from "@/utils/storage";
+import { SelectedFile } from "./SelectedFile";
 
 interface UploadModalProps {
   open: boolean;
@@ -186,7 +187,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 overflow-auto">
           {/* Drop Zone */}
           <div
             onDragOver={handleDragOver}
@@ -259,33 +260,12 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {selectedFiles.map((file, index) => (
-                  <div
+                  <SelectedFile
                     key={index}
-                    className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg group hover:border-gray-300 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 rounded bg-red-50 flex items-center justify-center shrink-0">
-                        <FileText className="w-4 h-4 text-red-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {file.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeFile(index)}
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      disabled={isProcessing}
-                    >
-                      <X className="h-4 w-4 text-gray-400" />
-                    </Button>
-                  </div>
+                    file={file}
+                    onRemove={() => removeFile(index)}
+                    isProcessing={isProcessing}
+                  />
                 ))}
               </div>
             </div>
