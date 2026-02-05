@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { TablePanel } from "@/components/panels/TablePanel";
 import { PdfViewerPanel } from "@/components/panels/PdfViewerPanel";
 import { UploadModal } from "@/components/upload/UploadModal";
+import { ExportModal } from "@/components/export/ExportModal";
 import { useProducts } from "@/hooks/useProducts";
 import type { Product } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
@@ -16,6 +17,7 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedFieldKey, setSelectedFieldKey] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,8 +38,7 @@ function App() {
   };
 
   const handleExportClick = () => {
-    // TODO: Implement CSV export
-    console.log("Export clicked");
+    setIsExportModalOpen(true);
   };
 
   const handleRowClick = (product: Product, fieldKey?: string) => {
@@ -102,6 +103,12 @@ function App() {
       <UploadModal
         open={isUploadModalOpen}
         onOpenChange={setIsUploadModalOpen}
+      />
+
+      <ExportModal
+        open={isExportModalOpen}
+        onOpenChange={setIsExportModalOpen}
+        products={products}
       />
     </div>
   );
