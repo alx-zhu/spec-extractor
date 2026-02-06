@@ -15,7 +15,7 @@ export function Header({ onUploadClick, onExportClick }: HeaderProps) {
             Sabana
           </h1>
           <p className="text-sm text-gray-500 font-normal">
-            Extract and analyze architectural specifications
+            Extract and analyze architectural documents
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -30,7 +30,7 @@ export function Header({ onUploadClick, onExportClick }: HeaderProps) {
           </Button>
           <Button size="sm" onClick={onUploadClick} className="gap-2">
             <Upload className="h-4 w-4" />
-            Upload Specs
+            Upload Documents
           </Button>
         </div>
       </div>

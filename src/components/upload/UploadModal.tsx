@@ -211,11 +211,10 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       <DialogContent className="sm:max-w-[600px] p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            Upload Specifications
+            Upload Documents
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
-            Upload PDF specification files to extract product information using
-            Reducto AI
+            Upload PDF files to extract product information using Reducto AI
           </DialogDescription>
         </DialogHeader>
 
