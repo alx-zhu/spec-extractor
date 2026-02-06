@@ -15,7 +15,7 @@ export function PdfViewerPanel({
   onClose,
 }: PdfViewerPanelProps) {
   return (
-    <div className="flex-[0.5] animate-in slide-in-from-right duration-300">
+    <div className="flex-[0.5] animate-in slide-in-from-right duration-300 min-w-0">
       <div className="h-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <PdfViewer
           product={product}
