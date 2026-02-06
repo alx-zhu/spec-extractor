@@ -16,11 +16,11 @@ export type ProductFieldKey = keyof Pick<
   Product,
   | "itemName"
   | "manufacturer"
-  | "productKey"
+  | "modelNumber"
   | "tag"
   | "specIdNumber"
   | "project"
-  | "color"
+  | "finish"
   | "size"
   | "price"
   | "details"
