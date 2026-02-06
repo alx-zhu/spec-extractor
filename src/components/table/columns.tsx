@@ -1,6 +1,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DocumentTypeBadge } from "./DocumentTypeBadge";
 
 export const productColumns: ColumnDef<Product>[] = [
   {
@@ -42,9 +43,8 @@ export const productColumns: ColumnDef<Product>[] = [
           <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
             {row.original.itemName?.value || "—"}
           </div>
-          <div className="text-xs text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">
-            {row.original.manufacturer?.value}{" "}
-            {row.original.specIdNumber?.value}
+          <div>
+            <DocumentTypeBadge type={row.original.documentType} />
           </div>
         </div>
       );

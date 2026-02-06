@@ -17,6 +17,7 @@ import { useCreateProducts } from "@/hooks/useProducts";
 import { useReductoExtraction } from "@/hooks/useReductoExtraction";
 import { savePdfToPublic } from "@/utils/storage";
 import { SelectedFile } from "./SelectedFile";
+import type { DocumentType } from "@/types/product";
 
 interface UploadModalProps {
   open: boolean;
@@ -25,6 +26,9 @@ interface UploadModalProps {
 
 export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [documentTypeMap, setDocumentTypeMap] = useState<
+    Record<string, DocumentType>
+  >({});
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>("");
@@ -45,6 +49,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     setIsDragging(false);
   }, []);
 
+  // Should likely combine handleFileSelect and handleDrop into a single helper
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -55,6 +60,12 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
 
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
+
+      const newTypes: Record<string, DocumentType> = {};
+      files.forEach((file) => {
+        newTypes[file.name] = "specification";
+      });
+      setDocumentTypeMap((prev) => ({ ...prev, ...newTypes }));
     }
   }, []);
 
@@ -65,11 +76,23 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         (file) => file.type === "application/pdf",
       );
       setSelectedFiles((prev) => [...prev, ...pdfFiles]);
+
+      const newTypes: Record<string, DocumentType> = {};
+      pdfFiles.forEach((file) => {
+        newTypes[file.name] = "specification";
+      });
+      setDocumentTypeMap((prev) => ({ ...prev, ...newTypes }));
     }
   };
 
   const removeFile = (index: number) => {
+    const fileToRemove = selectedFiles[index];
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setDocumentTypeMap((prev) => {
+      const updated = { ...prev };
+      delete updated[fileToRemove.name];
+      return updated;
+    });
   };
 
   const handleUpload = async () => {
@@ -100,6 +123,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         const document = await createDocument.mutateAsync({
           file,
           localPath: pdfPath,
+          documentType: documentTypeMap[file.name] || "specification",
         });
         console.log(`[Upload] Document created:`, document.id);
 
@@ -108,6 +132,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         const extractedProducts = await reductoExtraction.mutateAsync({
           file,
           documentId: document.id,
+          documentType: documentTypeMap[file.name] || "specification",
           pdfPath,
         });
 
@@ -131,6 +156,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               project: p.project,
               details: p.details,
               specDocumentId: p.specDocumentId,
+              documentType: p.documentType,
             })),
           );
         }
@@ -173,6 +199,12 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     setProcessingStatus("");
     onOpenChange(false);
   };
+
+  const handleDocumentTypeChange = (file: File, type: DocumentType) =>
+    setDocumentTypeMap((prev) => ({
+      ...prev,
+      [file.name]: type,
+    }));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -263,6 +295,10 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                   <SelectedFile
                     key={index}
                     file={file}
+                    documentType={documentTypeMap[file.name] || "specification"}
+                    onDocumentTypeChange={(type) =>
+                      handleDocumentTypeChange(file, type)
+                    }
                     onRemove={() => removeFile(index)}
                     isProcessing={isProcessing}
                   />

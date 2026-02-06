@@ -5,7 +5,7 @@
  * Future Supabase implementation will include file storage URLs.
  */
 
-import type { SpecDocument } from "@/types/product";
+import type { SpecDocument, DocumentType } from "@/types/product";
 import { simulateApiCall } from "./client";
 
 // Storage key for localStorage
@@ -73,17 +73,18 @@ export const fetchDocuments = async (): Promise<SpecDocument[]> => {
 export const createDocument = async (
   file: File,
   localPath?: string,
+  documentType: DocumentType = "specification",
 ): Promise<SpecDocument> => {
   const documents = getDocumentsFromStorage();
 
-  // Generate ID (in production, DB generates this)
   const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
   const document: SpecDocument = {
     id,
     filename: localPath || file.name,
     uploadDate: new Date(),
-    status: "processing", // Will be updated to "completed" after extraction
+    status: "processing",
+    type: documentType,
   };
 
   const updatedDocuments = [...documents, document];

@@ -7,7 +7,7 @@
 
 import Reducto from "reductoai";
 import type { ReductoFieldValue } from "@/types/reducto";
-import type { Product } from "@/types/product";
+import type { DocumentType, Product } from "@/types/product";
 import {
   PRODUCT_EXTRACTION_SCHEMA,
   PRODUCT_EXTRACTION_PROMPT,
@@ -44,6 +44,7 @@ export class ReductoClient {
   async uploadAndExtract(
     file: File,
     documentId: string,
+    documentType: DocumentType,
     pdfPath: string,
   ): Promise<Product[]> {
     try {
@@ -112,6 +113,7 @@ export class ReductoClient {
       const products = this.mapReductoToProducts(
         resultArray,
         documentId,
+        documentType,
         pdfPath,
       );
 
@@ -133,6 +135,7 @@ export class ReductoClient {
   private mapReductoToProducts(
     resultArray: unknown[],
     documentId: string,
+    documentType: DocumentType,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _pdfPath: string,
   ): Product[] {
@@ -161,6 +164,7 @@ export class ReductoClient {
         ...extractedProduct,
         id: productId,
         specDocumentId: documentId,
+        documentType,
         createdAt: new Date(),
       };
 

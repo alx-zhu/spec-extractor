@@ -48,6 +48,7 @@ export const mockDocuments: SpecDocument[] = [
       "/Users/azhu/Sabana/Docs for Testing/Gensler_Plastic Laminate Lockers.pdf",
     uploadDate: new Date("2024-01-15"),
     status: "completed",
+    type: "specification",
   },
   {
     id: "doc-2",
@@ -55,6 +56,7 @@ export const mockDocuments: SpecDocument[] = [
       "/Users/azhu/Sabana/Docs for Testing/Gensler_Frameless Shower Doors.pdf",
     uploadDate: new Date("2024-01-16"),
     status: "completed",
+    type: "purchase_order",
   },
   {
     id: "doc-3",
@@ -62,6 +64,7 @@ export const mockDocuments: SpecDocument[] = [
       "/Users/azhu/Sabana/Docs for Testing/Gensler_Wood Athletic Flooring.pdf",
     uploadDate: new Date("2024-01-17"),
     status: "completed",
+    type: "submittal",
   },
 ];
 
@@ -80,6 +83,7 @@ export const mockProducts: Product[] = [
     details: createField("N/A", 1),
     specDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
+    documentType: "specification",
   },
   {
     id: "prod-2",
@@ -95,6 +99,7 @@ export const mockProducts: Product[] = [
     details: createField("Dimmable", 3),
     specDocumentId: "doc-2",
     createdAt: new Date("2024-01-16"),
+    documentType: "purchase_order",
   },
   {
     id: "prod-3",
@@ -110,6 +115,7 @@ export const mockProducts: Product[] = [
     details: createField("Rectified edge", 2),
     specDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
+    documentType: "specification",
   },
   {
     id: "prod-4",
@@ -125,6 +131,7 @@ export const mockProducts: Product[] = [
     details: createField("ADA compliant", 4),
     specDocumentId: "doc-3",
     createdAt: new Date("2024-01-17"),
+    documentType: "submittal",
   },
   {
     id: "prod-5",
@@ -140,6 +147,7 @@ export const mockProducts: Product[] = [
     details: createField("Manual chain", 5),
     specDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
+    documentType: "specification",
   },
   {
     id: "prod-6",
@@ -155,6 +163,7 @@ export const mockProducts: Product[] = [
     details: createField("Low VOC", 6),
     specDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
+    documentType: "specification",
   },
   {
     id: "prod-7",
@@ -170,6 +179,7 @@ export const mockProducts: Product[] = [
     details: createField("PVC backing", 7),
     specDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
+    documentType: "specification",
   },
   {
     id: "prod-8",
@@ -185,6 +195,7 @@ export const mockProducts: Product[] = [
     details: createField("Dimmable, 3000K", 3),
     specDocumentId: "doc-2",
     createdAt: new Date("2024-01-16"),
+    documentType: "purchase_order",
   },
   {
     id: "prod-9",
@@ -200,6 +211,7 @@ export const mockProducts: Product[] = [
     details: createField("UV resistant", 7),
     specDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
+    documentType: "specification",
   },
   {
     id: "prod-10",
@@ -215,5 +227,6 @@ export const mockProducts: Product[] = [
     details: createField("Wall mount", 4),
     specDocumentId: "doc-3",
     createdAt: new Date("2024-01-17"),
+    documentType: "submittal",
   },
 ];

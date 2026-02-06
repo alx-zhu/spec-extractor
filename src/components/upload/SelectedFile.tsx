@@ -1,15 +1,21 @@
 import { Button } from "@/components/ui/button";
+import type { DocumentType } from "@/types/product";
 import { FileText, X } from "lucide-react";
+import { DocumentTypeSelector } from "./DocumentTypeSelector";
 
 interface SelectedFileProps {
   file: File;
+  documentType: DocumentType;
   onRemove: () => void;
+  onDocumentTypeChange: (type: DocumentType) => void;
   isProcessing: boolean;
 }
 
 export function SelectedFile({
   file,
+  documentType,
   onRemove,
+  onDocumentTypeChange,
   isProcessing,
 }: SelectedFileProps) {
   return (
@@ -27,6 +33,10 @@ export function SelectedFile({
           </p>
         </div>
       </div>
+      <DocumentTypeSelector
+        value={documentType}
+        onChange={onDocumentTypeChange}
+      />
       <Button
         variant="ghost"
         size="icon"

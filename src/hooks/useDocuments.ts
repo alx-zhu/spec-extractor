@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { SpecDocument } from "@/types/product";
+import type { SpecDocument, DocumentType } from "@/types/product";
 import * as documentsApi from "@/api/documents.api";
 import { productKeys } from "./useProducts";
 
@@ -33,8 +33,15 @@ export const useCreateDocument = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ file, localPath }: { file: File; localPath?: string }) =>
-      documentsApi.createDocument(file, localPath),
+    mutationFn: ({
+      file,
+      localPath,
+      documentType,
+    }: {
+      file: File;
+      localPath?: string;
+      documentType?: DocumentType;
+    }) => documentsApi.createDocument(file, localPath, documentType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.all });
     },
