@@ -115,77 +115,87 @@ export function PdfViewer({
   return (
     <div className="h-full flex flex-col bg-white border-l border-gray-200">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-base font-semibold text-gray-900">
-            Source Document
-          </h2>
-          <p className="text-sm text-gray-500">
-            {product?.itemName?.value || "Product"} • Page {pageNumber}
-            {selectedFieldKey && (
-              <span className="ml-2 text-blue-600 font-medium">
-                • Highlighting: {selectedFieldKey}
-              </span>
-            )}
-          </p>
+      <div className="border-b border-gray-200 bg-white">
+        {/* Top toolbar */}
+        <div className="px-6 py-4 flex justify-between items-center border-b border-gray-200">
+          <h2 className="font-semibold text-gray-700">Source Document</h2>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToPrevPage}
+                disabled={pageNumber <= 1}
+                className="h-8 w-8"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={goToNextPage}
+                disabled={pageNumber >= numPages}
+                className="h-8 w-8"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={zoomOut}
+                disabled={scale <= 0.5}
+                className="h-8 w-8"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={zoomIn}
+                disabled={scale >= 2.0}
+                className="h-8 w-8"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">
-            Page {pageNumber} of {numPages}
-          </span>
-          <div className="flex items-center gap-1 ml-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goToPrevPage}
-              disabled={pageNumber <= 1}
-              className="h-8 w-8"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={goToNextPage}
-              disabled={pageNumber >= numPages}
-              className="h-8 w-8"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+
+        {/* Product info section */}
+        <div className="px-6 py-3 bg-gray-white">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-gray-900 font-medium truncate">
+              {product?.itemName?.value || "Product"}
+            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+              <span>
+                Page {pageNumber} of {numPages}
+              </span>
+              {selectedFieldKey && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-blue-600 font-medium">
+                    Highlighting: {selectedFieldKey}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1 ml-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={zoomOut}
-              disabled={scale <= 0.5}
-              className="h-8 w-8"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={zoomIn}
-              disabled={scale >= 2.0}
-              className="h-8 w-8"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-8 w-8 ml-2"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 
       {/* PDF Content */}
-      <div className="flex-1 overflow-auto bg-gray-50">
+      <div className="flex-1 overflow-auto bg-gray-100">
         <div className="p-8 inline-block min-w-full">
           <div className="relative bg-white shadow-lg inline-block">
             <Document
