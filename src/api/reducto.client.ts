@@ -8,10 +8,7 @@
 import Reducto from "reductoai";
 import type { ReductoFieldValue } from "@/types/reducto";
 import type { DocumentType, Product } from "@/types/product";
-import {
-  PRODUCT_EXTRACTION_SCHEMA,
-  PRODUCT_EXTRACTION_PROMPT,
-} from "./reducto.prompts";
+import { getExtractionConfig } from "./reducto.prompts";
 
 /**
  * ReductoClient class for document extraction
@@ -57,12 +54,13 @@ export class ReductoClient {
 
       console.log("[Reducto] File uploaded:", upload);
 
-      // Step 2: Extract with citations enabled
+      // Step 2: Extract with citations enabled using document-type-specific config
+      const { schema, prompt } = getExtractionConfig(documentType);
       const result = await this.client.extract.run({
         input: upload,
         instructions: {
-          schema: PRODUCT_EXTRACTION_SCHEMA,
-          system_prompt: PRODUCT_EXTRACTION_PROMPT,
+          schema,
+          system_prompt: prompt,
         },
         settings: {
           array_extract: true, // Enable for extracting arrays of products
