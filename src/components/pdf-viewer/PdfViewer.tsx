@@ -34,7 +34,7 @@ export function PdfViewer({
   // Get the page number from the first field with a bbox (use first citation of itemName as default)
   const productPage = (() => {
     const fieldKey = (selectedFieldKey as ProductFieldKey) || "itemName";
-    const field = product[fieldKey] as ReductoFieldValue<string>;
+    const field = product[fieldKey] as ReductoFieldValue<string> | undefined;
     const citations = getFieldCitations(field);
     // By default, use the first citation's page, even if there are multiple
     if (citations && citations.length > 0) {
