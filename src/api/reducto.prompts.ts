@@ -2,17 +2,20 @@
  * Reducto Extraction Prompts
  *
  * System prompts and schemas for extracting structured data from documents.
+ * Each document type has its own extraction config (prompt + schema).
  */
 
+import type { DocumentType } from "@/types/product";
+
+export interface ExtractionConfig {
+  schema: Record<string, unknown>;
+  prompt: string;
+}
+
 /**
- * JSON Schema for product extraction
- * Defines the structure of data we want to extract from architecture spec documents
+ * JSON Schema for purchase order product extraction
  */
-/**
- * JSON Schema for product extraction
- * Defines the structure of data we want to extract from architecture spec documents
- */
-export const PRODUCT_EXTRACTION_SCHEMA = {
+const PURCHASE_ORDER_SCHEMA = {
   type: "object",
   properties: {
     products: {
@@ -89,11 +92,11 @@ export const PRODUCT_EXTRACTION_SCHEMA = {
   },
   required: ["products"],
 } as const;
+
 /**
- * System prompt for product extraction
- * Provides context and rules for the LLM to follow
+ * System prompt for purchase order product extraction
  */
-export const PRODUCT_EXTRACTION_PROMPT = `EXTRACTION TASK: Extract ALL products from furniture purchase orders into precise, structured data for catalog reference.
+const PURCHASE_ORDER_PROMPT = `EXTRACTION TASK: Extract ALL products from furniture purchase orders into precise, structured data for catalog reference.
 
 CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
@@ -131,3 +134,42 @@ Tag: Is this the architect's identifier, not the manufacturer's code?
 Masterformat Code: Does this match a CSI Section Number / Masterformat structure exactly?
 Details: Are these product variants/features, not finishes, sizes, or redundant information?
 `;
+
+/**
+ * Extraction configs per document type.
+ *
+ * Each document type maps to its own prompt and schema. For now, all types
+ * share the purchase order config as a placeholder until dedicated prompts
+ * are developed.
+ */
+const EXTRACTION_CONFIGS: Record<DocumentType, ExtractionConfig> = {
+  purchase_order: {
+    schema: PURCHASE_ORDER_SCHEMA,
+    prompt: PURCHASE_ORDER_PROMPT,
+  },
+  specification: {
+    schema: PURCHASE_ORDER_SCHEMA,
+    prompt: PURCHASE_ORDER_PROMPT,
+  },
+  drawing: {
+    schema: PURCHASE_ORDER_SCHEMA,
+    prompt: PURCHASE_ORDER_PROMPT,
+  },
+  rfi: {
+    schema: PURCHASE_ORDER_SCHEMA,
+    prompt: PURCHASE_ORDER_PROMPT,
+  },
+  submittal: {
+    schema: PURCHASE_ORDER_SCHEMA,
+    prompt: PURCHASE_ORDER_PROMPT,
+  },
+};
+
+/**
+ * Get the extraction config (prompt + schema) for a given document type.
+ */
+export function getExtractionConfig(
+  documentType: DocumentType,
+): ExtractionConfig {
+  return EXTRACTION_CONFIGS[documentType];
+}
