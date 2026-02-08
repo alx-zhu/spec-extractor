@@ -16,11 +16,11 @@ export type ProductFieldKey = keyof Pick<
   Product,
   | "itemName"
   | "manufacturer"
-  | "productKey"
+  | "modelNumber"
   | "tag"
   | "specIdNumber"
   | "project"
-  | "color"
+  | "finish"
   | "size"
   | "price"
   | "details"
@@ -33,8 +33,12 @@ export function getFieldValue(field: ReductoFieldValue<string>): string {
 
 // Helper function to get field bbox safely
 export function getFieldCitations(
-  field: ReductoFieldValue<string>,
+  field?: ReductoFieldValue<string>,
 ): ReductoCitation[] {
+  if (!field) {
+    return [];
+  }
+
   return field.citations;
 }
 

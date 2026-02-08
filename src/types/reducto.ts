@@ -18,11 +18,11 @@ export interface ReductoExtractResponse {
 export interface ReductoExtractedProduct {
   itemName?: ReductoFieldValue<string>;
   manufacturer?: ReductoFieldValue<string>;
-  productKey?: ReductoFieldValue<string>;
+  modelNumber?: ReductoFieldValue<string>;
   tag?: ReductoFieldValue<string>; // architect tag (optional)
   specIdNumber?: ReductoFieldValue<string>;
   project?: ReductoFieldValue<string>;
-  color?: ReductoFieldValue<string>;
+  finish?: ReductoFieldValue<string>;
   size?: ReductoFieldValue<string>;
   price?: ReductoFieldValue<string>;
   details?: ReductoFieldValue<string>;

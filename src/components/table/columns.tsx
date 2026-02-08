@@ -69,7 +69,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "specIdNumber",
-    header: "Spec ID",
+    header: "Masterformat",
     accessorKey: "specIdNumber",
     size: 140,
     meta: {
@@ -85,18 +85,18 @@ export const productColumns: ColumnDef<Product>[] = [
     },
   },
   {
-    id: "productKey",
-    header: "Product Key",
-    accessorKey: "productKey",
+    id: "modelNumber",
+    header: "Model Number",
+    accessorKey: "modelNumber",
     size: 140,
     meta: {
-      fieldName: "productKey" as ProductFieldKey,
+      fieldName: "modelNumber" as ProductFieldKey,
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
       return (
         <div className="text-sm text-gray-600">
-          {row.original.productKey?.value || "—"}
+          {row.original.modelNumber?.value || "—"}
         </div>
       );
     },
@@ -119,18 +119,18 @@ export const productColumns: ColumnDef<Product>[] = [
     },
   },
   {
-    id: "color",
-    header: "Color",
-    accessorKey: "color",
+    id: "finish",
+    header: "Finish",
+    accessorKey: "finish",
     size: 140,
     meta: {
-      fieldName: "color" as ProductFieldKey,
+      fieldName: "finish" as ProductFieldKey,
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
       return (
         <div className="text-sm text-gray-600">
-          {row.original.color?.value || "—"}
+          {row.original.finish?.value || "—"}
         </div>
       );
     },
