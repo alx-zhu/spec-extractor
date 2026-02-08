@@ -17,7 +17,7 @@ import { useCreateProducts } from "@/hooks/useProducts";
 import { useReductoExtraction } from "@/hooks/useReductoExtraction";
 import { savePdfToPublic } from "@/utils/storage";
 import { SelectedFile } from "./SelectedFile";
-import type { DocumentType } from "@/types/product";
+import type { ProductDocumentType } from "@/types/product";
 
 interface UploadModalProps {
   open: boolean;
@@ -26,8 +26,8 @@ interface UploadModalProps {
 
 export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [documentTypeMap, setDocumentTypeMap] = useState<
-    Record<string, DocumentType>
+  const [documentTypeMap, setProductDocumentTypeMap] = useState<
+    Record<string, ProductDocumentType>
   >({});
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,11 +61,11 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     if (files.length > 0) {
       setSelectedFiles((prev) => [...prev, ...files]);
 
-      const newTypes: Record<string, DocumentType> = {};
+      const newTypes: Record<string, ProductDocumentType> = {};
       files.forEach((file) => {
         newTypes[file.name] = "specification";
       });
-      setDocumentTypeMap((prev) => ({ ...prev, ...newTypes }));
+      setProductDocumentTypeMap((prev) => ({ ...prev, ...newTypes }));
     }
   }, []);
 
@@ -77,18 +77,18 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       );
       setSelectedFiles((prev) => [...prev, ...pdfFiles]);
 
-      const newTypes: Record<string, DocumentType> = {};
+      const newTypes: Record<string, ProductDocumentType> = {};
       pdfFiles.forEach((file) => {
         newTypes[file.name] = "specification";
       });
-      setDocumentTypeMap((prev) => ({ ...prev, ...newTypes }));
+      setProductDocumentTypeMap((prev) => ({ ...prev, ...newTypes }));
     }
   };
 
   const removeFile = (index: number) => {
     const fileToRemove = selectedFiles[index];
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-    setDocumentTypeMap((prev) => {
+    setProductDocumentTypeMap((prev) => {
       const updated = { ...prev };
       delete updated[fileToRemove.name];
       return updated;
@@ -155,7 +155,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               price: p.price,
               project: p.project,
               details: p.details,
-              specDocumentId: p.specDocumentId,
+              productDocumentId: p.productDocumentId,
               documentType: p.documentType,
             })),
           );
@@ -200,8 +200,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     onOpenChange(false);
   };
 
-  const handleDocumentTypeChange = (file: File, type: DocumentType) =>
-    setDocumentTypeMap((prev) => ({
+  const handleDocumentTypeChange = (file: File, type: ProductDocumentType) =>
+    setProductDocumentTypeMap((prev) => ({
       ...prev,
       [file.name]: type,
     }));

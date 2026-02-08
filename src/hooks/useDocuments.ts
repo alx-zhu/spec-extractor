@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { SpecDocument, DocumentType } from "@/types/product";
+import type { ProductDocument, ProductDocumentType } from "@/types/product";
 import * as documentsApi from "@/api/documents.api";
 import { productKeys } from "./useProducts";
 
@@ -40,7 +40,7 @@ export const useCreateDocument = () => {
     }: {
       file: File;
       localPath?: string;
-      documentType?: DocumentType;
+      documentType?: ProductDocumentType;
     }) => documentsApi.createDocument(file, localPath, documentType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -60,7 +60,7 @@ export const useUpdateDocumentStatus = () => {
       status,
     }: {
       documentId: string;
-      status: SpecDocument["status"];
+      status: ProductDocument["status"];
     }) => documentsApi.updateDocumentStatus(documentId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.all });

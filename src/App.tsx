@@ -45,7 +45,7 @@ function App() {
     setSelectedProduct(product);
     setSelectedFieldKey(fieldKey || null);
 
-    const document = documents.find((d) => d.id === product.specDocumentId);
+    const document = documents.find((d) => d.id === product.productDocumentId);
     console.log(document);
 
     // Get the public URL from Supabase Storage

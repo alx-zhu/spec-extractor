@@ -1,9 +1,9 @@
-import { DOCUMENT_TYPES, type DocumentType } from "@/types/product";
+import { DOCUMENT_TYPES, type ProductDocumentType } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface DocumentTypeBadgeProps {
-  type: DocumentType;
+  type: ProductDocumentType;
   className?: string;
 }
 

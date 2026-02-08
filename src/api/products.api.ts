@@ -71,7 +71,7 @@ export const fetchProductsByDocument = async (
   documentId: string,
 ): Promise<Product[]> => {
   const products = getProductsFromStorage();
-  const filtered = products.filter((p) => p.specDocumentId === documentId);
+  const filtered = products.filter((p) => p.productDocumentId === documentId);
   return simulateApiCall(filtered);
 };
 
@@ -181,7 +181,7 @@ export const deleteProductsByDocument = async (
 ): Promise<void> => {
   const products = getProductsFromStorage();
   const updatedProducts = products.filter(
-    (product) => product.specDocumentId !== documentId,
+    (product) => product.productDocumentId !== documentId,
   );
   saveProductsToStorage(updatedProducts);
 

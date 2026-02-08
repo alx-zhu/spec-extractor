@@ -6,8 +6,8 @@ import type {
 
 export interface Product extends ReductoExtractedProduct {
   id: string;
-  specDocumentId: string;
-  documentType: DocumentType;
+  productDocumentId: string;
+  documentType: ProductDocumentType;
   createdAt: Date;
 }
 
@@ -42,30 +42,33 @@ export function getFieldCitations(
   return field.citations;
 }
 
-export interface SpecDocument {
+export interface ProductDocument {
   id: string;
   filename: string;
   uploadDate: Date;
   status: "processing" | "completed" | "error";
-  type: DocumentType;
+  type: ProductDocumentType;
 }
 
-export type DocumentType =
+export type ProductDocumentType =
   | "purchase_order"
   | "specification"
   | "drawing"
   | "rfi"
   | "submittal";
 
-export interface DocumentTypeConfig {
-  value: DocumentType;
+export interface ProductDocumentTypeConfig {
+  value: ProductDocumentType;
   label: string;
   abbreviation: string;
   color: string;
   bgColor: string;
 }
 
-export const DOCUMENT_TYPES: Record<DocumentType, DocumentTypeConfig> = {
+export const DOCUMENT_TYPES: Record<
+  ProductDocumentType,
+  ProductDocumentTypeConfig
+> = {
   purchase_order: {
     value: "purchase_order",
     label: "Purchase Order",

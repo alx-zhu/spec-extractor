@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
-import type { DocumentType } from "@/types/product";
+import type { ProductDocumentType } from "@/types/product";
 import { FileText, X } from "lucide-react";
 import { DocumentTypeSelector } from "./DocumentTypeSelector";
 
 interface SelectedFileProps {
   file: File;
-  documentType: DocumentType;
+  documentType: ProductDocumentType;
   onRemove: () => void;
-  onDocumentTypeChange: (type: DocumentType) => void;
+  onDocumentTypeChange: (type: ProductDocumentType) => void;
   isProcessing: boolean;
 }
 

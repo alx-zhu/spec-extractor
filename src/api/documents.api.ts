@@ -5,7 +5,7 @@
  * Future Supabase implementation will include file storage URLs.
  */
 
-import type { SpecDocument, DocumentType } from "@/types/product";
+import type { ProductDocument, ProductDocumentType } from "@/types/product";
 import { simulateApiCall } from "./client";
 
 // Storage key for localStorage
@@ -23,7 +23,7 @@ const initializeStorage = (): void => {
 /**
  * Get documents from storage
  */
-const getDocumentsFromStorage = (): SpecDocument[] => {
+const getDocumentsFromStorage = (): ProductDocument[] => {
   initializeStorage();
   const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
@@ -32,7 +32,7 @@ const getDocumentsFromStorage = (): SpecDocument[] => {
 /**
  * Save documents to storage
  */
-const saveDocumentsToStorage = (documents: SpecDocument[]): void => {
+const saveDocumentsToStorage = (documents: ProductDocument[]): void => {
   localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(documents));
 };
 
@@ -47,7 +47,7 @@ const saveDocumentsToStorage = (documents: SpecDocument[]): void => {
  *   .order('upload_date', { ascending: false });
  * ```
  */
-export const fetchDocuments = async (): Promise<SpecDocument[]> => {
+export const fetchDocuments = async (): Promise<ProductDocument[]> => {
   const documents = getDocumentsFromStorage();
   return simulateApiCall(documents);
 };
@@ -73,13 +73,13 @@ export const fetchDocuments = async (): Promise<SpecDocument[]> => {
 export const createDocument = async (
   file: File,
   localPath?: string,
-  documentType: DocumentType = "specification",
-): Promise<SpecDocument> => {
+  documentType: ProductDocumentType = "specification",
+): Promise<ProductDocument> => {
   const documents = getDocumentsFromStorage();
 
   const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-  const document: SpecDocument = {
+  const document: ProductDocument = {
     id,
     filename: localPath || file.name,
     uploadDate: new Date(),
@@ -108,8 +108,8 @@ export const createDocument = async (
  */
 export const updateDocumentStatus = async (
   documentId: string,
-  status: SpecDocument["status"],
-): Promise<SpecDocument> => {
+  status: ProductDocument["status"],
+): Promise<ProductDocument> => {
   const documents = getDocumentsFromStorage();
 
   const updatedDocuments = documents.map((doc) => {

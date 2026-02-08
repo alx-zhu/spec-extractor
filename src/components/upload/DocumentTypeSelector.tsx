@@ -1,5 +1,5 @@
 // src/components/upload/DocumentTypeSelector.tsx
-import { DOCUMENT_TYPES, type DocumentType } from "@/types/product";
+import { DOCUMENT_TYPES, type ProductDocumentType } from "@/types/product";
 import {
   Select,
   SelectContent,
@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/select";
 
 interface DocumentTypeSelectorProps {
-  value: DocumentType;
-  onChange: (type: DocumentType) => void;
+  value: ProductDocumentType;
+  onChange: (type: ProductDocumentType) => void;
   disabled?: boolean;
 }
 

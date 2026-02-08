@@ -5,7 +5,7 @@
  * Each document type has its own extraction config (prompt + schema).
  */
 
-import type { DocumentType } from "@/types/product";
+import type { ProductDocumentType } from "@/types/product";
 
 export interface ExtractionConfig {
   schema: Record<string, unknown>;
@@ -142,7 +142,7 @@ Details: Are these product variants/features, not finishes, sizes, or redundant 
  * share the purchase order config as a placeholder until dedicated prompts
  * are developed.
  */
-const EXTRACTION_CONFIGS: Record<DocumentType, ExtractionConfig> = {
+const EXTRACTION_CONFIGS: Record<ProductDocumentType, ExtractionConfig> = {
   purchase_order: {
     schema: PURCHASE_ORDER_SCHEMA,
     prompt: PURCHASE_ORDER_PROMPT,
@@ -169,7 +169,7 @@ const EXTRACTION_CONFIGS: Record<DocumentType, ExtractionConfig> = {
  * Get the extraction config (prompt + schema) for a given document type.
  */
 export function getExtractionConfig(
-  documentType: DocumentType,
+  documentType: ProductDocumentType,
 ): ExtractionConfig {
   return EXTRACTION_CONFIGS[documentType];
 }

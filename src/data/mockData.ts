@@ -1,4 +1,4 @@
-import type { Product, SpecDocument } from "@/types/product";
+import type { Product, ProductDocument } from "@/types/product";
 import type {
   ReductoBBox,
   ReductoCitation,
@@ -41,7 +41,7 @@ function createField(
   };
 }
 
-export const mockDocuments: SpecDocument[] = [
+export const mockDocuments: ProductDocument[] = [
   {
     id: "doc-1",
     filename:
@@ -81,7 +81,7 @@ export const mockProducts: Product[] = [
     size: createField("2'x4'", 1),
     price: createField("$45.00", 1),
     details: createField("N/A", 1),
-    specDocumentId: "doc-1",
+    productDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
     documentType: "specification",
   },
@@ -97,7 +97,7 @@ export const mockProducts: Product[] = [
     size: createField("2'x4'", 3),
     price: createField("$142.50", 3),
     details: createField("Dimmable", 3),
-    specDocumentId: "doc-2",
+    productDocumentId: "doc-2",
     createdAt: new Date("2024-01-16"),
     documentType: "purchase_order",
   },
@@ -113,7 +113,7 @@ export const mockProducts: Product[] = [
     size: createField('24"x48"', 2),
     price: createField("$8.25/sf", 2),
     details: createField("Rectified edge", 2),
-    specDocumentId: "doc-1",
+    productDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
     documentType: "specification",
   },
@@ -129,7 +129,7 @@ export const mockProducts: Product[] = [
     size: createField("", 4),
     price: createField("$385.00", 4),
     details: createField("ADA compliant", 4),
-    specDocumentId: "doc-3",
+    productDocumentId: "doc-3",
     createdAt: new Date("2024-01-17"),
     documentType: "submittal",
   },
@@ -145,7 +145,7 @@ export const mockProducts: Product[] = [
     size: createField("Custom", 5),
     price: createField("$210.00", 5),
     details: createField("Manual chain", 5),
-    specDocumentId: "doc-1",
+    productDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
     documentType: "specification",
   },
@@ -161,7 +161,7 @@ export const mockProducts: Product[] = [
     size: createField("1 gal", 6),
     price: createField("$68.99/gal", 6),
     details: createField("Low VOC", 6),
-    specDocumentId: "doc-1",
+    productDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
     documentType: "specification",
   },
@@ -177,7 +177,7 @@ export const mockProducts: Product[] = [
     size: createField('24"x24"', 7),
     price: createField("$3.25/sf", 7),
     details: createField("PVC backing", 7),
-    specDocumentId: "doc-1",
+    productDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
     documentType: "specification",
   },
@@ -193,7 +193,7 @@ export const mockProducts: Product[] = [
     size: createField('12" diameter', 3),
     price: createField("$425.00", 3),
     details: createField("Dimmable, 3000K", 3),
-    specDocumentId: "doc-2",
+    productDocumentId: "doc-2",
     createdAt: new Date("2024-01-16"),
     documentType: "purchase_order",
   },
@@ -209,7 +209,7 @@ export const mockProducts: Product[] = [
     size: createField("4'x8'", 7),
     price: createField("$32.00/sf", 7),
     details: createField("UV resistant", 7),
-    specDocumentId: "doc-1",
+    productDocumentId: "doc-1",
     createdAt: new Date("2024-01-15"),
     documentType: "specification",
   },
@@ -225,7 +225,7 @@ export const mockProducts: Product[] = [
     size: createField('1.5" diameter', 4),
     price: createField("$42.50/lf", 4),
     details: createField("Wall mount", 4),
-    specDocumentId: "doc-3",
+    productDocumentId: "doc-3",
     createdAt: new Date("2024-01-17"),
     documentType: "submittal",
   },

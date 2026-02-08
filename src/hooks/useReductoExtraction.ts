@@ -6,12 +6,12 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { getReductoClient } from "@/api/reducto.client";
-import type { DocumentType, Product } from "@/types/product";
+import type { ProductDocumentType, Product } from "@/types/product";
 
 interface ReductoExtractionParams {
   file: File;
   documentId: string;
-  documentType: DocumentType;
+  documentType: ProductDocumentType;
   pdfPath: string;
 }
 
