@@ -72,9 +72,12 @@ export const mockProducts: Product[] = [
   {
     id: "prod-1",
     itemName: createField("Acoustic Ceiling Panel", 1),
+    productDescription: createField(
+      "Ultima, Fine Fissured, Square Lay-In",
+      1,
+    ),
     manufacturer: createField("Armstrong", 1),
-    modelNumber: createField("ULTIMA-2X4-1234", 1), // SKU/model
-    tag: createField("C-01", 1), // project tag
+    tag: createField("C-01", 1),
     specIdNumber: createField("09 51 00", 1),
     project: createField("Downtown Office", 1),
     finish: createField("White", 1),
@@ -88,8 +91,11 @@ export const mockProducts: Product[] = [
   {
     id: "prod-2",
     itemName: createField("LED Panel Light", 3),
+    productDescription: createField(
+      "LP Series Recessed LED, 4000K, Flat Lens",
+      3,
+    ),
     manufacturer: createField("Lithonia", 3),
-    modelNumber: createField("LP-24-LED-4000K", 3),
     tag: createField("L-02", 3),
     specIdNumber: createField("26 51 00", 3),
     project: createField("Downtown Office", 3),
@@ -104,8 +110,11 @@ export const mockProducts: Product[] = [
   {
     id: "prod-3",
     itemName: createField("Porcelain Floor Tile", 2),
+    productDescription: createField(
+      "Laminam Collection, Grigio, Rectified Edge",
+      2,
+    ),
     manufacturer: createField("Crossville", 2),
-    modelNumber: createField("LMN-2448-GRIGIO", 2),
     tag: createField("F-01", 2),
     specIdNumber: createField("09 30 00", 2),
     project: createField("Tech Campus", 2),
@@ -119,9 +128,12 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-4",
-    itemName: createField("Glass Door Hardware", 4),
+    itemName: createField("Door Closer", 4),
+    productDescription: createField(
+      "TS93 Surface-Applied Door Closer, Full Cover",
+      4,
+    ),
     manufacturer: createField("Dorma", 4),
-    modelNumber: createField("TS93-CLSR", 4),
     tag: createField("D-03", 4),
     specIdNumber: createField("08 71 00", 4),
     project: createField("Downtown Office", 4),
@@ -135,9 +147,12 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-5",
-    itemName: createField("Window Shade System", 5),
+    itemName: createField("Window Shade", 5),
+    productDescription: createField(
+      "EuroTwill Shade System, Manual Chain Drive",
+      5,
+    ),
     manufacturer: createField("MechoShade", 5),
-    modelNumber: createField("ESR-1000", 5),
     tag: createField("W-01", 5),
     specIdNumber: createField("12 24 00", 5),
     project: createField("Residential Tower", 5),
@@ -151,9 +166,12 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-6",
-    itemName: createField("Paint System", 6),
+    itemName: createField("Interior Paint", 6),
+    productDescription: createField(
+      "Aura Interior, Matte Finish, Base 1",
+      6,
+    ),
     manufacturer: createField("Benjamin Moore", 6),
-    modelNumber: createField("AURA-INT-BASE1", 6),
     tag: createField("P-01", 6),
     specIdNumber: createField("09 91 00", 6),
     project: createField("Tech Campus", 6),
@@ -168,8 +186,11 @@ export const mockProducts: Product[] = [
   {
     id: "prod-7",
     itemName: createField("Carpet Tile", 7),
+    productDescription: createField(
+      "Urban Retreat Collection, Ashlar Layout",
+      7,
+    ),
     manufacturer: createField("Interface", 7),
-    modelNumber: createField("CT-ASH-2424", 7),
     tag: createField("F-02", 7),
     specIdNumber: createField("09 68 00", 7),
     project: createField("Tech Campus", 7),
@@ -183,9 +204,12 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-8",
-    itemName: createField("Pendant Light Fixture", 3),
+    itemName: createField("Pendant Light", 3),
+    productDescription: createField(
+      "Tolomeo Mega Suspension, LED, Direct/Indirect",
+      3,
+    ),
     manufacturer: createField("Artemide", 3),
-    modelNumber: createField("PEND-12MB-LED", 3),
     tag: createField("L-03", 3),
     specIdNumber: createField("26 51 00", 3),
     project: createField("Downtown Office", 3),
@@ -200,8 +224,11 @@ export const mockProducts: Product[] = [
   {
     id: "prod-9",
     itemName: createField("Exterior Wall Panel", 7),
+    productDescription: createField(
+      "Meteon Lumen, High Pressure Laminate, FR Grade",
+      7,
+    ),
     manufacturer: createField("Trespa", 7),
-    modelNumber: createField("METEON-4X8-ANTH", 7),
     tag: createField("E-01", 7),
     specIdNumber: createField("07 42 00", 7),
     project: createField("Residential Tower", 7),
@@ -215,9 +242,12 @@ export const mockProducts: Product[] = [
   },
   {
     id: "prod-10",
-    itemName: createField("Stainless Steel Handrail", 4),
+    itemName: createField("Handrail", 4),
+    productDescription: createField(
+      "Stainless Steel Round Rail, Wall-Mounted, Return Ends",
+      4,
+    ),
     manufacturer: createField("Wagner", 4),
-    modelNumber: createField("HR-SS-1500", 4),
     tag: createField("H-01", 4),
     specIdNumber: createField("05 52 00", 4),
     project: createField("Residential Tower", 4),

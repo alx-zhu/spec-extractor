@@ -31,18 +31,28 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "itemName",
-    header: "Item Name",
+    header: "Product",
     accessorKey: "itemName",
     meta: {
       fieldName: "itemName" as ProductFieldKey,
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
+      const description = row.original.productDescription?.value;
+      const hasDescription = description && description !== "N/A";
       return (
         <div className="flex flex-col gap-0.5 min-w-0 w-full">
           <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
             {row.original.itemName?.value || "—"}
           </div>
+          {hasDescription && (
+            <div
+              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap hover:text-gray-700 cursor-pointer"
+              data-field="productDescription"
+            >
+              {description}
+            </div>
+          )}
           <div>
             <DocumentTypeBadge type={row.original.documentType} />
           </div>
@@ -81,23 +91,6 @@ export const productColumns: ColumnDef<Product>[] = [
         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
           {row.original.specIdNumber?.value || "—"}
         </span>
-      );
-    },
-  },
-  {
-    id: "modelNumber",
-    header: "Model Number",
-    accessorKey: "modelNumber",
-    size: 140,
-    meta: {
-      fieldName: "modelNumber" as ProductFieldKey,
-    },
-    cell: ({ row }) => {
-      if (!row?.original) return <span className="text-gray-400">—</span>;
-      return (
-        <div className="text-sm text-gray-600">
-          {row.original.modelNumber?.value || "—"}
-        </div>
       );
     },
   },

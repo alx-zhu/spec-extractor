@@ -49,8 +49,13 @@ export function ProductRow({
           | undefined;
 
         // Check if this field is the selected field for the selected row
+        // productDescription lives inside the itemName column, so highlight it too
         const isFieldSelected =
-          isSelected && selectedFieldKey && fieldName === selectedFieldKey;
+          isSelected &&
+          selectedFieldKey &&
+          (fieldName === selectedFieldKey ||
+            (fieldName === "itemName" &&
+              selectedFieldKey === "productDescription"));
 
         return (
           <ProductCell
