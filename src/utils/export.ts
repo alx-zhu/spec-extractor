@@ -16,9 +16,9 @@ export interface ExportColumn {
  * Default export columns configuration
  */
 export const DEFAULT_EXPORT_COLUMNS: ExportColumn[] = [
-  { key: "itemName", label: "Item Name", enabled: true },
+  { key: "itemName", label: "Product Name", enabled: true },
+  { key: "productDescription", label: "Product Description", enabled: true },
   { key: "manufacturer", label: "Manufacturer", enabled: true },
-  { key: "modelNumber", label: "Model Number", enabled: true },
   { key: "tag", label: "Tag", enabled: true },
   { key: "specIdNumber", label: "Masterformat Code", enabled: true },
   { key: "project", label: "Project", enabled: false },

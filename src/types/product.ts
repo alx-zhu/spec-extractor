@@ -15,8 +15,8 @@ export interface Product extends ReductoExtractedProduct {
 export type ProductFieldKey = keyof Pick<
   Product,
   | "itemName"
+  | "productDescription"
   | "manufacturer"
-  | "modelNumber"
   | "tag"
   | "specIdNumber"
   | "project"

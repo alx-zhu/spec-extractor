@@ -31,18 +31,28 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "itemName",
-    header: "Item Name",
+    header: "Product",
     accessorKey: "itemName",
     meta: {
       fieldName: "itemName" as ProductFieldKey,
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
+      const description = row.original.productDescription?.value;
+      const hasDescription = description && description !== "N/A";
       return (
         <div className="flex flex-col gap-0.5 min-w-0 w-full">
-          <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
+          <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 -mx-1 transition-colors hover:bg-gray-100">
             {row.original.itemName?.value || "—"}
           </div>
+          {hasDescription && (
+            <div
+              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 -mx-1 transition-colors cursor-pointer hover:bg-blue-50 hover:text-blue-700"
+              data-field="productDescription"
+            >
+              {description}
+            </div>
+          )}
           <div>
             <DocumentTypeBadge type={row.original.documentType} />
           </div>
@@ -85,23 +95,6 @@ export const productColumns: ColumnDef<Product>[] = [
     },
   },
   {
-    id: "modelNumber",
-    header: "Model Number",
-    accessorKey: "modelNumber",
-    size: 140,
-    meta: {
-      fieldName: "modelNumber" as ProductFieldKey,
-    },
-    cell: ({ row }) => {
-      if (!row?.original) return <span className="text-gray-400">—</span>;
-      return (
-        <div className="text-sm text-gray-600">
-          {row.original.modelNumber?.value || "—"}
-        </div>
-      );
-    },
-  },
-  {
     id: "tag",
     header: "Tag",
     accessorKey: "tag",
@@ -122,7 +115,7 @@ export const productColumns: ColumnDef<Product>[] = [
     id: "finish",
     header: "Finish",
     accessorKey: "finish",
-    size: 140,
+    size: 280,
     meta: {
       fieldName: "finish" as ProductFieldKey,
     },
@@ -139,7 +132,7 @@ export const productColumns: ColumnDef<Product>[] = [
     id: "size",
     header: "Size",
     accessorKey: "size",
-    size: 140,
+    size: 280,
     meta: {
       fieldName: "size" as ProductFieldKey,
     },

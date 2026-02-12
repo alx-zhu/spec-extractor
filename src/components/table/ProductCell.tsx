@@ -43,7 +43,15 @@ export function ProductCell({
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    if (fieldName) {
+    // Check if user clicked on a sub-element with its own data-field (e.g. productDescription)
+    const target = e.target as HTMLElement;
+    const overrideField = target.closest<HTMLElement>("[data-field]")?.dataset
+      .field as ProductFieldKey | undefined;
+
+    if (overrideField) {
+      e.stopPropagation();
+      onClick?.(overrideField);
+    } else if (fieldName) {
       e.stopPropagation();
       onClick?.(fieldName);
     } else if (!isCheckboxColumn) {

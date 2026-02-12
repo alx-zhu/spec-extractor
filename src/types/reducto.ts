@@ -17,8 +17,8 @@ export interface ReductoExtractResponse {
  */
 export interface ReductoExtractedProduct {
   itemName?: ReductoFieldValue<string>;
+  productDescription?: ReductoFieldValue<string>;
   manufacturer?: ReductoFieldValue<string>;
-  modelNumber?: ReductoFieldValue<string>;
   tag?: ReductoFieldValue<string>; // architect tag (optional)
   specIdNumber?: ReductoFieldValue<string>;
   project?: ReductoFieldValue<string>;

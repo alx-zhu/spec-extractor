@@ -146,9 +146,9 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           await createProducts.mutateAsync(
             extractedProducts.map((p) => ({
               itemName: p.itemName,
+              productDescription: p.productDescription,
               manufacturer: p.manufacturer,
               specIdNumber: p.specIdNumber,
-              modelNumber: p.modelNumber,
               tag: p.tag,
               finish: p.finish,
               size: p.size,

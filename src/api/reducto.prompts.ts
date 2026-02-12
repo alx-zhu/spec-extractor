@@ -26,7 +26,12 @@ const PURCHASE_ORDER_SCHEMA = {
           itemName: {
             type: "string",
             description:
-              "The complete product name and description exactly as written in the product description column. Include the full specification with all distinguishing characteristics, product lines, model identifiers, and features as stated. If a product has multiple components or features listed, consolidate them into ONE complete description. Exclude: manufacturer names, finishes/colors, dimensions, pricing.",
+              "The CONCISE, HUMAN-RECOGNIZABLE product name that immediately tells an architect what the product IS in common industry terms. This must be a real product name — not a bare category, and not a long manufacturer description. Use the FULL descriptive product name when available, including adjectives and qualifiers that distinguish this product from similar ones. CORRECT: 'Mobile Ottoman' (NOT just 'Ottoman'), 'Height-Adjustable Desk' (NOT just 'Desk'), 'Dual Monitor Arm' (NOT just 'Monitor Arm'), 'Mesh-Back Task Chair' (NOT just 'Chair'), 'Acoustic Ceiling Panel', 'LED Panel Light', 'Lateral File Cabinet'. WRONG (manufacturer-specific descriptions, NOT names): 'M/Flex with M2.1 Dual Monitor Arms' → should be 'Dual Monitor Arm', 'Zody II - Mesh Back, Fabric Seat, 4D Arm' → should be 'Mesh-Back Task Chair'. If the document does NOT clearly indicate a recognizable product name, output 'N/A' — do NOT guess. NEVER include: manufacturer name, model/line name, detailed feature lists, tag, spec ID, finish, size, price, or dimensions.",
+          },
+          productDescription: {
+            type: "string",
+            description:
+              "The FULL product description as written in the document, including the manufacturer's product line name, model name, and all distinguishing characteristics, features, and options. This is the detailed, manufacturer-specific description that identifies the exact product being specified. Examples: 'M/Flex with M2.1 Dual Monitor Arms and Slider, Dual Arm Bracket, Two-Piece Clamp Mount', 'Zody II - Mesh Back, Fabric Seat, 4D Arm, Asymmetrical Lumbar, Back Lock, Forward Tilt, Adjustable Seat, Plastic Base, Hard Caster', 'Ravel Lounge with Solid Ash Frame', 'Ultima Acoustic Ceiling Panel, Fine Fissured, Square Lay-In'. MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price, or ANY information already captured in other columns. N/A if no description is available beyond the product name.",
           },
           manufacturer: {
             type: "string",
@@ -66,11 +71,12 @@ const PURCHASE_ORDER_SCHEMA = {
           details: {
             type: "string",
             description:
-              'Critical implementation notes, special requirements, or important exceptions that affect product specification, procurement, installation, or usage. Include only information that is essential for proper product implementation and does not fit into other defined fields. Examples: installation requirements (e.g., "Requires blocking in the wall"), special delivery instructions, product alternatives or substitutions, compatibility requirements, or critical usage limitations. EXCLUDE: any component of the item name, finish (use Finish), dimensions (use Size), manufacturer (use Manufacturer), pricing, material grades or quality levels, standard product features, and all information already captured in other fields. Default to "N/A" unless the information represents a critical implementation consideration. Limit to 1-3 concise notes.',
+              'Critical implementation notes, special requirements, or important exceptions that affect product specification, procurement, installation, or usage. Include only information that is essential for proper product implementation and does not fit into other defined fields. Examples: installation requirements (e.g., "Requires blocking in the wall"), special delivery instructions, product alternatives or substitutions, compatibility requirements, or critical usage limitations. EXCLUDE: any component of the item name, product description, finish (use Finish), dimensions (use Size), manufacturer (use Manufacturer), pricing, material grades or quality levels, standard product features, and all information already captured in other fields. Default to "N/A" unless the information represents a critical implementation consideration. Limit to 1-3 concise notes.',
           },
         },
         required: [
           "itemName",
+          "productDescription",
           "manufacturer",
           "tag",
           "specIdNumber",
@@ -94,11 +100,76 @@ const PURCHASE_ORDER_SCHEMA = {
 const PURCHASE_ORDER_PROMPT = `EXTRACTION TASK: Extract ALL products from furniture purchase orders into precise, structured data for catalog reference.
 
 CRITICAL RULE - ONE PRODUCT PER TAG:
-When a TAG is present (e.g., "CH-01", "T-04"), extract ONLY ONE product entry for that tag. If a description appears to have multiple components or features, consolidate them into a SINGLE item name entry. Do NOT create separate product rows for what is clearly one tagged item with multiple descriptive parts.
+When a TAG is present (e.g., "CH-01", "T-04"), extract ONLY ONE product entry for that tag. If a description appears to have multiple components or features, consolidate them into a SINGLE entry. Do NOT create separate product rows for what is clearly one tagged item with multiple descriptive parts.
+
+═══════════════════════════════════════════════════════════════════
+MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
+═══════════════════════════════════════════════════════════════════
+
+These two fields are SEPARATE and serve very different purposes:
+
+** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product name.
+   This is what an architect would call this product in plain language.
+   It must be a real, descriptive product name that ANYONE would understand.
+
+   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
+   Include adjectives and qualifiers that distinguish the product.
+
+   CORRECT examples (note: descriptive, but still concise):
+     "Mobile Ottoman" — NOT just "Ottoman"
+     "Height-Adjustable Desk" — NOT just "Desk"
+     "Dual Monitor Arm" — NOT just "Monitor Arm"
+     "Mesh-Back Task Chair" — NOT just "Chair"
+     "Stacking Guest Chair" — NOT just "Chair"
+     "Acoustic Ceiling Panel" — NOT just "Ceiling Panel"
+     "LED Panel Light" — NOT just "Light"
+     "Lateral File Cabinet" — NOT just "File Cabinet"
+     "Vertical Cable Manager" — NOT just "Cable Manager"
+     "Standing-Height Table" — NOT just "Table"
+     "Frameless Shower Door" — NOT just "Shower Door"
+     "Pendant Light"
+     "Wire Manager"
+     "Keyboard Tray"
+     "Privacy Screen"
+     "Conference Table"
+
+   WRONG examples (these are descriptions, NOT names):
+     "M/Flex with M2.1 Dual Monitor Arms and Slider" → should be "Dual Monitor Arm"
+     "Zody II - Mesh Back, Fabric Seat, 4D Arm" → should be "Mesh-Back Task Chair"
+     "Ravel Lounge with Solid Ash Frame" → should be "Lounge Chair"
+     "Ultima Fine Fissured Square Lay-In" → should be "Acoustic Ceiling Panel"
+     "LP-24-LED-4000K Lithonia Panel" → should be "LED Panel Light"
+
+   NEVER include in the product name:
+     - Manufacturer name (e.g., "Humanscale", "Haworth")
+     - Model number or line name (e.g., "Zody II", "M/Flex", "Ravel")
+     - Detailed feature lists (e.g., "Mesh Back, 4D Arm, Asymmetrical Lumbar")
+     - Tag, spec ID, finish, size, or price
+
+   If you CANNOT determine a clear, common product name, use "N/A".
+   STRONGLY prefer "N/A" over guessing — an incorrect name is worse than no name.
+
+** Product Description (productDescription) ** — The FULL manufacturer-specific description.
+   This is the detailed product line, model name, configuration, and features
+   exactly as written in the document.
+
+   CORRECT examples:
+     "M/Flex with M2.1 Dual Monitor Arms and Slider, Dual Arm Bracket, Two-Piece Clamp Mount"
+     "Zody II - Mesh Back, Fabric Seat, 4D Arm, Asymmetrical Lumbar, Back Lock, Forward Tilt, Adjustable Seat, Plastic Base, Hard Caster"
+     "Ravel Lounge with Solid Ash Frame"
+     "Ultima Acoustic Ceiling Panel, Fine Fissured, Square Lay-In"
+
+   MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price,
+   or ANY information already captured in other columns.
+   N/A if no description beyond the product name is available.
+
+═══════════════════════════════════════════════════════════════════
 
 CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
-- Item Name: The complete product name and description exactly as written in the product description column. Include the full specification with all distinguishing characteristics, product lines, model identifiers, and features as stated (e.g., "Ravel Lounge with Solid Ash Frame", "M/Flex with M2.1 Dual Monitor Arms and Slider, Dual Arm Bracket, Two-Piece Clamp Mount", "Zody II - Mesh Back, Fabric Seat, 4D Arm, Asymmetrical Lumbar, Back Lock, Forward Tilt, Adjustable Seat, Plastic Base, Hard Caster"). If a product has multiple components or features listed, consolidate them into ONE complete description. EXCLUDE: manufacturer names, finishes/colors, dimensions, pricing.
+- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product name. Use the full descriptive name when the document provides it (e.g., "Mobile Ottoman" not just "Ottoman").
+
+- Product Description: See above — the FULL manufacturer-specific description.
 
 - Manufacturer: The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use "N/A".
 
@@ -116,7 +187,7 @@ SECONDARY FIELDS (populate with "N/A" if absent):
 
 - Price: Unit price including currency symbol if present. If there are multiple prices (unit price, extended price, total price), you MUST extract the unit price only.
 
-- Details: Critical implementation notes, special requirements, or important exceptions that affect product specification, procurement, installation, or usage. Include only information that is essential for proper product implementation and does not fit into other defined fields. Examples: installation requirements (e.g., "Requires blocking in the wall"), special delivery instructions, product alternatives or substitutions (e.g., "Alternate for Pip in All Black"), compatibility requirements, or critical usage limitations. EXCLUDE: any component already captured in Item Name, Finish, Size, Manufacturer, or pricing. Default to "N/A" unless the information represents a critical implementation consideration. Limit to 1-3 concise notes.
+- Details: Critical implementation notes, special requirements, or important exceptions that affect product specification, procurement, installation, or usage. Include only information that is essential for proper product implementation and does not fit into other defined fields. Examples: installation requirements (e.g., "Requires blocking in the wall"), special delivery instructions, product alternatives or substitutions (e.g., "Alternate for Pip in All Black"), compatibility requirements, or critical usage limitations. EXCLUDE: any component already captured in Item Name, Product Description, Finish, Size, Manufacturer, or pricing. Default to "N/A" unless the information represents a critical implementation consideration. Limit to 1-3 concise notes.
 
 EXTRACTION GUIDELINES:
 
@@ -126,6 +197,7 @@ EXTRACTION GUIDELINES:
 - One product entry per line item.
 - Consolidate multi-line descriptions into a single entry per product.
 - Use "N/A" when information cannot be confidently identified - do not guess or infer.
+- For Product Name: if you are not confident in a common, generic name, use "N/A". Do NOT put the full description here.
 - Preserve document order in output.
 - Only extract explicitly stated information.
 
@@ -133,7 +205,8 @@ OUTPUT: Return valid JSON array of product objects. Each object must include all
 
 VALIDATION CHECKLIST:
 
-- Item Name: Is this the complete product description as written in the document?
+- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product name like "Dual Monitor Arm" or "Mesh-Back Task Chair"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Chair" or "Light"), add the distinguishing qualifier.
+- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
 - Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
 - Tag: Is this the architect's identifier from the TAG column? Does each tag appear only ONCE in the output?
 - Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
@@ -153,7 +226,12 @@ const SPECIFICATION_SCHEMA = {
           itemName: {
             type: "string",
             description:
-              'The product category or type name as it would be referenced in the CSI Masterformat structure, NOT the full description. Extract the concise product name from the specification section title or from the subsection header (e.g., "Wood Athletic Flooring" not "Wood athletic flooring, fixed system, random length plank flooring, oak, select grade"). If a model number or product line is specified with the manufacturer approval, append it (e.g., "Wood Athletic Flooring - Junckers SylvaSquash", "Acoustic Ceiling Panels - Armstrong Ultima"). Keep it concise - this should be the product category name, not a detailed specification.',
+              "The CONCISE, HUMAN-RECOGNIZABLE product category name as it would be referenced in common architectural language. Use the FULL descriptive name, not just the shortest category. CORRECT: 'Wood Athletic Flooring' (NOT just 'Flooring'), 'Acoustic Ceiling Panel' (NOT just 'Ceiling Panel'), 'Plastic Laminate Locker' (NOT just 'Locker'), 'Door Hardware', 'Carpet Tile'. WRONG: 'Wood athletic flooring, fixed system, random length plank flooring, oak, select grade' — this is a description, not a name. WRONG: 'Junckers SylvaSquash' — this is a manufacturer product line. If you cannot determine a clear common product name, use 'N/A'. NEVER include manufacturer names, model numbers, or detailed features here.",
+          },
+          productDescription: {
+            type: "string",
+            description:
+              "The FULL product description including manufacturer product line, model name, system type, and all distinguishing characteristics from the specification. Include the basis-of-design product line name if specified (e.g., 'Junckers SylvaSquash, fixed system, random length plank flooring, oak, select grade', 'Armstrong Ultima, Fine Fissured, Square Lay-In'). MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price, or information already in other columns. N/A if no description beyond the product name is available.",
           },
           manufacturer: {
             type: "string",
@@ -197,6 +275,7 @@ const SPECIFICATION_SCHEMA = {
         },
         required: [
           "itemName",
+          "productDescription",
           "manufacturer",
           "tag",
           "specIdNumber",
@@ -208,7 +287,7 @@ const SPECIFICATION_SCHEMA = {
         ],
       },
       description:
-        "The product category or type name as it would be referenced in the CSI Masterformat structure, NOT the full description. Extract the concise product name from the specification section title or from the subsection header (e.g., 'Wood Athletic Flooring' not 'Wood athletic flooring, fixed system, random length plank flooring, oak, select grade'). If a model number or product line is specified with the manufacturer approval, append it (e.g., 'Wood Athletic Flooring - Junckers SylvaSquash', 'Acoustic Ceiling Panels - Armstrong Ultima'). Keep it concise - this should be the product category name, not a detailed specification.",
+        "List of primary products extracted from the specification. Each product should have a short generic name (itemName) and a full manufacturer-specific description (productDescription).",
     },
   },
   required: ["products"],
@@ -221,7 +300,7 @@ You are processing a specification section with a CSI Masterformat code that def
 
 NAVIGATION:
 1. Locate the specification section with the target CSI Masterformat code
-2. Navigate directly to "Part 2 - Products" 
+2. Navigate directly to "Part 2 - Products"
 3. Ignore Part 1 (General) and Part 3 (Execution)
 
 CRITICAL PRODUCT IDENTIFICATION RULES:
@@ -231,7 +310,7 @@ CRITICAL PRODUCT IDENTIFICATION RULES:
    - "2.X MANUFACTURERS" followed by a list of company names
    - "Basis-of-Design: [Company Name] [Product]"
    - "Acceptable Manufacturers: [Company A], [Company B], or approved equal"
-   
+
    DO NOT extract if subsection only has:
    - ASTM/industry standards without manufacturer names
    - "Manufacturer's standard" without specific company names
@@ -239,27 +318,80 @@ CRITICAL PRODUCT IDENTIFICATION RULES:
 
 2. MASTERFORMAT ALIGNMENT REQUIREMENT:
    The product MUST belong to the CSI Masterformat section being specified.
-   
+
    Example: In section "09 64 66 - Wood Athletic Flooring":
    ✓ EXTRACT: Wood athletic flooring (this IS 09 64 66)
    ✗ SKIP: Plywood underlayment (this is 06 16 00, not the subject of this spec)
    ✗ SKIP: Adhesives (this is 09 60 00, supporting material)
    ✗ SKIP: Vapor retarders (this is 07 26 00, supporting material)
-   
+
    Example: In section "08 71 00 - Door Hardware":
    ✓ EXTRACT: Locksets, hinges, closers (these ARE 08 71 00)
    ✗ SKIP: Fasteners, anchors (supporting materials from different sections)
-   
+
    If uncertain whether a product belongs to the spec's Masterformat section, ask: "Is this product the reason this specification section exists?" If no, skip it.
 
 ANCHOR FIELDS - Look for manufacturer approval subsections in Part 2 that specify the section's primary product category.
 
 CRITICAL RULE - ONE PRODUCT PER TAG (if tags present):
-If architect's tags appear in the specification, extract ONLY ONE product entry per tag. Consolidate all components and features for a single tag into ONE item name entry.
+If architect's tags appear in the specification, extract ONLY ONE product entry per tag. Consolidate all components and features for a single tag into ONE entry.
+
+═══════════════════════════════════════════════════════════════════
+MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
+═══════════════════════════════════════════════════════════════════
+
+These two fields are SEPARATE and serve very different purposes:
+
+** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product category.
+   This is the CSI Masterformat product type name in plain language.
+
+   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
+
+   CORRECT examples (note: descriptive, but still concise):
+     "Wood Athletic Flooring" — NOT just "Flooring"
+     "Acoustic Ceiling Panel" — NOT just "Ceiling Panel"
+     "Plastic Laminate Locker" — NOT just "Locker"
+     "Door Hardware"
+     "Carpet Tile"
+     "Interior Paint"
+     "Resilient Base"
+     "Ceramic Wall Tile"
+     "Frameless Shower Door"
+
+   WRONG examples (too specific/contain manufacturer info):
+     "Wood athletic flooring, fixed system, random length plank flooring, oak, select grade" → should be "Wood Athletic Flooring"
+     "Junckers SylvaSquash" → should be "Wood Athletic Flooring"
+     "Armstrong Ultima Fine Fissured" → should be "Acoustic Ceiling Panel"
+     "Wood Athletic Flooring - Junckers SylvaSquash" → should be "Wood Athletic Flooring"
+
+   NEVER include in the product name:
+     - Manufacturer name, model number, or product line name
+     - Material grades, species, system types
+     - Tag, spec ID, finish, size, or price
+
+   If you CANNOT determine a clear, common product name, use "N/A".
+   STRONGLY prefer "N/A" over guessing.
+
+** Product Description (productDescription) ** — The FULL specification description.
+   This includes the manufacturer's product line, system type, material details,
+   and all distinguishing characteristics from the spec.
+
+   CORRECT examples:
+     "Junckers SylvaSquash, fixed system, random length plank flooring, oak, select grade"
+     "Armstrong Ultima, Fine Fissured, Square Lay-In"
+     "Schlage ND-series, cylindrical lockset"
+
+   MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price,
+   or information already in other columns.
+   N/A if no description beyond the product name is available.
+
+═══════════════════════════════════════════════════════════════════
 
 CORE FIELDS:
 
-- Item Name: The product category or type name as it would be referenced in the CSI Masterformat structure, NOT the full description. Extract the concise product name from the specification section title or from the subsection header (e.g., "Wood Athletic Flooring" not "Wood athletic flooring, fixed system, random length plank flooring, oak, select grade"). If a model number or product line is specified with the manufacturer approval, append it (e.g., "Wood Athletic Flooring - Junckers SylvaSquash", "Acoustic Ceiling Panels - Armstrong Ultima"). Keep it concise - this should be the product category name, not a detailed specification.
+- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product category name. Use the full descriptive name when the document provides it (e.g., "Wood Athletic Flooring" not just "Flooring").
+
+- Product Description: See above — the FULL manufacturer-specific description from the specification.
 
 - Manufacturer: List manufacturers from the manufacturer approval subsection in order of preference. Basis-of-Design manufacturer FIRST if specified, then other approved manufacturers, then "or approved equal" if stated. Format as comma-separated string. ONLY extract from explicit manufacturer approval subsections.
 
@@ -277,7 +409,7 @@ SECONDARY FIELDS:
 
 - Price: N/A (specifications do not contain pricing).
 
-- Details: Key product characteristics and performance requirements that define the specification. Include: material type, grade, system type, critical performance criteria, ratings, certifications, or standards (e.g., "Species: Oak; Grade: Select; Fixed system", "Grade 1; Fire Rating: 3-hour", "NRC 0.70 minimum; CAC 35 minimum"). Extract 2-4 critical specifications. EXCLUDE: installation methods, supporting material specifications, information already in Item Name or Finish. N/A if no specific criteria stated.
+- Details: Key product characteristics and performance requirements that define the specification. Include: material type, grade, system type, critical performance criteria, ratings, certifications, or standards (e.g., "Species: Oak; Grade: Select; Fixed system", "Grade 1; Fire Rating: 3-hour", "NRC 0.70 minimum; CAC 35 minimum"). Extract 2-4 critical specifications. EXCLUDE: installation methods, supporting material specifications, information already in Item Name, Product Description, or Finish. N/A if no specific criteria stated.
 
 EXTRACTION RULES:
 
@@ -290,6 +422,7 @@ EXTRACTION RULES:
 - Maintain manufacturer preference order when specified
 - Preserve "or approved equal" language when present
 - Only extract from Part 2 - ignore Parts 1 and 3
+- For Product Name: if you cannot determine a clear common product category, use "N/A". Do NOT put the full description here.
 
 OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
 
@@ -297,7 +430,8 @@ VALIDATION CHECKLIST:
 
 - Manufacturer Approval: Does this product have a dedicated manufacturer approval subsection with specific company names?
 - Masterformat Alignment: Does this product belong to the CSI Masterformat section being specified? Is this product the reason this spec section exists?
-- Item Name: Is this a concise product category name, not a full description?
+- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Flooring" or "Panel"), add the distinguishing qualifier.
+- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
 - Tag Format: If present, does the tag match patterns like "C-01", "T-04", "ACC-01" (not generic text)?
 - Tag Uniqueness: If tags exist, does each appear only once?
 - Spec ID Number: Does this match the section number from the header?
