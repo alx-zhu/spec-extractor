@@ -7,7 +7,7 @@ import {
   type Product,
   type ProductFieldKey,
 } from "@/types/product";
-import { cn } from "@/lib/utils";
+import { camelToTitle, cn } from "@/lib/utils";
 import type { ReductoFieldValue } from "@/types/reducto";
 
 // Set up PDF.js worker
@@ -185,7 +185,11 @@ export function PdfViewer({
                 <>
                   <span className="text-gray-300">•</span>
                   <span className="text-blue-600 font-medium">
-                    Highlighting: {selectedFieldKey}
+                    {camelToTitle(selectedFieldKey)}:{" "}
+                    <span className="font-normal text-gray-500">
+                      {product?.[selectedFieldKey as ProductFieldKey]?.value ||
+                        "—"}
+                    </span>
                   </span>
                 </>
               )}

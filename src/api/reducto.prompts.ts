@@ -26,7 +26,7 @@ const PURCHASE_ORDER_SCHEMA = {
           itemName: {
             type: "string",
             description:
-              "The SHORT, GENERIC, HUMAN-RECOGNIZABLE product name that immediately tells an architect what the product IS in common industry terms. This is the simple product category or type — NOT the manufacturer's marketing name, NOT the model number, NOT a long description. Think: what would you call this product if you were explaining it to someone? Examples of CORRECT product names: 'Monitor Arm', 'Task Chair', 'Wire Manager', 'Desk Lamp', 'Lounge Chair', 'Acoustic Ceiling Panel', 'Pendant Light', 'File Cabinet', 'Whiteboard', 'Power Strip', 'Cable Tray', 'Keyboard Tray'. Examples of WRONG product names (too specific/manufacturer-branded): 'M/Flex with M2.1 Dual Monitor Arms', 'Zody II - Mesh Back, Fabric Seat, 4D Arm', 'Ravel Lounge with Solid Ash Frame'. If the document does NOT clearly indicate a common product name, output 'N/A' — do NOT guess or fabricate a name. Prefer 'N/A' over an inaccurate name. NEVER include: manufacturer name, model number, tag, spec ID, finish, size, price, or detailed features.",
+              "The CONCISE, HUMAN-RECOGNIZABLE product name that immediately tells an architect what the product IS in common industry terms. This must be a real product name — not a bare category, and not a long manufacturer description. Use the FULL descriptive product name when available, including adjectives and qualifiers that distinguish this product from similar ones. CORRECT: 'Mobile Ottoman' (NOT just 'Ottoman'), 'Height-Adjustable Desk' (NOT just 'Desk'), 'Dual Monitor Arm' (NOT just 'Monitor Arm'), 'Mesh-Back Task Chair' (NOT just 'Chair'), 'Acoustic Ceiling Panel', 'LED Panel Light', 'Lateral File Cabinet'. WRONG (manufacturer-specific descriptions, NOT names): 'M/Flex with M2.1 Dual Monitor Arms' → should be 'Dual Monitor Arm', 'Zody II - Mesh Back, Fabric Seat, 4D Arm' → should be 'Mesh-Back Task Chair'. If the document does NOT clearly indicate a recognizable product name, output 'N/A' — do NOT guess. NEVER include: manufacturer name, model/line name, detailed feature lists, tag, spec ID, finish, size, price, or dimensions.",
           },
           productDescription: {
             type: "string",
@@ -108,31 +108,34 @@ MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
 
 These two fields are SEPARATE and serve very different purposes:
 
-** Product Name (itemName) ** — The SHORT, GENERIC, HUMAN-RECOGNIZABLE product type.
+** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product name.
    This is what an architect would call this product in plain language.
-   It must be a common industry term that ANYONE would understand.
+   It must be a real, descriptive product name that ANYONE would understand.
 
-   CORRECT examples:
-     "Monitor Arm"
-     "Task Chair"
-     "Wire Manager"
-     "Desk Lamp"
-     "Lounge Chair"
-     "Acoustic Ceiling Panel"
+   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
+   Include adjectives and qualifiers that distinguish the product.
+
+   CORRECT examples (note: descriptive, but still concise):
+     "Mobile Ottoman" — NOT just "Ottoman"
+     "Height-Adjustable Desk" — NOT just "Desk"
+     "Dual Monitor Arm" — NOT just "Monitor Arm"
+     "Mesh-Back Task Chair" — NOT just "Chair"
+     "Stacking Guest Chair" — NOT just "Chair"
+     "Acoustic Ceiling Panel" — NOT just "Ceiling Panel"
+     "LED Panel Light" — NOT just "Light"
+     "Lateral File Cabinet" — NOT just "File Cabinet"
+     "Vertical Cable Manager" — NOT just "Cable Manager"
+     "Standing-Height Table" — NOT just "Table"
+     "Frameless Shower Door" — NOT just "Shower Door"
      "Pendant Light"
-     "File Cabinet"
-     "Whiteboard"
-     "Power Strip"
-     "Cable Tray"
+     "Wire Manager"
      "Keyboard Tray"
-     "Height-Adjustable Desk"
-     "Stacking Chair"
-     "Conference Table"
      "Privacy Screen"
+     "Conference Table"
 
    WRONG examples (these are descriptions, NOT names):
-     "M/Flex with M2.1 Dual Monitor Arms and Slider" → should be "Monitor Arm"
-     "Zody II - Mesh Back, Fabric Seat, 4D Arm" → should be "Task Chair"
+     "M/Flex with M2.1 Dual Monitor Arms and Slider" → should be "Dual Monitor Arm"
+     "Zody II - Mesh Back, Fabric Seat, 4D Arm" → should be "Mesh-Back Task Chair"
      "Ravel Lounge with Solid Ash Frame" → should be "Lounge Chair"
      "Ultima Fine Fissured Square Lay-In" → should be "Acoustic Ceiling Panel"
      "LP-24-LED-4000K Lithonia Panel" → should be "LED Panel Light"
@@ -140,7 +143,7 @@ These two fields are SEPARATE and serve very different purposes:
    NEVER include in the product name:
      - Manufacturer name (e.g., "Humanscale", "Haworth")
      - Model number or line name (e.g., "Zody II", "M/Flex", "Ravel")
-     - Detailed features (e.g., "Mesh Back, 4D Arm")
+     - Detailed feature lists (e.g., "Mesh Back, 4D Arm, Asymmetrical Lumbar")
      - Tag, spec ID, finish, size, or price
 
    If you CANNOT determine a clear, common product name, use "N/A".
@@ -164,7 +167,7 @@ These two fields are SEPARATE and serve very different purposes:
 
 CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
-- Item Name (Product Name): See above — the SHORT, GENERIC product type only.
+- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product name. Use the full descriptive name when the document provides it (e.g., "Mobile Ottoman" not just "Ottoman").
 
 - Product Description: See above — the FULL manufacturer-specific description.
 
@@ -202,7 +205,7 @@ OUTPUT: Return valid JSON array of product objects. Each object must include all
 
 VALIDATION CHECKLIST:
 
-- Item Name (Product Name): Is this a SHORT, GENERIC product type like "Monitor Arm" or "Task Chair"? If it contains a model name, brand, or detailed features, it is WRONG — move that to Product Description.
+- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product name like "Dual Monitor Arm" or "Mesh-Back Task Chair"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Chair" or "Light"), add the distinguishing qualifier.
 - Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
 - Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
 - Tag: Is this the architect's identifier from the TAG column? Does each tag appear only ONCE in the output?
@@ -223,7 +226,7 @@ const SPECIFICATION_SCHEMA = {
           itemName: {
             type: "string",
             description:
-              "The SHORT, GENERIC, HUMAN-RECOGNIZABLE product category name as it would be referenced in common architectural language. This is the simple product type — NOT a detailed specification, NOT a manufacturer name, NOT a model number. Examples: 'Wood Athletic Flooring', 'Acoustic Ceiling Panel', 'Door Hardware', 'Carpet Tile'. WRONG: 'Wood athletic flooring, fixed system, random length plank flooring, oak, select grade' — this is a description, not a name. WRONG: 'Junckers SylvaSquash' — this is a manufacturer product line. If you cannot determine a clear common product name, use 'N/A'. NEVER include manufacturer names, model numbers, or detailed features here.",
+              "The CONCISE, HUMAN-RECOGNIZABLE product category name as it would be referenced in common architectural language. Use the FULL descriptive name, not just the shortest category. CORRECT: 'Wood Athletic Flooring' (NOT just 'Flooring'), 'Acoustic Ceiling Panel' (NOT just 'Ceiling Panel'), 'Plastic Laminate Locker' (NOT just 'Locker'), 'Door Hardware', 'Carpet Tile'. WRONG: 'Wood athletic flooring, fixed system, random length plank flooring, oak, select grade' — this is a description, not a name. WRONG: 'Junckers SylvaSquash' — this is a manufacturer product line. If you cannot determine a clear common product name, use 'N/A'. NEVER include manufacturer names, model numbers, or detailed features here.",
           },
           productDescription: {
             type: "string",
@@ -339,19 +342,21 @@ MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
 
 These two fields are SEPARATE and serve very different purposes:
 
-** Product Name (itemName) ** — The SHORT, GENERIC, HUMAN-RECOGNIZABLE product category.
+** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product category.
    This is the CSI Masterformat product type name in plain language.
 
-   CORRECT examples:
-     "Wood Athletic Flooring"
-     "Acoustic Ceiling Panel"
+   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
+
+   CORRECT examples (note: descriptive, but still concise):
+     "Wood Athletic Flooring" — NOT just "Flooring"
+     "Acoustic Ceiling Panel" — NOT just "Ceiling Panel"
+     "Plastic Laminate Locker" — NOT just "Locker"
      "Door Hardware"
      "Carpet Tile"
      "Interior Paint"
      "Resilient Base"
      "Ceramic Wall Tile"
      "Frameless Shower Door"
-     "Plastic Laminate Locker"
 
    WRONG examples (too specific/contain manufacturer info):
      "Wood athletic flooring, fixed system, random length plank flooring, oak, select grade" → should be "Wood Athletic Flooring"
@@ -384,7 +389,7 @@ These two fields are SEPARATE and serve very different purposes:
 
 CORE FIELDS:
 
-- Item Name (Product Name): See above — the SHORT, GENERIC product category name only.
+- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product category name. Use the full descriptive name when the document provides it (e.g., "Wood Athletic Flooring" not just "Flooring").
 
 - Product Description: See above — the FULL manufacturer-specific description from the specification.
 
@@ -425,7 +430,7 @@ VALIDATION CHECKLIST:
 
 - Manufacturer Approval: Does this product have a dedicated manufacturer approval subsection with specific company names?
 - Masterformat Alignment: Does this product belong to the CSI Masterformat section being specified? Is this product the reason this spec section exists?
-- Item Name (Product Name): Is this a SHORT, GENERIC product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG — move that to Product Description.
+- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Flooring" or "Panel"), add the distinguishing qualifier.
 - Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
 - Tag Format: If present, does the tag match patterns like "C-01", "T-04", "ACC-01" (not generic text)?
 - Tag Uniqueness: If tags exist, does each appear only once?
