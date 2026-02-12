@@ -2,6 +2,10 @@ import { type Row } from "@tanstack/react-table";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { ProductCell } from "./ProductCell";
+import {
+  useViewedProducts,
+  useMarkProductViewed,
+} from "@/hooks/useViewedProducts";
 
 interface ProductRowProps {
   row: Row<Product>;
@@ -22,8 +26,19 @@ export function ProductRow({
   selectedFieldKey,
   onCellSave,
 }: ProductRowProps) {
+  const { data: viewedIds } = useViewedProducts();
+  const markViewed = useMarkProductViewed();
+
   const isChecked = row.getIsSelected();
   const isVisuallySelected = isSelected || isChecked;
+  const isViewed = viewedIds?.has(row.original.id) ?? true;
+
+  const handleClick = (fieldKey?: string) => {
+    if (!isViewed) {
+      markViewed.mutate(row.original.id);
+    }
+    onClick?.(fieldKey);
+  };
 
   const handleCellSave = (fieldKey: ProductFieldKey, newValue: string) => {
     if (row.original?.id) {
@@ -43,6 +58,11 @@ export function ProductRow({
         isChecked && "bg-blue-50",
       )}
     >
+      {/* Unviewed notification dot */}
+      {!isViewed && (
+        <span className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 size-1.5 rounded-full bg-blue-500" />
+      )}
+
       {row.getVisibleCells().map((cell) => {
         const fieldName = cell.column.columnDef.meta?.fieldName as
           | string
@@ -63,7 +83,7 @@ export function ProductRow({
             cell={cell}
             isSelected={isSelected ?? false}
             isFieldSelected={!!isFieldSelected}
-            onClick={onClick}
+            onClick={handleClick}
             onSave={handleCellSave}
           />
         );
