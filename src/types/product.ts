@@ -8,6 +8,7 @@ export interface Product extends ReductoExtractedProduct {
   id: string;
   productDocumentId: string;
   documentType: ProductDocumentType;
+  reviewed: boolean;
   createdAt: Date;
 }
 
