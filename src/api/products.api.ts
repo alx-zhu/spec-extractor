@@ -89,7 +89,7 @@ export const fetchProductsByDocument = async (
  * ```
  */
 export const createProducts = async (
-  newProducts: Omit<Product, "id" | "createdAt">[],
+  newProducts: Omit<Product, "id" | "reviewed" | "createdAt">[],
 ): Promise<Product[]> => {
   const products = getProductsFromStorage();
 
@@ -97,6 +97,7 @@ export const createProducts = async (
   const productsWithIds: Product[] = newProducts.map((product) => ({
     ...product,
     id: `prod-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    reviewed: false,
     createdAt: new Date(),
   }));
 

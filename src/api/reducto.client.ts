@@ -163,6 +163,7 @@ export class ReductoClient {
         id: productId,
         productDocumentId: documentId,
         documentType,
+        reviewed: false,
         createdAt: new Date(),
       };
 
