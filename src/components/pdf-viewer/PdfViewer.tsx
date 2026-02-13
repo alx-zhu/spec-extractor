@@ -9,6 +9,7 @@ import {
 } from "@/types/product";
 import { camelToTitle, cn } from "@/lib/utils";
 import type { ReductoFieldValue } from "@/types/reducto";
+import { isSpecIdGenerated } from "@/utils/productHelpers";
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -190,6 +191,12 @@ export function PdfViewer({
                       {product?.[selectedFieldKey as ProductFieldKey]?.value ||
                         "—"}
                     </span>
+                    {(selectedFieldKey as ProductFieldKey) === "specIdNumber" &&
+                      isSpecIdGenerated(product) && (
+                        <span className="text-[10px] text-gray-400 italic pl-1">
+                          (generated)
+                        </span>
+                      )}
                   </span>
                 </>
               )}

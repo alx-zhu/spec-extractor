@@ -1,7 +1,10 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
 import { DocumentTypeBadge } from "./DocumentTypeBadge";
+import { isSpecIdGenerated } from "@/utils/productHelpers";
 
 export const productColumns: ColumnDef<Product>[] = [
   {
@@ -87,10 +90,19 @@ export const productColumns: ColumnDef<Product>[] = [
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
+      const isGenerated = isSpecIdGenerated(row.original);
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
-          {row.original.specIdNumber?.value || "—"}
-        </span>
+        <div className="inline-flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="rounded font-mono text-xs font-medium text-gray-700"
+          >
+            {row.original.specIdNumber?.value || "—"}
+          </Badge>
+          {isGenerated && (
+            <Sparkles className="size-3 text-amber-400 shrink-0" />
+          )}
+        </div>
       );
     },
   },
