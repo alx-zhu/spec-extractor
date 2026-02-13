@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, AlertCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
   useCreateDocument,
@@ -15,6 +16,7 @@ import {
 } from "@/hooks/useDocuments";
 import { useCreateProducts } from "@/hooks/useProducts";
 import { useReductoExtraction } from "@/hooks/useReductoExtraction";
+import { useSpecIdGeneration } from "@/hooks/useSpecIdGeneration";
 import { savePdfToPublic } from "@/utils/storage";
 import { SelectedFile } from "./SelectedFile";
 import type { ProductDocumentType } from "@/types/product";
@@ -33,11 +35,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [generateSpecIds, setGenerateSpecIds] = useState(false);
 
   const createDocument = useCreateDocument();
   const updateDocumentStatus = useUpdateDocumentStatus();
   const createProducts = useCreateProducts();
   const reductoExtraction = useReductoExtraction();
+  const specIdGeneration = useSpecIdGeneration();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -140,11 +144,19 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           `[Upload] Extracted ${extractedProducts.length} products from ${file.name}`,
         );
 
+        // Step 3.5: Generate missing spec IDs if enabled
+        let productsToSave = extractedProducts;
+        if (generateSpecIds && extractedProducts.length > 0) {
+          setProcessingStatus(`Generating spec IDs for missing products...`);
+          productsToSave =
+            await specIdGeneration.mutateAsync(extractedProducts);
+        }
+
         // Step 4: Save extracted products
-        if (extractedProducts.length > 0) {
-          setProcessingStatus(`Saving ${extractedProducts.length} products...`);
+        if (productsToSave.length > 0) {
+          setProcessingStatus(`Saving ${productsToSave.length} products...`);
           await createProducts.mutateAsync(
-            extractedProducts.map((p) => ({
+            productsToSave.map((p) => ({
               itemName: p.itemName,
               productDescription: p.productDescription,
               manufacturer: p.manufacturer,
@@ -307,7 +319,21 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <Checkbox
+                checked={generateSpecIds}
+                onCheckedChange={(checked) =>
+                  setGenerateSpecIds(checked === true)
+                }
+                disabled={isProcessing}
+              />
+              <span className="text-sm text-gray-600">
+                Generate missing Spec IDs
+              </span>
+            </label>
+          </div>
+          <div className="flex items-center justify-end gap-3 mt-3">
             <Button
               variant="outline"
               onClick={handleCancel}
