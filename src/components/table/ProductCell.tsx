@@ -2,11 +2,16 @@ import { flexRender, type Cell } from "@tanstack/react-table";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { EditableCell } from "./EditableCell";
+import { EditableProductCell } from "./EditableProductCell";
+import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
+import { selectionIndicator } from "@/styles/layers";
+import { cellVariants } from "./tableVariants";
 
 interface ProductCellProps {
   cell: Cell<Product, unknown>;
   isSelected: boolean;
   isFieldSelected: boolean;
+  isRowChecked?: boolean;
   onClick?: (fieldKey?: string) => void;
   onSave?: (fieldKey: ProductFieldKey, newValue: string) => void;
 }
@@ -15,26 +20,25 @@ export function ProductCell({
   cell,
   isSelected,
   isFieldSelected,
+  isRowChecked,
   onClick,
   onSave,
 }: ProductCellProps) {
-  const size = cell.column.columnDef.size;
-  const isItemName = cell.column.id === "itemName";
-  const minWidth = isItemName ? 250 : size;
+  const columnType = getColumnType(cell.column.id);
+  const width = getColumnWidth(cell.column.id) ?? cell.column.columnDef.size;
   const fieldName = cell.column.columnDef.meta?.fieldName as
     | ProductFieldKey
     | undefined;
-  const isCheckboxColumn = cell.column.id === "select";
 
   // Guard against undefined row
   if (!cell.row || !cell.row.original) {
     return (
       <div
         key={cell.id}
-        className="px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border"
+        className={cellVariants({ column: columnType })}
         style={{
-          width: size ? `${size}px` : undefined,
-          minWidth: minWidth ? `${minWidth}px` : undefined,
+          width: width ? `${width}px` : undefined,
+          minWidth: width ? `${width}px` : undefined,
         }}
       >
         <span className="text-gray-400">—</span>
@@ -54,7 +58,7 @@ export function ProductCell({
     } else if (fieldName) {
       e.stopPropagation();
       onClick?.(fieldName);
-    } else if (!isCheckboxColumn) {
+    } else if (columnType !== "checkbox") {
       onClick?.();
     }
   };
@@ -65,28 +69,39 @@ export function ProductCell({
 
   const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
 
+  // A cell shows blue-50 if its field is selected, or if its row is checked
+  // and it's a frozen column (needs opaque background to cover scrolling content).
+  const isCellSelected =
+    isFieldSelected || !!(isRowChecked && columnType !== "data");
+
   return (
     <div
       key={cell.id}
       className={cn(
-        "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border group relative",
-        isCheckboxColumn && "justify-center",
-        // Apply blue background for selected field
-        isFieldSelected && "bg-blue-50",
-        // Different hover colors: darker blue for selected rows, light blue for non-selected
-        fieldName && "cursor-pointer hover:bg-gray-50",
-        fieldName &&
-          (cell.row.getIsSelected() || isFieldSelected) &&
-          "hover:bg-blue-100/80",
+        cellVariants({
+          column: columnType,
+          selected: isCellSelected,
+          interactive: !!fieldName,
+        }),
+        columnType === "checkbox" && isSelected && selectionIndicator,
       )}
       style={{
-        width: size ? `${size}px` : undefined,
-        minWidth: minWidth ? `${minWidth}px` : undefined,
-        flex: isItemName ? "1" : undefined,
+        width: width ? `${width}px` : undefined,
+        minWidth: width ? `${width}px` : undefined,
       }}
       onClick={handleClick}
     >
-      {fieldName && cell.row.original[fieldName] ? (
+      {columnType === "itemName" && cell.row.original.itemName ? (
+        <EditableProductCell
+          itemNameValue={cell.row.original.itemName.value}
+          descriptionValue={cell.row.original.productDescription?.value || ""}
+          isSelected={isSelected}
+          isFieldSelected={isFieldSelected}
+          onSave={handleSave}
+        >
+          {cellContent}
+        </EditableProductCell>
+      ) : fieldName && cell.row.original[fieldName] ? (
         <EditableCell
           value={cell.row.original[fieldName].value}
           fieldKey={fieldName}
