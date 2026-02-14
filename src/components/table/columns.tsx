@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { DocumentTypeBadge } from "./DocumentTypeBadge";
 import { isSpecIdGenerated } from "@/utils/productHelpers";
+import { columnLayout } from "@/styles/tableLayout";
 
 export const productColumns: ColumnDef<Product>[] = [
   {
@@ -28,7 +29,7 @@ export const productColumns: ColumnDef<Product>[] = [
         aria-label="Select row"
       />
     ),
-    size: 48,
+    size: columnLayout.checkbox.width,
     enableSorting: false,
     enableHiding: false,
   },
@@ -49,11 +50,14 @@ export const productColumns: ColumnDef<Product>[] = [
             <span className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
               {row.original.itemName?.value || "—"}
             </span>
-            <DocumentTypeBadge type={row.original.documentType} className="shrink-0" />
+            <DocumentTypeBadge
+              type={row.original.documentType}
+              className="shrink-0"
+            />
           </div>
           {hasDescription && (
             <div
-              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-0.5 -mx-0.5 transition-colors cursor-pointer hover:bg-black/[0.04]"
+              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-0.5 -mx-0.5 transition-colors cursor-pointer hover:bg-black/4"
               data-field="productDescription"
             >
               {description}

@@ -6,8 +6,9 @@ import {
 import type { Product, ProductFieldKey } from "@/types/product";
 import { productColumns } from "./columns";
 import { ProductRow } from "./ProductRow";
-import { cn } from "@/lib/utils";
 import { useUpdateProduct } from "@/hooks/useProducts";
+import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
+import { headerCellVariants } from "./tableVariants";
 
 interface ProductTableProps {
   data: Product[];
@@ -59,19 +60,15 @@ export function ProductTable({
         <div className="flex bg-gray-50 border-b border-gray-200 sticky top-0 z-50">
           {table.getHeaderGroups().map((headerGroup) =>
             headerGroup.headers.map((header) => {
-              const size = header.column.columnDef.size;
-              const isCheckbox = header.column.id === "select";
-              const isItemName = header.column.id === "itemName";
-              const width = isItemName ? 280 : size;
+              const columnType = getColumnType(header.column.id);
+              const width =
+                getColumnWidth(header.column.id) ??
+                header.column.columnDef.size;
 
               return (
                 <div
                   key={header.id}
-                  className={cn(
-                    "px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center border-r border-gray-200 last:border-r-0",
-                    isCheckbox && "justify-center sticky left-0 z-30 bg-gray-50",
-                    isItemName && "sticky left-[48px] z-30 bg-gray-50 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]",
-                  )}
+                  className={headerCellVariants({ column: columnType })}
                   style={{
                     width: width ? `${width}px` : undefined,
                     minWidth: width ? `${width}px` : undefined,

@@ -23,7 +23,6 @@ export function ProductRow({
   onCellSave,
 }: ProductRowProps) {
   const isChecked = row.getIsSelected();
-  const isVisuallySelected = isSelected || isChecked;
 
   const handleCellSave = (fieldKey: ProductFieldKey, newValue: string) => {
     if (row.original?.id) {
@@ -35,9 +34,7 @@ export function ProductRow({
     <div
       className={cn(
         "flex border-b border-gray-100 transition-colors duration-150 relative",
-        !isVisuallySelected && "bg-white",
-        isSelected && "shadow-md z-10",
-        isChecked && "bg-blue-50",
+        isSelected ? "shadow-md z-10" : isChecked ? "bg-blue-50" : "bg-white",
       )}
     >
       {row.getVisibleCells().map((cell) => {

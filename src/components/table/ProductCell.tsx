@@ -3,6 +3,9 @@ import type { Product, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { EditableCell } from "./EditableCell";
 import { EditableProductCell } from "./EditableProductCell";
+import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
+import { selectionIndicator } from "@/styles/layers";
+import { cellVariants } from "./tableVariants";
 
 interface ProductCellProps {
   cell: Cell<Product, unknown>;
@@ -21,20 +24,18 @@ export function ProductCell({
   onClick,
   onSave,
 }: ProductCellProps) {
-  const size = cell.column.columnDef.size;
-  const isItemName = cell.column.id === "itemName";
-  const width = isItemName ? 280 : size;
+  const columnType = getColumnType(cell.column.id);
+  const width = getColumnWidth(cell.column.id) ?? cell.column.columnDef.size;
   const fieldName = cell.column.columnDef.meta?.fieldName as
     | ProductFieldKey
     | undefined;
-  const isCheckboxColumn = cell.column.id === "select";
 
   // Guard against undefined row
   if (!cell.row || !cell.row.original) {
     return (
       <div
         key={cell.id}
-        className="px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border"
+        className={cellVariants({ column: columnType })}
         style={{
           width: width ? `${width}px` : undefined,
           minWidth: width ? `${width}px` : undefined,
@@ -57,7 +58,7 @@ export function ProductCell({
     } else if (fieldName) {
       e.stopPropagation();
       onClick?.(fieldName);
-    } else if (!isCheckboxColumn) {
+    } else if (columnType !== "checkbox") {
       onClick?.();
     }
   };
@@ -68,24 +69,21 @@ export function ProductCell({
 
   const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
 
+  // A cell shows blue-50 if its field is selected, or if its row is checked
+  // and it's a frozen column (needs opaque background to cover scrolling content).
+  const isCellSelected =
+    isFieldSelected || !!(isRowChecked && columnType !== "data");
+
   return (
     <div
       key={cell.id}
       className={cn(
-        "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border group relative",
-        isCheckboxColumn && "justify-center",
-        // Left selection indicator on checkbox cell
-        isCheckboxColumn && isSelected && "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-500 before:z-30",
-        // Sticky frozen columns
-        isCheckboxColumn && "sticky left-0 z-20",
-        isItemName && "sticky left-[48px] z-20 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]",
-        // Background for sticky cells (must be opaque to cover scrolling content)
-        (isCheckboxColumn || isItemName) && !isFieldSelected && !isRowChecked && "bg-white",
-        (isCheckboxColumn || isItemName) && !isFieldSelected && isRowChecked && "bg-blue-50",
-        // Apply blue background for selected field
-        isFieldSelected && "bg-blue-50",
-        // Hover state layer: pseudo-element overlay that composites on top of any background (Material Design pattern)
-        fieldName && "cursor-pointer after:absolute after:inset-0 after:pointer-events-none after:transition-colors hover:after:bg-black/[0.04]",
+        cellVariants({
+          column: columnType,
+          selected: isCellSelected,
+          interactive: !!fieldName,
+        }),
+        columnType === "checkbox" && isSelected && selectionIndicator,
       )}
       style={{
         width: width ? `${width}px` : undefined,
@@ -93,7 +91,7 @@ export function ProductCell({
       }}
       onClick={handleClick}
     >
-      {isItemName && cell.row.original.itemName ? (
+      {columnType === "itemName" && cell.row.original.itemName ? (
         <EditableProductCell
           itemNameValue={cell.row.original.itemName.value}
           descriptionValue={cell.row.original.productDescription?.value || ""}
