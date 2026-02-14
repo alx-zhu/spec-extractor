@@ -45,20 +45,20 @@ export const productColumns: ColumnDef<Product>[] = [
       const hasDescription = description && description !== "N/A";
       return (
         <div className="flex flex-col gap-0.5 min-w-0 w-full">
-          <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 -mx-1 transition-colors hover:bg-gray-100">
-            {row.original.itemName?.value || "—"}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
+              {row.original.itemName?.value || "—"}
+            </span>
+            <DocumentTypeBadge type={row.original.documentType} className="shrink-0" />
           </div>
           {hasDescription && (
             <div
-              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 -mx-1 transition-colors cursor-pointer hover:bg-blue-50 hover:text-blue-700"
+              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-0.5 -mx-0.5 transition-colors cursor-pointer hover:bg-black/[0.04]"
               data-field="productDescription"
             >
               {description}
             </div>
           )}
-          <div>
-            <DocumentTypeBadge type={row.original.documentType} />
-          </div>
         </div>
       );
     },
