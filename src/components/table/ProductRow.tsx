@@ -1,5 +1,5 @@
 import { type Row } from "@tanstack/react-table";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { Product } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { ProductCell } from "./ProductCell";
 
@@ -8,11 +8,6 @@ interface ProductRowProps {
   onClick?: (fieldKey?: string) => void;
   isSelected?: boolean;
   selectedFieldKey?: string | null;
-  onCellSave?: (
-    productId: string,
-    fieldKey: ProductFieldKey,
-    newValue: string,
-  ) => void;
 }
 
 export function ProductRow({
@@ -20,15 +15,8 @@ export function ProductRow({
   onClick,
   isSelected,
   selectedFieldKey,
-  onCellSave,
 }: ProductRowProps) {
   const isChecked = row.getIsSelected();
-
-  const handleCellSave = (fieldKey: ProductFieldKey, newValue: string) => {
-    if (row.original?.id) {
-      onCellSave?.(row.original.id, fieldKey, newValue);
-    }
-  };
 
   return (
     <div
@@ -59,7 +47,6 @@ export function ProductRow({
             isFieldSelected={!!isFieldSelected}
             isRowChecked={isChecked}
             onClick={onClick}
-            onSave={handleCellSave}
           />
         );
       })}

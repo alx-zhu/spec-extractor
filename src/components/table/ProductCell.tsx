@@ -1,8 +1,6 @@
 import { flexRender, type Cell } from "@tanstack/react-table";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
-import { EditableCell } from "./EditableCell";
-import { EditableProductCell } from "./EditableProductCell";
 import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
 import { selectionIndicator } from "@/styles/layers";
 import { cellVariants } from "./tableVariants";
@@ -13,7 +11,6 @@ interface ProductCellProps {
   isFieldSelected: boolean;
   isRowChecked?: boolean;
   onClick?: (fieldKey?: string) => void;
-  onSave?: (fieldKey: ProductFieldKey, newValue: string) => void;
 }
 
 export function ProductCell({
@@ -22,7 +19,6 @@ export function ProductCell({
   isFieldSelected,
   isRowChecked,
   onClick,
-  onSave,
 }: ProductCellProps) {
   const columnType = getColumnType(cell.column.id);
   const width = getColumnWidth(cell.column.id) ?? cell.column.columnDef.size;
@@ -63,10 +59,6 @@ export function ProductCell({
     }
   };
 
-  const handleSave = (fieldKey: ProductFieldKey, newValue: string) => {
-    onSave?.(fieldKey, newValue);
-  };
-
   const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
 
   // A cell shows blue-50 if its field is selected, or if its row is checked
@@ -91,29 +83,7 @@ export function ProductCell({
       }}
       onClick={handleClick}
     >
-      {columnType === "itemName" && cell.row.original.itemName ? (
-        <EditableProductCell
-          itemNameValue={cell.row.original.itemName.value}
-          descriptionValue={cell.row.original.productDescription?.value || ""}
-          isSelected={isSelected}
-          isFieldSelected={isFieldSelected}
-          onSave={handleSave}
-        >
-          {cellContent}
-        </EditableProductCell>
-      ) : fieldName && cell.row.original[fieldName] ? (
-        <EditableCell
-          value={cell.row.original[fieldName].value}
-          fieldKey={fieldName}
-          isSelected={isSelected}
-          isFieldSelected={isFieldSelected}
-          onSave={handleSave}
-        >
-          {cellContent}
-        </EditableCell>
-      ) : (
-        cellContent
-      )}
+      {cellContent}
     </div>
   );
 }
