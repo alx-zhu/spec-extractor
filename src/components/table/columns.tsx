@@ -82,7 +82,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "specIdNumber",
-    header: "Masterformat",
+    header: "Spec ID",
     accessorKey: "specIdNumber",
     size: 140,
     meta: {
@@ -95,7 +95,7 @@ export const productColumns: ColumnDef<Product>[] = [
         <div className="inline-flex items-center gap-2">
           <Badge
             variant="secondary"
-            className="rounded font-mono text-xs font-medium text-gray-700"
+            className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200"
           >
             {row.original.specIdNumber?.value || "—"}
           </Badge>
