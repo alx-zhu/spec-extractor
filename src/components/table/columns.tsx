@@ -42,7 +42,7 @@ export const productColumns: ColumnDef<Product>[] = [
       const hasDescription = description && description !== "N/A";
       return (
         <div className="flex flex-col gap-0.5 min-w-0 w-full">
-          <div className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 -mx-1 transition-colors hover:bg-gray-100">
+          <div className="text-sm text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 -mx-1 transition-colors hover:bg-gray-100">
             {row.original.itemName?.value || "—"}
           </div>
           {hasDescription && (
@@ -88,7 +88,7 @@ export const productColumns: ColumnDef<Product>[] = [
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono bg-gray-100 text-gray-700">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-gray-100 text-gray-700">
           {row.original.specIdNumber?.value || "—"}
         </span>
       );

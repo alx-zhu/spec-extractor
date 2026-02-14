@@ -49,8 +49,10 @@ export function ProductRow({
   return (
     <div
       className={cn(
-        "flex border-b border-gray-100 transition-colors duration-150 relative",
-        !isVisuallySelected && "bg-white",
+        "flex border-b border-gray-200 transition-colors duration-150 relative",
+        // Read/unread: unread rows are white, read rows recede to grey
+        !isVisuallySelected && !isViewed && "bg-white",
+        !isVisuallySelected && isViewed && "bg-gray-100/60",
         isSelected && "shadow-md z-10",
         // Left inset border
         isSelected &&
@@ -58,11 +60,6 @@ export function ProductRow({
         isChecked && "bg-blue-50",
       )}
     >
-      {/* Unviewed notification dot */}
-      {!isViewed && (
-        <span className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 size-1.5 rounded-full bg-blue-500" />
-      )}
-
       {row.getVisibleCells().map((cell) => {
         const fieldName = cell.column.columnDef.meta?.fieldName as
           | string
@@ -83,6 +80,7 @@ export function ProductRow({
             cell={cell}
             isSelected={isSelected ?? false}
             isFieldSelected={!!isFieldSelected}
+            isViewed={isViewed}
             onClick={handleClick}
             onSave={handleCellSave}
           />

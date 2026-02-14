@@ -7,6 +7,7 @@ interface ProductCellProps {
   cell: Cell<Product, unknown>;
   isSelected: boolean;
   isFieldSelected: boolean;
+  isViewed: boolean;
   onClick?: (fieldKey?: string) => void;
   onSave?: (fieldKey: ProductFieldKey, newValue: string) => void;
 }
@@ -15,6 +16,7 @@ export function ProductCell({
   cell,
   isSelected,
   isFieldSelected,
+  isViewed,
   onClick,
   onSave,
 }: ProductCellProps) {
@@ -69,12 +71,15 @@ export function ProductCell({
     <div
       key={cell.id}
       className={cn(
-        "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 transition-colors box-border group relative",
+        "px-3 py-3 flex items-center border-r border-gray-200 last:border-r-0 transition-colors box-border group relative",
         isCheckboxColumn && "justify-center",
+        // Unread rows get heavier font weight
+        !isCheckboxColumn && !isViewed && "font-semibold",
         // Apply blue background for selected field
         isFieldSelected && "bg-blue-50",
-        // Different hover colors: darker blue for selected rows, light blue for non-selected
-        fieldName && "cursor-pointer hover:bg-gray-50",
+        // Hover colors: step darker than the row's base background
+        fieldName && !isViewed && "cursor-pointer hover:bg-gray-50",
+        fieldName && isViewed && "cursor-pointer hover:bg-gray-100/80",
         fieldName &&
           (cell.row.getIsSelected() || isFieldSelected) &&
           "hover:bg-blue-100/80",
