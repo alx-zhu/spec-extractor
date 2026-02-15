@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -67,12 +67,24 @@ export function SheetPdfViewer({
     }
   }, [product.id, targetPage, numPages]);
 
-  const goToPrevPage = () =>
-    setPageNumber((prev) => Math.max(prev - 1, 1));
+  const goToPrevPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
   const goToNextPage = () =>
     setPageNumber((prev) => Math.min(prev + 1, numPages));
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 2.0));
   const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.5));
+
+  // Scroll the first citation into view
+  const firstCitationEl = useRef<HTMLDivElement | null>(null);
+
+  const scrollToCitation = () => {
+    requestAnimationFrame(() => {
+      firstCitationEl.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+    });
+  };
 
   // Render citation bounding boxes for the current page
   const renderCitations = () => {
@@ -87,6 +99,14 @@ export function SheetPdfViewer({
       .map((citation, i) => (
         <div
           key={`citation-${i}`}
+          ref={
+            i === 0
+              ? (node) => {
+                  firstCitationEl.current = node;
+                  if (node) scrollToCitation();
+                }
+              : undefined
+          }
           className={cn(
             "absolute border-2 border-blue-500 bg-blue-500/10 pointer-events-none",
           )}
@@ -114,7 +134,7 @@ export function SheetPdfViewer({
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </Button>
-          <span className="text-xs text-gray-500 tabular-nums min-w-[80px] text-center">
+          <span className="text-xs text-gray-500 tabular-nums min-w-20 text-center">
             Page {pageNumber} of {numPages}
           </span>
           <Button
@@ -137,7 +157,7 @@ export function SheetPdfViewer({
           >
             <ZoomOut className="h-3.5 w-3.5" />
           </Button>
-          <span className="text-xs text-gray-500 tabular-nums min-w-[36px] text-center">
+          <span className="text-xs text-gray-500 tabular-nums min-w-9 text-center">
             {Math.round(scale * 100)}%
           </span>
           <Button
@@ -178,6 +198,7 @@ export function SheetPdfViewer({
                 scale={scale}
                 renderTextLayer={false}
                 renderAnnotationLayer={false}
+                onRenderSuccess={scrollToCitation}
               />
             </Document>
 

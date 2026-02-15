@@ -2,22 +2,17 @@ import { flexRender, type Cell } from "@tanstack/react-table";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
-import { selectionIndicator } from "@/styles/layers";
 import { cellVariants } from "./tableVariants";
 
 interface ProductCellProps {
   cell: Cell<Product, unknown>;
-  isSelected: boolean;
   isFieldSelected: boolean;
-  isRowChecked?: boolean;
   onClick?: (fieldKey?: string) => void;
 }
 
 export function ProductCell({
   cell,
-  isSelected,
   isFieldSelected,
-  isRowChecked,
   onClick,
 }: ProductCellProps) {
   const columnType = getColumnType(cell.column.id);
@@ -61,21 +56,15 @@ export function ProductCell({
 
   const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
 
-  // A cell shows blue-50 if its field is selected, or if its row is checked
-  // and it's a frozen column (needs opaque background to cover scrolling content).
-  const isCellSelected =
-    isFieldSelected || !!(isRowChecked && columnType !== "data");
-
   return (
     <div
       key={cell.id}
       className={cn(
         cellVariants({
           column: columnType,
-          selected: isCellSelected,
+          selected: isFieldSelected,
           interactive: !!fieldName,
         }),
-        columnType === "checkbox" && isSelected && selectionIndicator,
       )}
       style={{
         width: width ? `${width}px` : undefined,

@@ -4,6 +4,7 @@ import { FieldStrip } from "./FieldStrip";
 import { FieldEditor } from "./FieldEditor";
 import { SheetPdfViewer } from "./SheetPdfViewer";
 import { useUpdateProduct } from "@/hooks/useProducts";
+import { useSheetResize } from "@/hooks/useSheetResize";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { VisuallyHidden } from "radix-ui";
 import { SheetTitle } from "@/components/ui/sheet";
@@ -30,6 +31,7 @@ export function ProductSheet({
   pdfUrl,
 }: ProductSheetProps) {
   const updateProduct = useUpdateProduct();
+  const { width, isDragging, handleMouseDown } = useSheetResize();
 
   if (!product) return null;
 
@@ -71,9 +73,21 @@ export function ProductSheet({
         side="right"
         showCloseButton={false}
         className="p-0 flex flex-col gap-0"
-        style={{ width: "50vw", maxWidth: "none" }}
+        style={{
+          width: `${width}px`,
+          maxWidth: "none",
+          transition: isDragging ? "none" : undefined,
+        }}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
+        {/* Drag handle — overlaps the left edge, sitting half outside the sheet */}
+        <div
+          onMouseDown={handleMouseDown}
+          className="absolute -left-2 inset-y-0 w-4 cursor-col-resize z-50 flex items-center justify-center group/handle hover:bg-blue-400/40 active:bg-blue-500/50 transition-colors"
+        >
+          <div className="w-6 h-10 rounded-full bg-white border border-gray-200 shadow-sm group-hover/handle:bg-blue-50 group-hover/handle:border-blue-300 group-active/handle:bg-blue-100 transition-colors" />
+        </div>
+
         {/* Accessible title (visually hidden — our custom header shows the product name) */}
         <VisuallyHidden.Root>
           <SheetTitle>

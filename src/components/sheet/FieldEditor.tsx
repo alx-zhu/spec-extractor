@@ -49,8 +49,7 @@ export function FieldEditor({ product, fieldKey, onSave }: FieldEditorProps) {
 
   const citations = getFieldCitations(product[fieldKey]);
   const firstCitation = citations.length > 0 ? citations[0] : null;
-  const isGenerated =
-    fieldKey === "specIdNumber" && isSpecIdGenerated(product);
+  const isGenerated = fieldKey === "specIdNumber" && isSpecIdGenerated(product);
 
   return (
     <div className="border-b border-gray-200 bg-white px-5 py-4">

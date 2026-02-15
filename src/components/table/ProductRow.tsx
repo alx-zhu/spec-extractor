@@ -43,9 +43,7 @@ export function ProductRow({
           <ProductCell
             key={cell.id}
             cell={cell}
-            isSelected={isSelected ?? false}
             isFieldSelected={!!isFieldSelected}
-            isRowChecked={isChecked}
             onClick={onClick}
           />
         );
