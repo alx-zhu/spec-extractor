@@ -1,6 +1,6 @@
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { SheetHeaderSection } from "./SheetHeaderSection";
-import { FieldStrip } from "./FieldStrip";
+import { SummaryStrip } from "./SummaryStrip";
 import { FieldEditor } from "./FieldEditor";
 import { SheetPdfViewer } from "./SheetPdfViewer";
 import { useUpdateProduct } from "@/hooks/useProducts";
@@ -105,17 +105,18 @@ export function ProductSheet({
           onClose={handleClose}
         />
 
-        {/* Field strip: horizontal pill navigator */}
-        <FieldStrip
+        {/* Summary strip: mini-table with all field values */}
+        <SummaryStrip
           product={product}
           selectedFieldKey={selectedFieldKey}
           onFieldSelect={onFieldKeyChange}
         />
 
-        {/* Field editor: always-visible input + citation metadata */}
+        {/* Field editor: dropdown selector + input + citation (single row) */}
         <FieldEditor
           product={product}
           fieldKey={selectedFieldKey}
+          onFieldKeyChange={onFieldKeyChange}
           onSave={handleFieldSave}
         />
 

@@ -5,7 +5,11 @@ export interface FieldConfig {
   label: string;
 }
 
-export const FIELD_STRIP_CONFIG: FieldConfig[] = [
+/**
+ * Single source of truth for product field keys and their display labels.
+ * Used by both the table columns and the sheet components.
+ */
+export const PRODUCT_FIELDS: FieldConfig[] = [
   { key: "itemName", label: "Name" },
   { key: "productDescription", label: "Description" },
   { key: "manufacturer", label: "Manufacturer" },
@@ -19,5 +23,5 @@ export const FIELD_STRIP_CONFIG: FieldConfig[] = [
 ];
 
 export function getFieldLabel(key: ProductFieldKey): string {
-  return FIELD_STRIP_CONFIG.find((f) => f.key === key)?.label ?? key;
+  return PRODUCT_FIELDS.find((f) => f.key === key)?.label ?? key;
 }

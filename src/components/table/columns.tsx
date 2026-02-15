@@ -6,6 +6,7 @@ import { Sparkles } from "lucide-react";
 import { DocumentTypeBadge } from "./DocumentTypeBadge";
 import { isSpecIdGenerated } from "@/utils/productHelpers";
 import { columnLayout } from "@/styles/tableLayout";
+import { getFieldLabel } from "@/config/fields";
 
 export const productColumns: ColumnDef<Product>[] = [
   {
@@ -35,7 +36,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "itemName",
-    header: "Product",
+    header: getFieldLabel("itemName"),
     accessorKey: "itemName",
     meta: {
       fieldName: "itemName" as ProductFieldKey,
@@ -69,7 +70,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "manufacturer",
-    header: "Manufacturer",
+    header: getFieldLabel("manufacturer"),
     accessorKey: "manufacturer",
     size: 140,
     meta: {
@@ -86,7 +87,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "specIdNumber",
-    header: "Spec ID",
+    header: getFieldLabel("specIdNumber"),
     accessorKey: "specIdNumber",
     size: 140,
     meta: {
@@ -112,7 +113,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "tag",
-    header: "Tag",
+    header: getFieldLabel("tag"),
     accessorKey: "tag",
     size: 100,
     meta: {
@@ -129,7 +130,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "finish",
-    header: "Finish",
+    header: getFieldLabel("finish"),
     accessorKey: "finish",
     size: 280,
     meta: {
@@ -146,7 +147,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "size",
-    header: "Size",
+    header: getFieldLabel("size"),
     accessorKey: "size",
     size: 280,
     meta: {
@@ -163,7 +164,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "price",
-    header: "Price",
+    header: getFieldLabel("price"),
     accessorKey: "price",
     size: 140,
     meta: {
@@ -180,7 +181,7 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "details",
-    header: "Details",
+    header: getFieldLabel("details"),
     accessorKey: "details",
     size: 220,
     meta: {
