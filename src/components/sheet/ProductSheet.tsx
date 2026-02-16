@@ -6,6 +6,7 @@ import { SheetPdfViewer } from "./SheetPdfViewer";
 import { useUpdateProduct } from "@/hooks/useProducts";
 import { useSheetResize } from "@/hooks/useSheetResize";
 import type { Product, ProductFieldKey } from "@/types/product";
+import { GripVertical } from "lucide-react";
 import { VisuallyHidden } from "radix-ui";
 import { SheetTitle } from "@/components/ui/sheet";
 
@@ -33,9 +34,9 @@ export function ProductSheet({
   const updateProduct = useUpdateProduct();
   const { width, isDragging, handleMouseDown } = useSheetResize();
 
-  if (!product) return null;
-
-  const productIndex = products.findIndex((p) => p.id === product.id);
+  const productIndex = product
+    ? products.findIndex((p) => p.id === product.id)
+    : -1;
   const totalProducts = products.length;
 
   const handlePrev = () => {
@@ -55,6 +56,7 @@ export function ProductSheet({
   };
 
   const handleFieldSave = (fieldKey: ProductFieldKey, newValue: string) => {
+    if (!product) return;
     const fieldData = product[fieldKey];
     updateProduct.mutate({
       productId: product.id,
@@ -85,53 +87,59 @@ export function ProductSheet({
           onMouseDown={handleMouseDown}
           className="absolute -left-2 inset-y-0 w-4 cursor-col-resize z-50 flex items-center justify-center group/handle hover:bg-blue-400/40 active:bg-blue-500/50 transition-colors"
         >
-          <div className="w-6 h-10 rounded-full bg-white border border-gray-200 shadow-sm group-hover/handle:bg-blue-50 group-hover/handle:border-blue-300 group-active/handle:bg-blue-100 transition-colors" />
+          <div className="w-6 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center group-hover/handle:bg-blue-50 group-hover/handle:border-blue-300 group-active/handle:bg-blue-100 transition-colors">
+            <GripVertical className="size-3.5 text-gray-400 group-hover/handle:text-blue-500 transition-colors" />
+          </div>
         </div>
 
-        {/* Accessible title (visually hidden — our custom header shows the product name) */}
+        {/* Accessible title */}
         <VisuallyHidden.Root>
           <SheetTitle>
-            {product.itemName?.value || "Product Details"}
+            {product?.itemName?.value || "Product Details"}
           </SheetTitle>
         </VisuallyHidden.Root>
 
-        {/* Header: product name, doc badge, nav, close */}
-        <SheetHeaderSection
-          product={product}
-          productIndex={productIndex}
-          totalProducts={totalProducts}
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onClose={handleClose}
-        />
+        {product ? (
+          <>
+            {/* Header: product name, doc badge, nav, close */}
+            <SheetHeaderSection
+              product={product}
+              productIndex={productIndex}
+              totalProducts={totalProducts}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onClose={handleClose}
+            />
 
-        {/* Summary strip: mini-table with all field values */}
-        <SummaryStrip
-          product={product}
-          selectedFieldKey={selectedFieldKey}
-          onFieldSelect={onFieldKeyChange}
-        />
+            {/* Summary strip: mini-table with all field values */}
+            <SummaryStrip
+              product={product}
+              selectedFieldKey={selectedFieldKey}
+              onFieldSelect={onFieldKeyChange}
+            />
 
-        {/* Field editor: dropdown selector + input + citation (single row) */}
-        <FieldEditor
-          product={product}
-          fieldKey={selectedFieldKey}
-          onFieldKeyChange={onFieldKeyChange}
-          onSave={handleFieldSave}
-        />
+            {/* Field editor: dropdown selector + input + citation (single row) */}
+            <FieldEditor
+              product={product}
+              fieldKey={selectedFieldKey}
+              onFieldKeyChange={onFieldKeyChange}
+              onSave={handleFieldSave}
+            />
 
-        {/* PDF viewer: toolbar + canvas + citation overlays */}
-        {pdfUrl ? (
-          <SheetPdfViewer
-            pdfUrl={pdfUrl}
-            product={product}
-            selectedFieldKey={selectedFieldKey}
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <p className="text-sm text-gray-400">No source document</p>
-          </div>
-        )}
+            {/* PDF viewer: toolbar + canvas + citation overlays */}
+            {pdfUrl ? (
+              <SheetPdfViewer
+                pdfUrl={pdfUrl}
+                product={product}
+                selectedFieldKey={selectedFieldKey}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center bg-gray-50">
+                <p className="text-sm text-gray-400">No source document</p>
+              </div>
+            )}
+          </>
+        ) : null}
       </SheetContent>
     </Sheet>
   );
