@@ -79,7 +79,7 @@ export const productColumns: ColumnDef<Product>[] = [
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
       return (
-        <div className="text-sm text-gray-900">
+        <div className="text-sm text-gray-900 wrap-normal overflow-hidden">
           {row.original.manufacturer?.value || "—"}
         </div>
       );

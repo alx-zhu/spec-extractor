@@ -1,8 +1,9 @@
 /**
  * Reducto Extraction Prompts
  *
- * System prompts and schemas for extracting structured data from documents.
- * Each document type has its own extraction config (prompt + schema).
+ * Shared schema + base prompt with document-type-specific addendums.
+ * Schema descriptions handle field-level guidance (what each field IS).
+ * System prompt handles document-level context (extraction scope, invariants).
  */
 
 import type { ProductDocumentType } from "@/types/product";
@@ -13,9 +14,10 @@ export interface ExtractionConfig {
 }
 
 /**
- * JSON Schema for purchase order product extraction
+ * Shared JSON schema for all document types.
+ * Field descriptions tell the LLM what belongs in each field and what does not.
  */
-const PURCHASE_ORDER_SCHEMA = {
+const PRODUCT_SCHEMA = {
   type: "object",
   properties: {
     products: {
@@ -26,52 +28,52 @@ const PURCHASE_ORDER_SCHEMA = {
           itemName: {
             type: "string",
             description:
-              "The CONCISE, HUMAN-RECOGNIZABLE product name that immediately tells an architect what the product IS in common industry terms. This must be a real product name — not a bare category, and not a long manufacturer description. Use the FULL descriptive product name when available, including adjectives and qualifiers that distinguish this product from similar ones. CORRECT: 'Mobile Ottoman' (NOT just 'Ottoman'), 'Height-Adjustable Desk' (NOT just 'Desk'), 'Dual Monitor Arm' (NOT just 'Monitor Arm'), 'Mesh-Back Task Chair' (NOT just 'Chair'), 'Acoustic Ceiling Panel', 'LED Panel Light', 'Lateral File Cabinet'. WRONG (manufacturer-specific descriptions, NOT names): 'M/Flex with M2.1 Dual Monitor Arms' → should be 'Dual Monitor Arm', 'Zody II - Mesh Back, Fabric Seat, 4D Arm' → should be 'Mesh-Back Task Chair'. If the document does NOT clearly indicate a recognizable product name, output 'N/A' — do NOT guess. NEVER include: manufacturer name, model/line name, detailed feature lists, tag, spec ID, finish, size, price, or dimensions.",
+              "The concise, human-recognizable product name — what an architect would call this in plain language. Use the full descriptive category including qualifiers that distinguish it (e.g. 'Height-Adjustable Desk' not just 'Desk', 'Carpet Tile' not just 'Carpet', 'Acoustic Ceiling Panel' not just 'Panel'). NEVER include manufacturer name, model/line name, or feature lists — those belong in productDescription. 'N/A' if no clear common name can be determined.",
           },
           productDescription: {
             type: "string",
             description:
-              "The FULL product description as written in the document, including the manufacturer's product line name, model name, and all distinguishing characteristics, features, and options. This is the detailed, manufacturer-specific description that identifies the exact product being specified. Examples: 'M/Flex with M2.1 Dual Monitor Arms and Slider, Dual Arm Bracket, Two-Piece Clamp Mount', 'Zody II - Mesh Back, Fabric Seat, 4D Arm, Asymmetrical Lumbar, Back Lock, Forward Tilt, Adjustable Seat, Plastic Base, Hard Caster', 'Ravel Lounge with Solid Ash Frame', 'Ultima Acoustic Ceiling Panel, Fine Fissured, Square Lay-In'. MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price, or ANY information already captured in other columns. N/A if no description is available beyond the product name.",
+              "The full manufacturer-specific description verbatim from the document, including product line, model name/number, and configuration details. This is the searchable identifier for procurement. MUST NOT include tag, specIdNumber, finish, size, or price. 'N/A' if nothing beyond the product name exists.",
           },
           manufacturer: {
             type: "string",
             description:
-              "The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use 'N/A'.",
+              "The company or brand name that produces the product. Must be an actual manufacturer, not a product descriptor or category. 'N/A' if uncertain.",
           },
           tag: {
             type: "string",
             description:
-              "The architect's project-specific reference code used in drawings and project documentation. This is distinct from the manufacturer's product identifier. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., 'C-01', 'T-04', 'ACC-01', 'B-01', 'EQ1', 'EQ-01'). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use 'N/A'. Each unique tag should appear in ONLY ONE product entry. N/A if not found.",
+              "The architect's project-specific reference code. MUST match pattern: one or more uppercase letters, optional dash, then one or more digits (e.g. 'C-01', 'EQ1', 'ACC-01', 'LVT-01'). Cannot be only numbers or only letters. May appear in a TAG column, as 'Tag 1: XX-##' inline, or as a Type/Mark identifier. 'N/A' if not found or doesn't match pattern.",
           },
           specIdNumber: {
             type: "string",
             description:
-              "The CSI Masterformat code (also known as CSI Section Number) that classifies this product's specification section. Follows the structure 'DD SS ss' where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Common examples: '09 51 00' (Acoustical Ceilings), '08 71 00' (Door Hardware), '26 51 00' (Interior Lighting). Separators may be spaces, periods, dashes, or none. Only extract if the value matches this numeric Masterformat pattern. N/A if not found.",
+              "CSI Masterformat section number in DD SS ss format (e.g. '09 51 00', '08 71 00', '10 28 19.16'). Must be a valid CSI division/section. Separators may be spaces, periods, dashes, or none. 'N/A' if not found or doesn't match.",
           },
           project: {
             type: "string",
             description:
-              "The project name or identifier from the document. N/A if not found.",
+              "Project name or identifier from the document header/title block. 'N/A' if not found.",
           },
           finish: {
             type: "string",
             description:
-              "The finish designation for the architectural product, including color, surface finish, coating, material treatment, fabric grade, or any combination (e.g., 'Brushed Nickel', 'White', 'Powder Coated', 'Fabric - Grade 5 Bernhardt Plush 3550-033 Forest', 'Anthracite', 'Wood Veneer', 'Matte Black'). Include finish codes, color codes, fabric specifications, and material grades if present. N/A if not found.",
+              "ALL finish specifications combined into one value. Include every listed finish entry: color, surface finish, coating, material treatment, fabric grade/code, base finish, frame finish, trim finish, etc. When multiple finish lines are listed (e.g. 'A. Fabric - Grade 5 Bernhardt Plush 3550-033 Forest', 'B. Base - 845'), combine ALL of them separated by commas. Also extract finishes from labeled subsections (e.g. '2.5 FINISHES' in specifications). 'N/A' if not found.",
           },
           size: {
             type: "string",
             description:
-              "Product dimensions in any format provided (e.g., WxDxH, LxWxH, diameter measurements, or other dimensional specifications). N/A if not found.",
+              "Product dimensions in any format (e.g. '24\"W x 15.25\"D x 18\"H', '18\" X 36\"'). 'N/A' if not found.",
           },
           price: {
             type: "string",
             description:
-              "Unit price including currency symbol if present. N/A if not found.",
+              "Unit price (not extended/total) with currency symbol. 'N/A' if not found.",
           },
           details: {
             type: "string",
             description:
-              'Critical implementation notes, special requirements, or important exceptions that affect product specification, procurement, installation, or usage. Include only information that is essential for proper product implementation and does not fit into other defined fields. Examples: installation requirements (e.g., "Requires blocking in the wall"), special delivery instructions, product alternatives or substitutions, compatibility requirements, or critical usage limitations. EXCLUDE: any component of the item name, product description, finish (use Finish), dimensions (use Size), manufacturer (use Manufacturer), pricing, material grades or quality levels, standard product features, and all information already captured in other fields. Default to "N/A" unless the information represents a critical implementation consideration. Limit to 1-3 concise notes.',
+              "Critical implementation notes not captured in other fields: installation requirements, 'Provided by' designations, delivery instructions, product alternatives, contact info. 1-3 concise notes. 'N/A' if none.",
           },
         },
         required: [
@@ -88,631 +90,153 @@ const PURCHASE_ORDER_SCHEMA = {
         ],
       },
       description:
-        "List of all products extracted from the document. Each tag must appear in only one product entry.",
+        "List of all products extracted from the document.",
     },
   },
   required: ["products"],
 } as const;
 
 /**
- * System prompt for purchase order product extraction
+ * Base prompt shared by all document types.
+ * Contains invariants, field guidance, and validation rules.
  */
-const PURCHASE_ORDER_PROMPT = `EXTRACTION TASK: Extract ALL products from furniture purchase orders into precise, structured data for catalog reference.
+const BASE_PROMPT = `Extract ALL products from this document into structured data.
 
-CRITICAL RULE - ONE PRODUCT PER TAG:
-When a TAG is present (e.g., "CH-01", "T-04"), extract ONLY ONE product entry for that tag. If a description appears to have multiple components or features, consolidate them into a SINGLE entry. Do NOT create separate product rows for what is clearly one tagged item with multiple descriptive parts.
+INVARIANTS — these rules are absolute and override all other guidance:
 
-═══════════════════════════════════════════════════════════════════
-MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
-═══════════════════════════════════════════════════════════════════
+1. TABLE ROW = PRODUCT: When data is in table format, one row = one product. All information for a product MUST come from that row only. Never merge data across rows or split a single row into multiple products.
 
-These two fields are SEPARATE and serve very different purposes:
+2. TAG FORMAT: Tags must contain uppercase letters AND digits, with an optional dash separator (e.g. "C-01", "EQ1", "ACC-01"). A value that is only numbers or only letters is NOT a valid tag — use "N/A".
 
-** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product name.
-   This is what an architect would call this product in plain language.
-   It must be a real, descriptive product name that ANYONE would understand.
+3. ONE PRODUCT PER TAG: Each unique tag appears in exactly one product entry. Never duplicate tags. If a tagged item has multi-line descriptions, consolidate into one entry.
 
-   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
-   Include adjectives and qualifiers that distinguish the product.
+4. CSI MASTERFORMAT: specIdNumber must follow DD SS ss format (e.g. "09 51 00", "08 71 00"). Must be a real CSI Masterformat number. If the value doesn't match, use "N/A".
 
-   CORRECT examples (note: descriptive, but still concise):
-     "Mobile Ottoman" — NOT just "Ottoman"
-     "Height-Adjustable Desk" — NOT just "Desk"
-     "Dual Monitor Arm" — NOT just "Monitor Arm"
-     "Mesh-Back Task Chair" — NOT just "Chair"
-     "Stacking Guest Chair" — NOT just "Chair"
-     "Acoustic Ceiling Panel" — NOT just "Ceiling Panel"
-     "LED Panel Light" — NOT just "Light"
-     "Lateral File Cabinet" — NOT just "File Cabinet"
-     "Vertical Cable Manager" — NOT just "Cable Manager"
-     "Standing-Height Table" — NOT just "Table"
-     "Frameless Shower Door" — NOT just "Shower Door"
-     "Pendant Light"
-     "Wire Manager"
-     "Keyboard Tray"
-     "Privacy Screen"
-     "Conference Table"
+5. CORE FIELD ACCURACY: productDescription, manufacturer, tag, and specIdNumber MUST be verbatim from the document. Never paraphrase, infer, or fabricate these values.
 
-   WRONG examples (these are descriptions, NOT names):
-     "M/Flex with M2.1 Dual Monitor Arms and Slider" → should be "Dual Monitor Arm"
-     "Zody II - Mesh Back, Fabric Seat, 4D Arm" → should be "Mesh-Back Task Chair"
-     "Ravel Lounge with Solid Ash Frame" → should be "Lounge Chair"
-     "Ultima Fine Fissured Square Lay-In" → should be "Acoustic Ceiling Panel"
-     "LP-24-LED-4000K Lithonia Panel" → should be "LED Panel Light"
+6. COMPLETE VALUES: Always extract the FULL content for every field. When a field spans multiple lines, sub-items, or list entries, include ALL of them. Never truncate or take only the first line.
+   - If a finish column/section lists "A. Fabric - Grade 5 Bernhardt Plush 3550-033 Forest, B. Base - 845", extract the ENTIRE value: "Fabric - Grade 5 Bernhardt Plush 3550-033 Forest, Base - 845".
+   - If a description spans multiple bullet points or lines, consolidate ALL lines into the productDescription.
+   - If a table cell contains multi-line content, capture every line.
 
-   NEVER include in the product name:
-     - Manufacturer name (e.g., "Humanscale", "Haworth")
-     - Model number or line name (e.g., "Zody II", "M/Flex", "Ravel")
-     - Detailed feature lists (e.g., "Mesh Back, 4D Arm, Asymmetrical Lumbar")
-     - Tag, spec ID, finish, size, or price
+FIELD GUIDANCE:
 
-   If you CANNOT determine a clear, common product name, use "N/A".
-   STRONGLY prefer "N/A" over guessing — an incorrect name is worse than no name.
+itemName vs productDescription — these serve different purposes:
+- itemName: What the product IS in plain language. A concise category name any architect would recognize.
+  CORRECT: "Task Chair", "Monitor Arm", "Carpet Tile", "Lounge Chair", "Acoustic Ceiling Panel", "Mobile Ottoman"
+  WRONG: "Zody II - Mesh Back, Fabric Seat, 4D Arm" (this is a description), "Humanscale M/Flex" (this has manufacturer/model)
+  Use "N/A" rather than guessing — an incorrect name is worse than no name.
 
-** Product Description (productDescription) ** — The FULL manufacturer-specific description.
-   This is the detailed product line, model name, configuration, and features
-   exactly as written in the document.
+- productDescription: The full manufacturer-specific description exactly as written in the document. Includes product line, model name/number, configuration, and features. This is what someone would search to find and purchase the exact product.
+  CORRECT: "Zody II - Mesh Back, Fabric Seat, 4D Arm, Asymmetrical Lumbar, Back Lock, Forward Tilt, Adjustable Seat, Plastic Base, Hard Caster"
+  MUST NOT include: tag, specIdNumber, finish, size, or price.
 
-   CORRECT examples:
-     "M/Flex with M2.1 Dual Monitor Arms and Slider, Dual Arm Bracket, Two-Piece Clamp Mount"
-     "Zody II - Mesh Back, Fabric Seat, 4D Arm, Asymmetrical Lumbar, Back Lock, Forward Tilt, Adjustable Seat, Plastic Base, Hard Caster"
-     "Ravel Lounge with Solid Ash Frame"
-     "Ultima Acoustic Ceiling Panel, Fine Fissured, Square Lay-In"
-
-   MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price,
-   or ANY information already captured in other columns.
-   N/A if no description beyond the product name is available.
-
-═══════════════════════════════════════════════════════════════════
-
-CORE FIELDS (populate with "N/A" if information is genuinely absent):
-
-- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product name. Use the full descriptive name when the document provides it (e.g., "Mobile Ottoman" not just "Ottoman").
-
-- Product Description: See above — the FULL manufacturer-specific description.
-
-- Manufacturer: The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use "N/A".
-
-- Tag: The architect's project-specific reference code used in drawings and project documentation. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., "C-01", "T-04", "ACC-01", "B-01", "EQ1", "EQ-01"). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use "N/A". This is typically found in a dedicated "TAG" column. Each unique tag should appear in ONLY ONE product entry.
-
-- Spec ID Number: The CSI Masterformat code (also known as CSI Section Number) that classifies this product's specification section. Follows the structure "DD SS ss" where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Common examples: "09 51 00" (Acoustical Ceilings), "08 71 00" (Door Hardware), "26 51 00" (Interior Lighting). Separators may be spaces, periods, dashes, or none. Only extract if the value matches this numeric Masterformat pattern. N/A if not found.
-
-- Project: The project name or identifier from the document. N/A if not found.
-
-SECONDARY FIELDS (populate with "N/A" if absent):
-
-- Finish: The finish designation for the architectural product, including color, surface finish, coating, material treatment, fabric grade, or any combination (e.g., "Fabric - Grade 5 Bernhardt Plush 3550-033 Forest, Base - 845", "Brushed Nickel", "Powder Coated", "Matte Black"). Include finish codes, color codes, fabric specifications, and material grades if present.
-
-- Size: Product dimensions in any format provided (e.g., "24\\"W x 15.25\\"D x 18\\"H", "WxDxH", "LxWxH", diameter measurements, or other dimensional specifications).
-
-- Price: Unit price including currency symbol if present. If there are multiple prices (unit price, extended price, total price), you MUST extract the unit price only.
-
-- Details: Critical implementation notes, special requirements, or important exceptions that affect product specification, procurement, installation, or usage. Include only information that is essential for proper product implementation and does not fit into other defined fields. Examples: installation requirements (e.g., "Requires blocking in the wall"), special delivery instructions, product alternatives or substitutions (e.g., "Alternate for Pip in All Black"), compatibility requirements, or critical usage limitations. EXCLUDE: any component already captured in Item Name, Product Description, Finish, Size, Manufacturer, or pricing. Default to "N/A" unless the information represents a critical implementation consideration. Limit to 1-3 concise notes.
-
-EXTRACTION GUIDELINES:
-
-- Extract every line item that is a product - missing products is a critical error.
-- ONE PRODUCT PER TAG: Each tag must correspond to exactly ONE product entry. Never create multiple rows with the same tag.
-- Do not include non-product line items, like services (freight, tax, install).
-- One product entry per line item.
-- Consolidate multi-line descriptions into a single entry per product.
-- Use "N/A" when information cannot be confidently identified - do not guess or infer.
-- For Product Name: if you are not confident in a common, generic name, use "N/A". Do NOT put the full description here.
+GENERAL RULES:
+- Use "N/A" for any field that cannot be confidently identified. Do not guess or infer.
+- Skip non-product items (services, freight, tax, delivery, installation).
 - Preserve document order in output.
-- Only extract explicitly stated information.
+- Extract every product — missing products is a critical error.
 
-OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
+OUTPUT: Return valid JSON with a products array. Each object must include all fields (use "N/A" for missing values).
 
-VALIDATION CHECKLIST:
-
-- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product name like "Dual Monitor Arm" or "Mesh-Back Task Chair"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Chair" or "Light"), add the distinguishing qualifier.
-- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-- Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
-- Tag: Is this the architect's identifier from the TAG column? Does each tag appear only ONCE in the output?
-- Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
-- Finish: Have I captured all finish, color, fabric, and material specifications?
-- Details: Are these critical implementation notes, not information already in other fields?
-- Tag uniqueness: Have I verified that no tag appears in multiple product entries?
-`;
-
-const SPECIFICATION_SCHEMA = {
-  type: "object",
-  properties: {
-    products: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          itemName: {
-            type: "string",
-            description:
-              "The CONCISE, HUMAN-RECOGNIZABLE product category name as it would be referenced in common architectural language. Use the FULL descriptive name, not just the shortest category. CORRECT: 'Wood Athletic Flooring' (NOT just 'Flooring'), 'Acoustic Ceiling Panel' (NOT just 'Ceiling Panel'), 'Plastic Laminate Locker' (NOT just 'Locker'), 'Door Hardware', 'Carpet Tile'. WRONG: 'Wood athletic flooring, fixed system, random length plank flooring, oak, select grade' — this is a description, not a name. WRONG: 'Junckers SylvaSquash' — this is a manufacturer product line. If you cannot determine a clear common product name, use 'N/A'. NEVER include manufacturer names, model numbers, or detailed features here.",
-          },
-          productDescription: {
-            type: "string",
-            description:
-              "The FULL product description including manufacturer product line, model name, system type, and all distinguishing characteristics from the specification. Include the basis-of-design product line name if specified (e.g., 'Junckers SylvaSquash, fixed system, random length plank flooring, oak, select grade', 'Armstrong Ultima, Fine Fissured, Square Lay-In'). MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price, or information already in other columns. N/A if no description beyond the product name is available.",
-          },
-          manufacturer: {
-            type: "string",
-            description:
-              "List manufacturers from the manufacturer approval subsection in order of preference. Basis-of-Design manufacturer FIRST if specified, then other approved manufacturers, then 'or approved equal' if stated. Format as comma-separated string. ONLY extract from explicit manufacturer approval subsections - do not infer manufacturers from generic text.",
-          },
-          tag: {
-            type: "string",
-            description:
-              "The architect's project-specific reference code if present. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., 'C-01', 'EQ-01', 'ACC-01', 'EQ1'). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use 'N/A'. Usually N/A in specifications (tags typically appear in schedules and drawings). If tags ARE present, each unique tag should appear in ONLY ONE product entry.",
-          },
-          specIdNumber: {
-            type: "string",
-            description:
-              "The CSI section number from the specification header. Format as shown in the document (may use spaces, periods, or dashes as separators).",
-          },
-          project: {
-            type: "string",
-            description:
-              "Extract from specification header/cover page if present, otherwise N/A.",
-          },
-          finish: {
-            type: "string",
-            description:
-              "Color designation, surface finish, coating, or material treatment specified for the product. N/A if not specified or deferred to drawings.",
-          },
-          size: {
-            type: "string",
-            description:
-              "Dimensional requirements for the product. N/A if not specified or deferred to drawings.",
-          },
-          price: {
-            type: "string",
-            description: "N/A (specifications do not contain pricing).",
-          },
-          details: {
-            type: "string",
-            description:
-              "Performance requirements, ratings, certifications, or standards that define product acceptance criteria. Extract 2-4 critical specifications. EXCLUDE: installation methods, supporting material specifications, information already in other fields. N/A if no specific criteria stated.",
-          },
-        },
-        required: [
-          "itemName",
-          "productDescription",
-          "manufacturer",
-          "tag",
-          "specIdNumber",
-          "project",
-          "finish",
-          "size",
-          "price",
-          "details",
-        ],
-      },
-      description:
-        "List of primary products extracted from the specification. Each product should have a short generic name (itemName) and a full manufacturer-specific description (productDescription).",
-    },
-  },
-  required: ["products"],
-} as const;
-
-const SPECIFICATION_PROMPT = `EXTRACTION TASK: Extract PRIMARY products from CSI 3-part specifications. Extract only products with explicit manufacturer approval sections that belong to the specification's CSI Masterformat section.
-
-DOCUMENT CONTEXT:
-You are processing a specification section with a CSI Masterformat code that defines what product category this section specifies (e.g., "09 64 66" = Wood Athletic Flooring, "08 71 00" = Door Hardware, "12 50 00" = Furniture).
-
-NAVIGATION:
-1. Locate the specification section with the target CSI Masterformat code
-2. Navigate directly to "Part 2 - Products"
-3. Ignore Part 1 (General) and Part 3 (Execution)
-
-CRITICAL PRODUCT IDENTIFICATION RULES:
-
-1. MANUFACTURER APPROVAL REQUIREMENT:
-   Extract a product ONLY if it has an EXPLICIT MANUFACTURER APPROVAL subsection in Part 2:
-   - "2.X MANUFACTURERS" followed by a list of company names
-   - "Basis-of-Design: [Company Name] [Product]"
-   - "Acceptable Manufacturers: [Company A], [Company B], or approved equal"
-
-   DO NOT extract if subsection only has:
-   - ASTM/industry standards without manufacturer names
-   - "Manufacturer's standard" without specific company names
-   - Generic material descriptions
-
-2. MASTERFORMAT ALIGNMENT REQUIREMENT:
-   The product MUST belong to the CSI Masterformat section being specified.
-
-   Example: In section "09 64 66 - Wood Athletic Flooring":
-   ✓ EXTRACT: Wood athletic flooring (this IS 09 64 66)
-   ✗ SKIP: Plywood underlayment (this is 06 16 00, not the subject of this spec)
-   ✗ SKIP: Adhesives (this is 09 60 00, supporting material)
-   ✗ SKIP: Vapor retarders (this is 07 26 00, supporting material)
-
-   Example: In section "08 71 00 - Door Hardware":
-   ✓ EXTRACT: Locksets, hinges, closers (these ARE 08 71 00)
-   ✗ SKIP: Fasteners, anchors (supporting materials from different sections)
-
-   If uncertain whether a product belongs to the spec's Masterformat section, ask: "Is this product the reason this specification section exists?" If no, skip it.
-
-ANCHOR FIELDS - Look for manufacturer approval subsections in Part 2 that specify the section's primary product category.
-
-CRITICAL RULE - ONE PRODUCT PER TAG (if tags present):
-If architect's tags appear in the specification, extract ONLY ONE product entry per tag. Consolidate all components and features for a single tag into ONE entry.
-
-═══════════════════════════════════════════════════════════════════
-MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
-═══════════════════════════════════════════════════════════════════
-
-These two fields are SEPARATE and serve very different purposes:
-
-** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product category.
-   This is the CSI Masterformat product type name in plain language.
-
-   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
-
-   CORRECT examples (note: descriptive, but still concise):
-     "Wood Athletic Flooring" — NOT just "Flooring"
-     "Acoustic Ceiling Panel" — NOT just "Ceiling Panel"
-     "Plastic Laminate Locker" — NOT just "Locker"
-     "Door Hardware"
-     "Carpet Tile"
-     "Interior Paint"
-     "Resilient Base"
-     "Ceramic Wall Tile"
-     "Frameless Shower Door"
-
-   WRONG examples (too specific/contain manufacturer info):
-     "Wood athletic flooring, fixed system, random length plank flooring, oak, select grade" → should be "Wood Athletic Flooring"
-     "Junckers SylvaSquash" → should be "Wood Athletic Flooring"
-     "Armstrong Ultima Fine Fissured" → should be "Acoustic Ceiling Panel"
-     "Wood Athletic Flooring - Junckers SylvaSquash" → should be "Wood Athletic Flooring"
-
-   NEVER include in the product name:
-     - Manufacturer name, model number, or product line name
-     - Material grades, species, system types
-     - Tag, spec ID, finish, size, or price
-
-   If you CANNOT determine a clear, common product name, use "N/A".
-   STRONGLY prefer "N/A" over guessing.
-
-** Product Description (productDescription) ** — The FULL specification description.
-   This includes the manufacturer's product line, system type, material details,
-   and all distinguishing characteristics from the spec.
-
-   CORRECT examples:
-     "Junckers SylvaSquash, fixed system, random length plank flooring, oak, select grade"
-     "Armstrong Ultima, Fine Fissured, Square Lay-In"
-     "Schlage ND-series, cylindrical lockset"
-
-   MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price,
-   or information already in other columns.
-   N/A if no description beyond the product name is available.
-
-═══════════════════════════════════════════════════════════════════
-
-CORE FIELDS:
-
-- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product category name. Use the full descriptive name when the document provides it (e.g., "Wood Athletic Flooring" not just "Flooring").
-
-- Product Description: See above — the FULL manufacturer-specific description from the specification.
-
-- Manufacturer: List manufacturers from the manufacturer approval subsection in order of preference. Basis-of-Design manufacturer FIRST if specified, then other approved manufacturers, then "or approved equal" if stated. Format as comma-separated string. ONLY extract from explicit manufacturer approval subsections.
-
-- Tag: The architect's project-specific reference code if present in the specification. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., "C-01", "T-04", "ACC-01", "EQ1", "EQ-01"). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use "N/A". Usually N/A in specifications (tags typically appear in door/window schedules and drawings, not in spec sections). If tags ARE present, each unique tag should appear in ONLY ONE product entry.
-
-- Spec ID Number (Masterformat Code): The CSI section number from the specification header. Format as shown in the document (may use spaces, periods, or dashes as separators).
-
-- Project: Extract from specification header/cover page if present, otherwise N/A.
-
-SECONDARY FIELDS:
-
-- Finish: Color designation, surface finish, coating, or material treatment specified for the product. N/A if not specified or deferred to drawings.
-
-- Size: Dimensional requirements for the product. N/A if not specified or deferred to drawings.
-
-- Price: N/A (specifications do not contain pricing).
-
-- Details: Key product characteristics and performance requirements that define the specification. Include: material type, grade, system type, critical performance criteria, ratings, certifications, or standards (e.g., "Species: Oak; Grade: Select; Fixed system", "Grade 1; Fire Rating: 3-hour", "NRC 0.70 minimum; CAC 35 minimum"). Extract 2-4 critical specifications. EXCLUDE: installation methods, supporting material specifications, information already in Item Name, Product Description, or Finish. N/A if no specific criteria stated.
-
-EXTRACTION RULES:
-
-- Extract ONLY products with explicit manufacturer approval subsections
-- Extract ONLY products that belong to this specification's Masterformat section
-- Do NOT extract materials from other Masterformat sections (underlayment, adhesives, fasteners, vapor retarders, sealants, primers, backing materials)
-- Do NOT extract supporting materials, components, or accessories that serve the primary product but are not the subject of the specification
-- If Part 2 has multiple subsections with manufacturer approvals, verify each belongs to the spec's Masterformat section before extracting
-- ONE PRODUCT PER TAG: If tags are present, each tag corresponds to exactly ONE product entry
-- Maintain manufacturer preference order when specified
-- Preserve "or approved equal" language when present
-- Only extract from Part 2 - ignore Parts 1 and 3
-- For Product Name: if you cannot determine a clear common product category, use "N/A". Do NOT put the full description here.
-
-OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
-
-VALIDATION CHECKLIST:
-
-- Manufacturer Approval: Does this product have a dedicated manufacturer approval subsection with specific company names?
-- Masterformat Alignment: Does this product belong to the CSI Masterformat section being specified? Is this product the reason this spec section exists?
-- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Flooring" or "Panel"), add the distinguishing qualifier.
-- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-- Tag Format: If present, does the tag match patterns like "C-01", "T-04", "ACC-01" (not generic text)?
-- Tag Uniqueness: If tags exist, does each appear only once?
-- Spec ID Number: Does this match the section number from the header?
-- Supporting Materials: Have I avoided extracting materials from other Masterformat sections that support but are not the subject of this specification?`;
+VALIDATION — before returning, verify each product:
+- itemName: Is this a concise category name, free of manufacturer/model details?
+- productDescription: Is this verbatim from the document, without tag/finish/size/price?
+- manufacturer: Is this a real company name, not a product descriptor?
+- tag: Does it match the LETTERS+DIGITS pattern? Does each tag appear only once?
+- specIdNumber: Does it match DD SS ss Masterformat format?`;
 
 /**
- * JSON Schema for drawing schedule extraction
+ * Purchase order / budget estimate / sales order addendum.
  */
-const DRAWING_SCHEMA = {
-  type: "object",
-  properties: {
-    products: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          itemName: {
-            type: "string",
-            description:
-              "The CONCISE, HUMAN-RECOGNIZABLE product name derived from the schedule's description column. This must be a real product name — not a bare category, and not a long manufacturer description. Use the FULL descriptive product name when available, including adjectives and qualifiers that distinguish this product from similar ones. CORRECT: 'Pull Down Faucet' (NOT just 'Faucet'), 'Undercounter Refrigerator' (NOT just 'Refrigerator'), 'Carpet Tile' (NOT just 'Carpet'), 'Luxury Vinyl Tile' (NOT just 'Tile'), 'Acoustic Ceiling Panel', 'Rubber Wall Base', 'Hardwood Flooring'. WRONG (manufacturer-specific descriptions, NOT names): 'Sierra Tile 5T524' → should be 'Carpet Tile', 'Ultima - Beveled Tegular 9/16' → should be 'Acoustic Ceiling Panel'. If the schedule does NOT clearly indicate a recognizable product name, output 'N/A' — do NOT guess. NEVER include: manufacturer name, model/line name, detailed feature lists, tag, spec ID, finish, size, or price.",
-          },
-          productDescription: {
-            type: "string",
-            description:
-              "The FULL product description from the schedule, including model name, model number, and all distinguishing characteristics. This is the detailed, manufacturer-specific description that identifies the exact product being specified. Examples: '30\" Over-and-Under Refrigerator/Freezer with Ice Maker', 'Sierra Tile 5T524, Native-21105', 'Ultima - Beveled Tegular 9/16', 'Formica Laminate 9923-ML, Patine Chalk - Monolith Texture'. MUST NOT include: tag, spec ID number, finish/color, size/dimensions, or ANY information already captured in other columns. N/A if no description is available beyond the product name.",
-          },
-          manufacturer: {
-            type: "string",
-            description:
-              "The company or brand name from the schedule's MFGR/MANUFACTURER column. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use 'N/A'.",
-          },
-          tag: {
-            type: "string",
-            description:
-              "The schedule's row identifier from the TAG/Type/Mark column. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., 'EQ1', 'EQ-01', 'B-01', 'CPT-02', 'ACT-01', 'LVT-01'). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use 'N/A'. Each unique tag should appear in ONLY ONE product entry. N/A if not found.",
-          },
-          specIdNumber: {
-            type: "string",
-            description:
-              "The CSI Masterformat code (also known as CSI Section Number) that classifies this product's specification section. Follows the structure 'DD SS ss' where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Only extract if the value matches this numeric Masterformat pattern. N/A if not found.",
-          },
-          project: {
-            type: "string",
-            description:
-              "The project name or identifier from the drawing's title block. N/A if not found.",
-          },
-          finish: {
-            type: "string",
-            description:
-              "The finish designation from the schedule's FINISH/COLOR column, including color, surface finish, coating, material treatment, or any combination (e.g., 'Matte Black', 'Stainless Steel', 'Snow White W', 'Native-21105', 'Plastic Laminate Panel to Match Adjacent Millwork'). Include finish codes, color codes, and material grades if present. N/A if not found.",
-          },
-          size: {
-            type: "string",
-            description:
-              "Product dimensions from the schedule's SIZE column in any format provided (e.g., '18\" X 36\"', '24\" X 72\"', '4\" HIGH'). N/A if not found.",
-          },
-          price: {
-            type: "string",
-            description:
-              "N/A (architectural drawing schedules do not contain pricing).",
-          },
-          details: {
-            type: "string",
-            description:
-              'Consolidate supplementary schedule columns here: "Provided by" designations (e.g., "Provided by: GC"), contact information for product representatives, installation methods or notes, comments or remarks from the schedule. EXCLUDE: any component already captured in Item Name, Product Description, Finish, Size, or Manufacturer. Default to "N/A" unless supplementary information is present. Limit to 1-3 concise notes.',
-          },
-        },
-        required: [
-          "itemName",
-          "productDescription",
-          "manufacturer",
-          "tag",
-          "specIdNumber",
-          "project",
-          "finish",
-          "size",
-          "price",
-          "details",
-        ],
-      },
-      description:
-        "List of all products extracted from schedule tables on the drawing. Each tag must appear in only one product entry.",
-    },
-  },
-  required: ["products"],
-} as const;
+const PURCHASE_ORDER_ADDENDUM = `DOCUMENT TYPE: Purchase Order / Budget Estimate / Sales Order
+
+EXTRACTION SCOPE: Extract all line items that represent products. These documents typically have tabular layouts with TAG, MANUFACTURER, DESCRIPTION, FINISHES, and PRICE columns — or per-product pages with the same fields.
+
+PRICE: When multiple prices exist (unit, extended, total), extract only the unit price.
+
+TAGS: May appear in a dedicated TAG column, or inline as "Tag 1: XX-##" within the description.
+
+MULTI-COMPONENT PRODUCTS: Some products (e.g. private office systems) list multiple components under a single tag. Consolidate all components into one productDescription entry for that tag.
+
+FINISHES: These documents often list finishes as multiple labeled entries (e.g. "A. Fabric - Grade 5 Bernhardt Plush 3550-033 Forest", "B. Base - 845", "C. Arm - Aluminum with Black Cap"). Extract ALL finish entries combined, separated by commas. Never take only the first entry.`;
 
 /**
- * System prompt for drawing schedule extraction
+ * CSI 3-part specification addendum.
  */
-const DRAWING_PROMPT = `EXTRACTION TASK: Extract ALL products from schedule tables embedded in architectural drawings into precise, structured data for catalog reference.
+const SPECIFICATION_ADDENDUM = `DOCUMENT TYPE: CSI 3-Part Specification
 
-═══════════════════════════════════════════════════════════════════
-CRITICAL — EXTRACTION SCOPE:
-═══════════════════════════════════════════════════════════════════
+EXTRACTION SCOPE: Extract ONLY from Part 2 - Products. Ignore Part 1 (General) and Part 3 (Execution).
 
-Extract ONLY from tables explicitly labeled as SCHEDULES. These are structured tables with column headers typically found in the margins or dedicated areas of architectural drawing sheets.
+PRODUCT IDENTIFICATION:
+- Extract a product ONLY if it has an explicit manufacturer approval subsection in Part 2 (e.g. "2.X MANUFACTURERS" with company names, "Basis-of-Design: [Company]", or "Acceptable Manufacturers: [Company A], [Company B], or approved equal").
+- Do NOT extract if the subsection only references ASTM standards, "manufacturer's standard" without names, or generic material descriptions.
 
-Common schedule types to look for:
-- Equipment Schedule
-- Finish Schedule
-- Door Schedule / Door Hardware Schedule
-- Window Schedule
-- Plumbing Fixture Schedule
-- Lighting Fixture Schedule
-- Furniture Schedule
-- Appliance Schedule
+MASTERFORMAT ALIGNMENT: The product must belong to the CSI section being specified. Ask: "Is this product the reason this specification section exists?" If no, skip it. Do not extract supporting materials from other Masterformat sections (underlayment, adhesives, fasteners, vapor retarders, sealants, primers).
 
-You MUST IGNORE all other content on the drawing sheet, including:
-- Elevations, floor plans, sections, and detail drawings
-- Dimensions and dimension strings
-- Annotations, callouts, keynotes, and reference symbols
-- General notes, finish notes, and construction notes
-- Legends (e.g., "Finish Tag Legend") — these define tag formatting, NOT products
-- Title block information (except for project name)
-- Furniture plans or furniture layouts shown graphically (these are NOT schedules)
-- Device mounting diagrams
+MANUFACTURER: List manufacturers from the approval subsection in preference order. Basis-of-Design first, then alternatives, then "or approved equal" if stated.
+
+WHERE TO FIND FIELD VALUES IN PART 2:
+- productDescription: Assemble from the MATERIALS, SYSTEM DESCRIPTION, and product model subsections. Include system type, material species/grade, model name, and all configuration details.
+- finish: Look for a dedicated FINISHES subsection (e.g. "2.5 FINISHES") AND for inline "Finish:" entries within product component listings. Extract ALL finish info — sealer types, finish coat types, chromium plating specs, etc.
+- size: Look for dimensional info in MATERIALS or MODEL subsections. If deferred to drawings ("as indicated on Drawings"), use "N/A".
+- details: Include key performance requirements, ratings, certifications, material grades, system types, and hardware specs (e.g. "Species: Oak; Grade: Select; Fixed system", "Locks: Digilock", "Glass: 1/2-inch clear tempered, ASTM C 1048").
+
+PRICE: Always "N/A" — specifications do not contain pricing.
+TAG: Usually "N/A" — tags typically appear in schedules and drawings, not spec sections.`;
+
+/**
+ * Architectural drawing schedule addendum.
+ */
+const DRAWING_ADDENDUM = `DOCUMENT TYPE: Architectural Drawing with Schedule Tables
+
+EXTRACTION SCOPE: Extract ONLY from tables explicitly labeled as schedules (Equipment Schedule, Finish Schedule, Door Schedule, Window Schedule, Plumbing Fixture Schedule, Lighting Schedule, Furniture Schedule, Appliance Schedule).
+
+IGNORE all other drawing content: elevations, floor plans, sections, detail drawings, dimensions, annotations, callouts, keynotes, legends, title blocks (except project name), graphical furniture layouts, and device mounting diagrams.
 
 If the drawing contains NO schedule tables, return an empty products array.
 
-═══════════════════════════════════════════════════════════════════
-COLUMN MAPPING — Schedule columns vary by type. Map them as follows:
-═══════════════════════════════════════════════════════════════════
-
-Schedule columns do NOT have a fixed format. Different schedule types use different column headers. Map whatever columns exist in the schedule to the standard product fields:
-
+COLUMN MAPPING — schedule columns vary by type. Map them to product fields:
 - TAG / Type / Mark / ID → tag
-- DESCRIPTION / Name → used for both itemName and productDescription (see rules below)
+- DESCRIPTION / Name → itemName + productDescription
 - MFGR / MANUFACTURER / Mfr → manufacturer
 - MODEL / MODEL NAME / MODEL NUMBER / Cat. No. → include in productDescription
 - FINISH / COLOR / Material → finish
 - SIZE / Dimensions → size
-- PROVIDED BY / CONTACT / COMMENTS / NOTE / Remarks → details (consolidate all of these into the details field)
+- PROVIDED BY / CONTACT / COMMENTS / NOTE / Remarks → details
 
-If a column does not map to any of the above fields, consolidate it into the details field if the information is useful for product specification or procurement. Ignore purely administrative columns.
+Unmapped columns with useful product info go into details. Ignore administrative columns.
 
-CRITICAL RULE - ONE PRODUCT PER TAG:
-When a TAG is present (e.g., "EQ1", "B-01", "CPT-02", "ACT-01"), extract ONLY ONE product entry for that tag. If a description appears to have multiple components or features, consolidate them into a SINGLE entry. Do NOT create separate product rows for what is clearly one tagged item.
+PRICE: Always "N/A" — drawing schedules do not contain pricing.
 
-═══════════════════════════════════════════════════════════════════
-MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
-═══════════════════════════════════════════════════════════════════
+COMPLETENESS: Extract ALL rows from ALL schedule tables on the drawing, even rows with incomplete data. Use "N/A" for missing fields but preserve whatever information IS present.
 
-These two fields are SEPARATE and serve very different purposes:
-
-** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product name.
-   This is what an architect would call this product in plain language.
-   It must be a real, descriptive product name that ANYONE would understand.
-
-   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
-   Include adjectives and qualifiers that distinguish the product.
-
-   CORRECT examples (note: descriptive, but still concise):
-     "Pull Down Faucet" — NOT just "Faucet"
-     "Undermount Sink" — NOT just "Sink"
-     "Undercounter Refrigerator" — NOT just "Refrigerator"
-     "Drawer Microwave" — NOT just "Microwave"
-     "Carpet Tile" — NOT just "Carpet"
-     "Luxury Vinyl Tile" — NOT just "Tile"
-     "Acoustic Ceiling Panel" — NOT just "Ceiling"
-     "Rubber Wall Base" — NOT just "Base"
-     "Hardwood Flooring"
-     "Solid Surface Countertop"
-     "Wallcovering"
-     "Wood Veneer Wallcovering"
-     "Paint"
-     "Plastic Laminate"
-
-   WRONG examples (these are descriptions, NOT names):
-     "30" Over-and-Under Refrigerator/Freezer with Ice Maker" → should be "Refrigerator/Freezer"
-     "Sierra Tile 5T524" → should be "Carpet Tile"
-     "Ultima - Beveled Tegular 9/16" → should be "Acoustic Ceiling Panel"
-     "K-28669-9-2MB" → this is a model number, NOT a name
-
-   NEVER include in the product name:
-     - Manufacturer name (e.g., "Kohler", "Sub-Zero", "ShawContract")
-     - Model number or line name (e.g., "Sierra Tile", "Ultima", "EON")
-     - Detailed feature lists or specifications
-     - Tag, spec ID, finish, size, or price
-
-   If you CANNOT determine a clear, common product name, use "N/A".
-   STRONGLY prefer "N/A" over guessing — an incorrect name is worse than no name.
-
-** Product Description (productDescription) ** — The FULL product description.
-   This is the detailed, manufacturer-specific description that identifies the exact
-   product being specified. Include model name, model number, and all distinguishing
-   characteristics from the schedule.
-
-   CORRECT examples:
-     "30" Over-and-Under Refrigerator/Freezer with Ice Maker"
-     "Sierra Tile 5T524, Native-21105"
-     "Ultima - Beveled Tegular 9/16"
-     "Ricochet Strata R611, Mesmerized"
-     "Authenticity CA362, Persona Oak-01027"
-     "Formica Laminate 9923-ML, Patine Chalk - Monolith Texture"
-
-   MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price,
-   or ANY information already captured in other columns.
-   N/A if no description beyond the product name is available.
-
-═══════════════════════════════════════════════════════════════════
-
-CORE FIELDS (populate with "N/A" if information is genuinely absent):
-
-- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product name. Use the full descriptive name when the document provides it (e.g., "Undercounter Refrigerator" not just "Refrigerator").
-
-- Product Description: See above — the FULL manufacturer-specific description.
-
-- Manufacturer: The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use "N/A".
-
-- Tag: The schedule's row identifier. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., "EQ-01", "EQ1", "B-01", "CPT-02", "ACT-01", "LVT-01", "WD-01"). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use "N/A". Each unique tag should appear in ONLY ONE product entry.
-
-- Spec ID Number: The CSI Masterformat code (also known as CSI Section Number) that classifies this product's specification section. Follows the structure "DD SS ss" where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Only extract if the value matches this numeric Masterformat pattern. N/A if not found.
-
-- Project: The project name or identifier. Look in the drawing's title block if visible. N/A if not found.
-
-SECONDARY FIELDS (populate with "N/A" if absent):
-
-- Finish: The finish designation for the product, including color, surface finish, coating, material treatment, fabric grade, or any combination (e.g., "Matte Black", "Stainless Steel", "Snow White W", "Native-21105", "Plastic Laminate Panel to Match Adjacent Millwork"). Include finish codes, color codes, fabric specifications, and material grades if present.
-
-- Size: Product dimensions in any format provided (e.g., "18\\" X 36\\"", "24\\" X 72\\"", "4\\" HIGH", "7\\" X 82.5\\""). N/A if not found.
-
-- Price: N/A (architectural drawing schedules do not contain pricing).
-
-- Details: Consolidate supplementary schedule information here. This includes: "Provided by" designations (e.g., "Provided by: GC"), contact information for product representatives, installation methods or notes (e.g., "Installation Method: Ashlar"), comments or remarks from the schedule, and any other useful information from schedule columns that does not fit into other defined fields. EXCLUDE: any component already captured in Item Name, Product Description, Finish, Size, or Manufacturer. Default to "N/A" unless supplementary information is present. Limit to 1-3 concise notes.
-
-EXTRACTION GUIDELINES:
-
-- Extract every row from the schedule table that represents a product — missing products is a critical error.
-- ONE PRODUCT PER TAG: Each tag must correspond to exactly ONE product entry. Never create multiple rows with the same tag.
-- Extract ALL rows, even those with incomplete data. Use "N/A" for missing fields but preserve whatever information IS present.
-- Do not extract non-product items like services, general notes, or legend entries.
-- One product entry per schedule row.
-- Consolidate multi-line descriptions within a single row into a single entry.
-- Use "N/A" when information cannot be confidently identified — do not guess or infer.
-- For Product Name: if you are not confident in a common, generic name, use "N/A". Do NOT put the full description here.
-- Preserve schedule order in output.
-- Only extract explicitly stated information from the schedule cells.
-
-OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
-
-VALIDATION CHECKLIST:
-
-- Schedule Source: Did I extract ONLY from tables labeled as schedules? Did I ignore elevations, plans, legends, and other non-schedule content?
-- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product name like "Pull Down Faucet" or "Carpet Tile"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Faucet" or "Tile"), add the distinguishing qualifier.
-- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-- Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
-- Tag: Is this the schedule row identifier? Does each tag appear only ONCE in the output?
-- Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
-- Finish: Have I captured all finish, color, fabric, and material specifications from the schedule?
-- Details: Have I consolidated supplementary columns (provided by, contact, comments, notes) here?
-- Tag uniqueness: Have I verified that no tag appears in multiple product entries?
-- Completeness: Have I extracted ALL rows from ALL schedule tables on the drawing?`;
+FULL CELL VALUES: Schedule cells often contain multi-line content. Always extract the COMPLETE cell content — every line, every sub-entry. If a FINISH cell lists multiple finishes or a DESCRIPTION cell spans multiple lines, include all of it.`;
 
 /**
  * Extraction configs per document type.
- *
- * Each document type maps to its own prompt and schema. For now, some types
- * share the purchase order config as a placeholder until dedicated prompts
- * are developed.
+ * Simple string concatenation: BASE_PROMPT + type-specific addendum.
  */
 const EXTRACTION_CONFIGS: Record<ProductDocumentType, ExtractionConfig> = {
   purchase_order: {
-    schema: PURCHASE_ORDER_SCHEMA,
-    prompt: PURCHASE_ORDER_PROMPT,
+    schema: PRODUCT_SCHEMA,
+    prompt: BASE_PROMPT + "\n\n" + PURCHASE_ORDER_ADDENDUM,
   },
   specification: {
-    schema: SPECIFICATION_SCHEMA,
-    prompt: SPECIFICATION_PROMPT,
+    schema: PRODUCT_SCHEMA,
+    prompt: BASE_PROMPT + "\n\n" + SPECIFICATION_ADDENDUM,
   },
   drawing: {
-    schema: DRAWING_SCHEMA,
-    prompt: DRAWING_PROMPT,
+    schema: PRODUCT_SCHEMA,
+    prompt: BASE_PROMPT + "\n\n" + DRAWING_ADDENDUM,
   },
   rfi: {
-    schema: PURCHASE_ORDER_SCHEMA,
-    prompt: PURCHASE_ORDER_PROMPT,
+    schema: PRODUCT_SCHEMA,
+    prompt: BASE_PROMPT + "\n\n" + PURCHASE_ORDER_ADDENDUM,
   },
   submittal: {
-    schema: PURCHASE_ORDER_SCHEMA,
-    prompt: PURCHASE_ORDER_PROMPT,
+    schema: PRODUCT_SCHEMA,
+    prompt: BASE_PROMPT + "\n\n" + PURCHASE_ORDER_ADDENDUM,
   },
 };
 
