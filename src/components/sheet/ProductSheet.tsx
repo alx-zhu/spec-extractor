@@ -85,9 +85,9 @@ export function ProductSheet({
         {/* Drag handle — overlaps the left edge, sitting half outside the sheet */}
         <div
           onMouseDown={handleMouseDown}
-          className="absolute -left-2 inset-y-0 w-4 cursor-col-resize z-50 flex items-center justify-center group/handle hover:bg-blue-400/40 active:bg-blue-500/50 transition-colors"
+          className="absolute -left-2 inset-y-0 w-4 cursor-col-resize z-10 flex items-center justify-center group/handle before:absolute before:inset-y-0 before:left-1/2 before:-translate-x-1/2 before:w-2 before:bg-transparent hover:before:bg-blue-400/40 active:before:bg-blue-500/50 before:transition-colors"
         >
-          <div className="w-6 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center group-hover/handle:bg-blue-50 group-hover/handle:border-blue-300 group-active/handle:bg-blue-100 transition-colors">
+          <div className="z-20 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center group-hover/handle:bg-blue-50 group-hover/handle:border-blue-300 group-active/handle:bg-blue-100 transition-colors">
             <GripVertical className="size-3.5 text-gray-400 group-hover/handle:text-blue-500 transition-colors" />
           </div>
         </div>
