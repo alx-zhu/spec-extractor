@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ProductTable } from "@/components/table/ProductTable";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,38 +11,23 @@ import type { Product } from "@/types/product";
 
 interface TablePanelProps {
   products: Product[];
-  selectedProduct: Product | null;
+  selectedProductId: string | null;
   selectedFieldKey: string | null;
   onRowClick: (product: Product, fieldKey?: string) => void;
-  isPdfViewerOpen: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export function TablePanel({
   products,
-  selectedProduct,
+  selectedProductId,
   selectedFieldKey,
   onRowClick,
-  isPdfViewerOpen,
+  searchQuery,
+  onSearchChange,
 }: TablePanelProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Filter products based on search query
-  const filteredProducts = products.filter((product) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      product?.itemName?.value?.toLowerCase().includes(query) ||
-      product?.manufacturer?.value?.toLowerCase().includes(query) ||
-      product?.specIdNumber?.value?.toLowerCase().includes(query) ||
-      product?.project?.value?.toLowerCase().includes(query)
-    );
-  });
-
   return (
-    <div
-      className={`flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 ${
-        isPdfViewerOpen ? "flex-[0.5]" : "flex-1"
-      }`}
-    >
+    <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       {/* Panel Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white">
         <div className="flex items-center gap-3">
@@ -51,7 +35,7 @@ export function TablePanel({
             Extracted Products
           </h2>
           <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-            {filteredProducts.length}
+            {products.length}
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -62,7 +46,7 @@ export function TablePanel({
               type="text"
               placeholder="Search products..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
               className="pl-9 w-48 h-8 text-sm bg-gray-50 border-gray-200"
             />
           </div>
@@ -75,9 +59,9 @@ export function TablePanel({
       {/* Table */}
       <div className="flex-1 overflow-hidden">
         <ProductTable
-          data={filteredProducts}
+          data={products}
           onRowClick={onRowClick}
-          selectedProductId={selectedProduct?.id}
+          selectedProductId={selectedProductId}
           selectedFieldKey={selectedFieldKey}
         />
       </div>
@@ -85,8 +69,7 @@ export function TablePanel({
       {/* Table Footer */}
       <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
         <span className="text-sm text-gray-500">
-          Showing 1-{filteredProducts.length} of {filteredProducts.length}{" "}
-          products
+          Showing 1-{products.length} of {products.length} products
         </span>
         <div className="flex gap-1">
           <Button variant="outline" size="icon" disabled className="h-8 w-8">

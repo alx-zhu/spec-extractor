@@ -3,17 +3,16 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { Product } from "@/types/product";
 import { productColumns } from "./columns";
 import { ProductRow } from "./ProductRow";
-import { useUpdateProduct } from "@/hooks/useProducts";
 import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
 import { headerCellVariants } from "./tableVariants";
 
 interface ProductTableProps {
   data: Product[];
   onRowClick?: (product: Product, fieldKey?: string) => void;
-  selectedProductId?: string;
+  selectedProductId?: string | null;
   selectedFieldKey?: string | null;
 }
 
@@ -23,35 +22,11 @@ export function ProductTable({
   selectedProductId,
   selectedFieldKey,
 }: ProductTableProps) {
-  const updateProduct = useUpdateProduct();
-
   const table = useReactTable({
     data,
     columns: productColumns,
     getCoreRowModel: getCoreRowModel(),
   });
-
-  const handleCellSave = (
-    productId: string,
-    fieldKey: ProductFieldKey,
-    newValue: string,
-  ) => {
-    // Find the product to get the existing bbox
-    const product = data.find((p) => p.id === productId);
-    if (!product) return;
-
-    // Preserve the bbox while updating the value
-    const fieldData = product[fieldKey];
-    updateProduct.mutate({
-      productId,
-      updates: {
-        [fieldKey]: {
-          value: newValue,
-          citations: fieldData?.citations || [],
-        },
-      },
-    });
-  };
 
   return (
     <div className="h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
@@ -99,7 +74,6 @@ export function ProductTable({
                 onClick={(fieldKey) => onRowClick?.(row.original, fieldKey)}
                 isSelected={selectedProductId === row.original?.id}
                 selectedFieldKey={selectedFieldKey}
-                onCellSave={handleCellSave}
               />
             ))
         )}
