@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { TablePanel } from "@/components/panels/TablePanel";
 import { ProductSheet } from "@/components/sheet/ProductSheet";
+import { FilterSidebar } from "@/components/sidebar/FilterSidebar";
 import { UploadModal } from "@/components/upload/UploadModal";
 import { ExportModal } from "@/components/export/ExportModal";
 import { useProducts } from "@/hooks/useProducts";
+import { useSidebarFilter } from "@/hooks/useSidebarFilter";
 import type { Product, ProductFieldKey } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
 import { getPdfUrl } from "./utils/storage";
@@ -13,6 +15,9 @@ function App() {
   // Fetch products from React Query
   const { data: products = [], isLoading } = useProducts();
   const { data: documents = [] } = useDocuments();
+
+  // Sidebar filter state
+  const sidebar = useSidebarFilter(products);
 
   // Selection state — store ID, derive the product from the array
   // This avoids stale references after React Query invalidation
@@ -25,8 +30,8 @@ function App() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  // Derive filtered products (lifted from TablePanel for sheet prev/next)
-  const filteredProducts = products.filter((product) => {
+  // Derive filtered products: text search then sidebar filter
+  const textFiltered = products.filter((product) => {
     const query = searchQuery.toLowerCase();
     return (
       product?.itemName?.value?.toLowerCase().includes(query) ||
@@ -35,6 +40,7 @@ function App() {
       product?.project?.value?.toLowerCase().includes(query)
     );
   });
+  const filteredProducts = sidebar.filterProducts(textFiltered);
 
   // Derive selected product from fresh products array (never stale)
   const selectedProduct =
@@ -82,19 +88,39 @@ function App() {
       <Header
         onUploadClick={() => setIsUploadModalOpen(true)}
         onExportClick={() => setIsExportModalOpen(true)}
+        onSidebarToggle={sidebar.toggleSidebar}
+        isSidebarOpen={sidebar.isOpen}
       />
 
-      <main className="flex-1 flex overflow-hidden p-8">
-        {/* Table Panel — always full width */}
-        <TablePanel
-          products={filteredProducts}
-          selectedProductId={selectedProductId}
-          selectedFieldKey={selectedFieldKey}
-          onRowClick={handleRowClick}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Filter sidebar — pushes table right */}
+        <FilterSidebar
+          isOpen={sidebar.isOpen}
+          activeDivisions={sidebar.activeDivisions}
+          activeSectionsByDivision={sidebar.activeSectionsByDivision}
+          divisionCounts={sidebar.divisionCounts}
+          sectionCounts={sidebar.sectionCounts}
+          activeFilter={sidebar.activeFilter}
+          expandedDivision={sidebar.expandedDivision}
+          onDivisionClick={sidebar.selectDivision}
+          onSectionClick={sidebar.selectSection}
         />
-      </main>
+
+        <main className="flex-1 flex overflow-hidden p-8">
+          {/* Table Panel */}
+          <TablePanel
+            products={filteredProducts}
+            selectedProductId={selectedProductId}
+            selectedFieldKey={selectedFieldKey}
+            onRowClick={handleRowClick}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onFilterToggle={sidebar.toggleSidebar}
+            activeFilterLabel={sidebar.activeFilterLabel}
+            onClearFilter={sidebar.clearFilter}
+          />
+        </main>
+      </div>
 
       {/* Product detail sheet — overlays the table */}
       <ProductSheet

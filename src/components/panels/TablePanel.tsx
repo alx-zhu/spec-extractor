@@ -6,7 +6,9 @@ import {
   ChevronRight,
   Search,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 
 interface TablePanelProps {
@@ -16,6 +18,9 @@ interface TablePanelProps {
   onRowClick: (product: Product, fieldKey?: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onFilterToggle: () => void;
+  activeFilterLabel: string | null;
+  onClearFilter: () => void;
 }
 
 export function TablePanel({
@@ -25,6 +30,9 @@ export function TablePanel({
   onRowClick,
   searchQuery,
   onSearchChange,
+  onFilterToggle,
+  activeFilterLabel,
+  onClearFilter,
 }: TablePanelProps) {
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
@@ -38,7 +46,20 @@ export function TablePanel({
             {products.length}
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Active filter chip */}
+          {activeFilterLabel && (
+            <button
+              onClick={onClearFilter}
+              className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors"
+              aria-label="Clear filter"
+            >
+              <span className="truncate max-w-[180px]">
+                {activeFilterLabel}
+              </span>
+              <X className="h-3.5 w-3.5 text-blue-400 hover:text-blue-600 cursor-pointer" />
+            </button>
+          )}
           {/* Search Box */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -50,7 +71,16 @@ export function TablePanel({
               className="pl-9 w-48 h-8 text-sm bg-gray-50 border-gray-200"
             />
           </div>
-          <Button variant="outline" size="icon" className="h-8 w-8">
+          <Button
+            variant="outline"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              activeFilterLabel &&
+                "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100",
+            )}
+            onClick={onFilterToggle}
+          >
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
         </div>
