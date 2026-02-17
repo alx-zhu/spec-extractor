@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getSectionPrefix } from "@/utils/masterformatHelpers";
+import { getDivisionCode, getSectionPrefix } from "@/utils/masterformatHelpers";
 import type { MasterFormatDivision, MasterFormatSection } from "@/data/masterformat";
 import type { SidebarFilter } from "@/hooks/useSidebarFilter";
 
@@ -21,7 +21,7 @@ function SectionItem({
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center justify-between pl-10 pr-4 py-2 text-left text-[13px] transition-colors rounded-r-md",
+        "w-full flex items-center justify-between pl-4 pr-4 py-2 text-left text-[13px] transition-colors rounded-r-md cursor-pointer",
         isActive
           ? "bg-blue-50 text-blue-700 font-medium"
           : "text-gray-500 hover:bg-gray-50 hover:text-gray-700",
@@ -58,27 +58,39 @@ function DivisionItem({
   onDivisionClick: () => void;
   onSectionClick: (sectionCode: string) => void;
 }) {
+  // A child section is the active filter
+  const hasActiveChild =
+    activeFilter?.type === "section" &&
+    getDivisionCode(activeFilter.code) === division.code;
+
   return (
     <div>
       <button
         onClick={onDivisionClick}
         aria-expanded={isExpanded}
         className={cn(
-          "w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-[13px] transition-colors rounded-r-md",
+          "w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-[13px] transition-colors rounded-r-md cursor-pointer",
           isActive
             ? "bg-blue-50 text-blue-700 font-medium"
-            : "text-gray-700 hover:bg-gray-50",
+            : hasActiveChild
+              ? "text-blue-600 font-medium hover:bg-gray-50"
+              : "text-gray-700 hover:bg-gray-50",
         )}
       >
         <ChevronRight
           className={cn(
             "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
-            isActive ? "text-blue-500" : "text-gray-400",
+            isActive || hasActiveChild ? "text-blue-500" : "text-gray-400",
             isExpanded && "rotate-90",
           )}
         />
         <span className="truncate">
-          <span className="text-gray-400 tabular-nums mr-1.5">
+          <span
+            className={cn(
+              "tabular-nums mr-1.5",
+              hasActiveChild ? "text-blue-400" : "text-gray-400",
+            )}
+          >
             {division.code}
           </span>
           {division.name}
@@ -90,7 +102,7 @@ function DivisionItem({
 
       {/* Collapsible children */}
       {isExpanded && sections.length > 0 && (
-        <div className="pb-1">
+        <div className="relative pb-1 ml-[23px] border-l border-gray-200">
           {sections.map((section) => {
             const prefix = getSectionPrefix(section.code);
             const secCount = sectionCounts.get(prefix) ?? 0;

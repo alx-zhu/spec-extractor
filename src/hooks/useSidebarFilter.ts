@@ -71,7 +71,15 @@ export function useSidebarFilter(products: Product[]) {
 
   const selectDivision = useCallback((divisionCode: string) => {
     setActiveFilter((prev) => {
+      // Already filtering this division → clear
       if (prev?.type === "division" && prev.code === divisionCode) {
+        return null;
+      }
+      // A child section of this division is active → clear (close the folder)
+      if (
+        prev?.type === "section" &&
+        getDivisionCode(prev.code) === divisionCode
+      ) {
         return null;
       }
       return { type: "division", code: divisionCode };
