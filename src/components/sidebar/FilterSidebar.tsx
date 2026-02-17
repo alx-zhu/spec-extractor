@@ -1,19 +1,20 @@
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getDivisionCode, getSectionPrefix } from "@/utils/masterformatHelpers";
-import type { MasterFormatDivision, MasterFormatSection } from "@/data/masterformat";
-import type { SidebarFilter } from "@/hooks/useSidebarFilter";
+import { getDivisionCode } from "@/utils/masterformatHelpers";
+import type {
+  SidebarFilter,
+  SidebarDivision,
+  SidebarSection,
+} from "@/hooks/useSidebarFilter";
 
 // ── Section row (leaf node in the tree) ──────────────────────────
 
 function SectionItem({
   section,
-  count,
   isActive,
   onClick,
 }: {
-  section: MasterFormatSection;
-  count: number;
+  section: SidebarSection;
   isActive: boolean;
   onClick: () => void;
 }) {
@@ -29,7 +30,7 @@ function SectionItem({
     >
       <span className="truncate">{section.name}</span>
       <span className="ml-3 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
-        {count}
+        {section.count}
       </span>
     </button>
   );
@@ -39,26 +40,19 @@ function SectionItem({
 
 function DivisionItem({
   division,
-  count,
   isActive,
   isExpanded,
-  sections,
-  sectionCounts,
   activeFilter,
   onDivisionClick,
   onSectionClick,
 }: {
-  division: MasterFormatDivision;
-  count: number;
+  division: SidebarDivision;
   isActive: boolean;
   isExpanded: boolean;
-  sections: MasterFormatSection[];
-  sectionCounts: Map<string, number>;
   activeFilter: SidebarFilter;
   onDivisionClick: () => void;
   onSectionClick: (sectionCode: string) => void;
 }) {
-  // A child section is the active filter
   const hasActiveChild =
     activeFilter?.type === "section" &&
     getDivisionCode(activeFilter.code) === division.code;
@@ -96,16 +90,14 @@ function DivisionItem({
           {division.name}
         </span>
         <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
-          {count}
+          {division.count}
         </span>
       </button>
 
       {/* Collapsible children */}
-      {isExpanded && sections.length > 0 && (
+      {isExpanded && division.sections.length > 0 && (
         <div className="relative pb-1 ml-[23px] border-l border-gray-200">
-          {sections.map((section) => {
-            const prefix = getSectionPrefix(section.code);
-            const secCount = sectionCounts.get(prefix) ?? 0;
+          {division.sections.map((section) => {
             const isSectionActive =
               activeFilter?.type === "section" &&
               activeFilter.code === section.code;
@@ -114,7 +106,6 @@ function DivisionItem({
               <SectionItem
                 key={section.code}
                 section={section}
-                count={secCount}
                 isActive={isSectionActive}
                 onClick={() => onSectionClick(section.code)}
               />
@@ -130,10 +121,7 @@ function DivisionItem({
 
 interface FilterSidebarProps {
   isOpen: boolean;
-  activeDivisions: MasterFormatDivision[];
-  activeSectionsByDivision: Map<string, MasterFormatSection[]>;
-  divisionCounts: Map<string, number>;
-  sectionCounts: Map<string, number>;
+  divisions: SidebarDivision[];
   activeFilter: SidebarFilter;
   expandedDivision: string | null;
   onDivisionClick: (code: string) => void;
@@ -142,10 +130,7 @@ interface FilterSidebarProps {
 
 export function FilterSidebar({
   isOpen,
-  activeDivisions,
-  activeSectionsByDivision,
-  divisionCounts,
-  sectionCounts,
+  divisions,
   activeFilter,
   expandedDivision,
   onDivisionClick,
@@ -170,25 +155,20 @@ export function FilterSidebar({
 
         {/* Tree list */}
         <nav className="flex-1 overflow-y-auto px-2 pb-4">
-          {activeDivisions.length > 0 ? (
+          {divisions.length > 0 ? (
             <div className="space-y-0.5">
-              {activeDivisions.map((division) => {
+              {divisions.map((division) => {
                 const isDivisionActive =
                   activeFilter?.type === "division" &&
                   activeFilter.code === division.code;
                 const isExpanded = expandedDivision === division.code;
-                const sections =
-                  activeSectionsByDivision.get(division.code) ?? [];
 
                 return (
                   <DivisionItem
                     key={division.code}
                     division={division}
-                    count={divisionCounts.get(division.code) ?? 0}
                     isActive={isDivisionActive}
                     isExpanded={isExpanded}
-                    sections={sections}
-                    sectionCounts={sectionCounts}
                     activeFilter={activeFilter}
                     onDivisionClick={() => onDivisionClick(division.code)}
                     onSectionClick={onSectionClick}

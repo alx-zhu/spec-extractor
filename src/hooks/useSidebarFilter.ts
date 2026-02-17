@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import type { Product } from "@/types/product";
 import { DIVISIONS, SECTIONS } from "@/data/masterformat";
-import type { MasterFormatSection } from "@/data/masterformat";
 import {
   getDivisionCode,
   getSectionPrefix,
@@ -14,16 +13,29 @@ export type SidebarFilter =
   | { type: "section"; code: string }
   | null;
 
+export interface SidebarSection {
+  code: string;
+  name: string;
+  count: number;
+}
+
+export interface SidebarDivision {
+  code: string;
+  name: string;
+  count: number;
+  sections: SidebarSection[];
+}
+
 export function useSidebarFilter(products: Product[]) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<SidebarFilter>(null);
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
-
   const clearFilter = useCallback(() => setActiveFilter(null), []);
 
-  // Count products per division and per section prefix
-  const { divisionCounts, sectionCounts } = useMemo(() => {
+  // Build a single tree of divisions → sections, with counts, filtered to only those with products
+  const divisions = useMemo(() => {
+    // Count products per division and per section prefix
     const divCounts = new Map<string, number>();
     const secCounts = new Map<string, number>();
 
@@ -38,82 +50,33 @@ export function useSidebarFilter(products: Product[]) {
       secCounts.set(secPrefix, (secCounts.get(secPrefix) ?? 0) + 1);
     }
 
-    return { divisionCounts: divCounts, sectionCounts: secCounts };
+    // Build the tree: only divisions/sections that have products
+    const result: SidebarDivision[] = [];
+    for (const div of DIVISIONS) {
+      const divCount = divCounts.get(div.code) ?? 0;
+      if (divCount === 0) continue;
+
+      const sections: SidebarSection[] = [];
+      for (const sec of SECTIONS) {
+        if (sec.divisionCode !== div.code) continue;
+        const secCount = secCounts.get(getSectionPrefix(sec.code)) ?? 0;
+        if (secCount === 0) continue;
+        sections.push({ code: sec.code, name: sec.name, count: secCount });
+      }
+
+      result.push({ code: div.code, name: div.name, count: divCount, sections });
+    }
+    return result;
   }, [products]);
 
-  // Only divisions that have at least one product
-  const activeDivisions = useMemo(
-    () => DIVISIONS.filter((d) => (divisionCounts.get(d.code) ?? 0) > 0),
-    [divisionCounts],
-  );
-
-  // Sections grouped by division, only those with products
-  const activeSectionsByDivision = useMemo(() => {
-    const map = new Map<string, MasterFormatSection[]>();
-    for (const section of SECTIONS) {
-      const prefix = getSectionPrefix(section.code);
-      if ((sectionCounts.get(prefix) ?? 0) > 0) {
-        const arr = map.get(section.divisionCode) ?? [];
-        arr.push(section);
-        map.set(section.divisionCode, arr);
-      }
-    }
-    return map;
-  }, [sectionCounts]);
-
-  // Derived: a division is expanded iff it (or one of its sections) is the active filter
+  // Derived: which division is expanded (based on active filter)
   const expandedDivision = useMemo(() => {
     if (!activeFilter) return null;
     if (activeFilter.type === "division") return activeFilter.code;
-    // Section code "09 30 00" → division code "09"
     return getDivisionCode(activeFilter.code);
   }, [activeFilter]);
 
-  const selectDivision = useCallback((divisionCode: string) => {
-    setActiveFilter((prev) => {
-      // Already filtering this division → clear
-      if (prev?.type === "division" && prev.code === divisionCode) {
-        return null;
-      }
-      // A child section of this division is active → clear (close the folder)
-      if (
-        prev?.type === "section" &&
-        getDivisionCode(prev.code) === divisionCode
-      ) {
-        return null;
-      }
-      return { type: "division", code: divisionCode };
-    });
-  }, []);
-
-  const selectSection = useCallback((sectionCode: string) => {
-    setActiveFilter((prev) => {
-      if (prev?.type === "section" && prev.code === sectionCode) {
-        return null;
-      }
-      return { type: "section", code: sectionCode };
-    });
-  }, []);
-
-  // Apply sidebar filter to a product array
-  const filterProducts = useCallback(
-    (productsToFilter: Product[]): Product[] => {
-      if (!activeFilter) return productsToFilter;
-
-      return productsToFilter.filter((product) => {
-        const specId = product.specIdNumber?.value;
-        if (!specId) return false;
-
-        if (activeFilter.type === "division") {
-          return productMatchesDivision(specId, activeFilter.code);
-        }
-        return productMatchesSection(specId, activeFilter.code);
-      });
-    },
-    [activeFilter],
-  );
-
-  // Compute a human-readable label for the active filter
+  // Human-readable label for the active filter
   const activeFilterLabel = useMemo(() => {
     if (!activeFilter) return null;
     if (activeFilter.type === "division") {
@@ -124,6 +87,36 @@ export function useSidebarFilter(products: Product[]) {
     return sec ? `${sec.code} - ${sec.name}` : null;
   }, [activeFilter]);
 
+  const selectDivision = useCallback((divisionCode: string) => {
+    setActiveFilter((prev) => {
+      if (prev?.type === "division" && prev.code === divisionCode) return null;
+      if (prev?.type === "section" && getDivisionCode(prev.code) === divisionCode) return null;
+      return { type: "division", code: divisionCode };
+    });
+  }, []);
+
+  const selectSection = useCallback((sectionCode: string) => {
+    setActiveFilter((prev) => {
+      if (prev?.type === "section" && prev.code === sectionCode) return null;
+      return { type: "section", code: sectionCode };
+    });
+  }, []);
+
+  const filterProducts = useCallback(
+    (productsToFilter: Product[]): Product[] => {
+      if (!activeFilter) return productsToFilter;
+      return productsToFilter.filter((product) => {
+        const specId = product.specIdNumber?.value;
+        if (!specId) return false;
+        if (activeFilter.type === "division") {
+          return productMatchesDivision(specId, activeFilter.code);
+        }
+        return productMatchesSection(specId, activeFilter.code);
+      });
+    },
+    [activeFilter],
+  );
+
   return {
     isOpen,
     toggleSidebar,
@@ -133,10 +126,7 @@ export function useSidebarFilter(products: Product[]) {
     selectDivision,
     selectSection,
     expandedDivision,
-    activeDivisions,
-    activeSectionsByDivision,
-    divisionCounts,
-    sectionCounts,
+    divisions,
     filterProducts,
   };
 }

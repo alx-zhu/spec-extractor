@@ -96,10 +96,7 @@ function App() {
         {/* Filter sidebar — pushes table right */}
         <FilterSidebar
           isOpen={sidebar.isOpen}
-          activeDivisions={sidebar.activeDivisions}
-          activeSectionsByDivision={sidebar.activeSectionsByDivision}
-          divisionCounts={sidebar.divisionCounts}
-          sectionCounts={sidebar.sectionCounts}
+          divisions={sidebar.divisions}
           activeFilter={sidebar.activeFilter}
           expandedDivision={sidebar.expandedDivision}
           onDivisionClick={sidebar.selectDivision}
