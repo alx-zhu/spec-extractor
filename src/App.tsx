@@ -5,7 +5,7 @@ import { ProductSheet } from "@/components/sheet/ProductSheet";
 import { FilterSidebar } from "@/components/sidebar/FilterSidebar";
 import { UploadModal } from "@/components/upload/UploadModal";
 import { ExportModal } from "@/components/export/ExportModal";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, useReviewProduct, useUpdateProduct } from "@/hooks/useProducts";
 import { useSidebarFilter } from "@/hooks/useSidebarFilter";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
@@ -15,6 +15,8 @@ function App() {
   // Fetch products from React Query
   const { data: products = [], isLoading } = useProducts();
   const { data: documents = [] } = useDocuments();
+  const reviewProduct = useReviewProduct();
+  const updateProduct = useUpdateProduct();
 
   // Sidebar filter state
   const sidebar = useSidebarFilter(products);
@@ -57,6 +59,14 @@ function App() {
     }
     return "sample_spec.pdf";
   })();
+
+  const handleReview = (productId: string) => {
+    reviewProduct.mutate(productId);
+  };
+
+  const handleUnreview = (productId: string) => {
+    updateProduct.mutate({ productId, updates: { reviewed: false } });
+  };
 
   const handleRowClick = (product: ExtractedProduct, fieldKey?: string) => {
     setSelectedProductId(product.id);
@@ -110,6 +120,8 @@ function App() {
             selectedProductId={selectedProductId}
             selectedFieldKey={selectedFieldKey}
             onRowClick={handleRowClick}
+            onReview={handleReview}
+            onUnreview={handleUnreview}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onFilterToggle={sidebar.toggleSidebar}

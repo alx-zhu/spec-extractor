@@ -12,6 +12,8 @@ import { headerCellVariants } from "./tableVariants";
 interface ProductTableProps {
   data: ExtractedProduct[];
   onRowClick?: (product: ExtractedProduct, fieldKey?: string) => void;
+  onReview?: (productId: string) => void;
+  onUnreview?: (productId: string) => void;
   selectedProductId?: string | null;
   selectedFieldKey?: string | null;
 }
@@ -19,6 +21,8 @@ interface ProductTableProps {
 export function ProductTable({
   data,
   onRowClick,
+  onReview,
+  onUnreview,
   selectedProductId,
   selectedFieldKey,
 }: ProductTableProps) {
@@ -72,6 +76,8 @@ export function ProductTable({
                 key={row.id}
                 row={row}
                 onClick={(fieldKey) => onRowClick?.(row.original, fieldKey)}
+                onReview={onReview}
+                onUnreview={onUnreview}
                 isSelected={selectedProductId === row.original?.id}
                 selectedFieldKey={selectedFieldKey}
               />

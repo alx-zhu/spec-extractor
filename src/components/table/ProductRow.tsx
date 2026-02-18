@@ -2,10 +2,13 @@ import { type Row } from "@tanstack/react-table";
 import type { ExtractedProduct } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { ProductCell } from "./ProductCell";
+import { RowActions } from "./RowActions";
 
 interface ProductRowProps {
   row: Row<ExtractedProduct>;
   onClick?: (fieldKey?: string) => void;
+  onReview?: (productId: string) => void;
+  onUnreview?: (productId: string) => void;
   isSelected?: boolean;
   selectedFieldKey?: string | null;
 }
@@ -13,6 +16,8 @@ interface ProductRowProps {
 export function ProductRow({
   row,
   onClick,
+  onReview,
+  onUnreview,
   isSelected,
   selectedFieldKey,
 }: ProductRowProps) {
@@ -21,7 +26,7 @@ export function ProductRow({
   return (
     <div
       className={cn(
-        "flex border-b border-gray-100 transition-colors duration-150 relative",
+        "flex border-b border-gray-100 transition-colors duration-150 relative group",
         isSelected ? "shadow-md z-10" : isChecked ? "bg-blue-50" : "bg-white",
       )}
     >
@@ -48,6 +53,12 @@ export function ProductRow({
           />
         );
       })}
+      <RowActions
+        productId={row.original.id}
+        isReviewed={row.original.reviewed}
+        onReview={onReview}
+        onUnreview={onUnreview}
+      />
     </div>
   );
 }

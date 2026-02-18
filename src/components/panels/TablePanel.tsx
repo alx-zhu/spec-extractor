@@ -16,6 +16,8 @@ interface TablePanelProps {
   selectedProductId: string | null;
   selectedFieldKey: string | null;
   onRowClick: (product: ExtractedProduct, fieldKey?: string) => void;
+  onReview?: (productId: string) => void;
+  onUnreview?: (productId: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onFilterToggle: () => void;
@@ -28,6 +30,8 @@ export function TablePanel({
   selectedProductId,
   selectedFieldKey,
   onRowClick,
+  onReview,
+  onUnreview,
   searchQuery,
   onSearchChange,
   onFilterToggle,
@@ -91,6 +95,8 @@ export function TablePanel({
         <ProductTable
           data={products}
           onRowClick={onRowClick}
+          onReview={onReview}
+          onUnreview={onUnreview}
           selectedProductId={selectedProductId}
           selectedFieldKey={selectedFieldKey}
         />
