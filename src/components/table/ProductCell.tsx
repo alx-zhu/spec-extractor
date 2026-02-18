@@ -1,11 +1,11 @@
 import { flexRender, type Cell } from "@tanstack/react-table";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
 import { cellVariants } from "./tableVariants";
 
 interface ProductCellProps {
-  cell: Cell<Product, unknown>;
+  cell: Cell<ExtractedProduct, unknown>;
   isFieldSelected: boolean;
   onClick?: (fieldKey?: string) => void;
 }

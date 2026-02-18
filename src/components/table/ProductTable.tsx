@@ -3,15 +3,15 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 import { productColumns } from "./columns";
 import { ProductRow } from "./ProductRow";
 import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
 import { headerCellVariants } from "./tableVariants";
 
 interface ProductTableProps {
-  data: Product[];
-  onRowClick?: (product: Product, fieldKey?: string) => void;
+  data: ExtractedProduct[];
+  onRowClick?: (product: ExtractedProduct, fieldKey?: string) => void;
   selectedProductId?: string | null;
   selectedFieldKey?: string | null;
 }

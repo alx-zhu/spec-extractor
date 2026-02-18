@@ -1,10 +1,10 @@
 import { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { PRODUCT_FIELDS } from "@/config/fields";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 
 interface SummaryStripProps {
-  product: Product;
+  product: ExtractedProduct;
   selectedFieldKey: ProductFieldKey;
   onFieldSelect: (fieldKey: ProductFieldKey) => void;
 }

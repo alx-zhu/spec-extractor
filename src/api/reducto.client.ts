@@ -7,7 +7,7 @@
 
 import Reducto from "reductoai";
 import type { ReductoFieldValue } from "@/types/reducto";
-import type { ProductDocumentType, Product } from "@/types/product";
+import type { ProductDocumentType, ExtractedProduct } from "@/types/product";
 import { getExtractionConfig } from "./reducto.prompts";
 
 /**
@@ -43,7 +43,7 @@ export class ReductoClient {
     documentId: string,
     documentType: ProductDocumentType,
     pdfPath: string,
-  ): Promise<Product[]> {
+  ): Promise<ExtractedProduct[]> {
     try {
       console.log("[Reducto] Starting upload and extraction for:", file.name);
 
@@ -136,7 +136,7 @@ export class ReductoClient {
     documentType: ProductDocumentType,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _pdfPath: string,
-  ): Product[] {
+  ): ExtractedProduct[] {
     if (!resultArray || !Array.isArray(resultArray)) {
       console.warn("[Reducto] No products found in extraction result");
       return [];
@@ -158,7 +158,7 @@ export class ReductoClient {
       // Generate product ID
       const productId = `prod-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 9)}`;
 
-      const product: Product = {
+      const product: ExtractedProduct = {
         ...extractedProduct,
         id: productId,
         productDocumentId: documentId,

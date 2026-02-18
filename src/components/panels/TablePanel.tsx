@@ -9,13 +9,13 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 
 interface TablePanelProps {
-  products: Product[];
+  products: ExtractedProduct[];
   selectedProductId: string | null;
   selectedFieldKey: string | null;
-  onRowClick: (product: Product, fieldKey?: string) => void;
+  onRowClick: (product: ExtractedProduct, fieldKey?: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onFilterToggle: () => void;

@@ -4,7 +4,7 @@ import type {
   ReductoFieldValue,
 } from "./reducto";
 
-export interface Product extends ReductoExtractedProduct {
+export interface ExtractedProduct extends ReductoExtractedProduct {
   id: string;
   productDocumentId: string;
   documentType: ProductDocumentType;
@@ -14,7 +14,7 @@ export interface Product extends ReductoExtractedProduct {
 
 // Type for table columns - only the fields with bboxes
 export type ProductFieldKey = keyof Pick<
-  Product,
+  ExtractedProduct,
   | "itemName"
   | "productDescription"
   | "manufacturer"

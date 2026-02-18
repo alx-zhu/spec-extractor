@@ -1,10 +1,10 @@
 import { type Row } from "@tanstack/react-table";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { ProductCell } from "./ProductCell";
 
 interface ProductRowProps {
-  row: Row<Product>;
+  row: Row<ExtractedProduct>;
   onClick?: (fieldKey?: string) => void;
   isSelected?: boolean;
   selectedFieldKey?: string | null;

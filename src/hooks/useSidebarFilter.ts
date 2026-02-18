@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 import { DIVISIONS, SECTIONS } from "@/data/masterformat";
 import {
   getDivisionCode,
@@ -26,7 +26,7 @@ export interface SidebarDivision {
   sections: SidebarSection[];
 }
 
-export function useSidebarFilter(products: Product[]) {
+export function useSidebarFilter(products: ExtractedProduct[]) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<SidebarFilter>(null);
 
@@ -103,7 +103,7 @@ export function useSidebarFilter(products: Product[]) {
   }, []);
 
   const filterProducts = useCallback(
-    (productsToFilter: Product[]): Product[] => {
+    (productsToFilter: ExtractedProduct[]): ExtractedProduct[] => {
       if (!activeFilter) return productsToFilter;
       return productsToFilter.filter((product) => {
         const specId = product.specIdNumber?.value;

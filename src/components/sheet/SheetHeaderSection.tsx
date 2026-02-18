@@ -1,10 +1,10 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DocumentTypeBadge } from "@/components/table/DocumentTypeBadge";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 
 interface SheetHeaderSectionProps {
-  product: Product;
+  product: ExtractedProduct;
   productIndex: number;
   totalProducts: number;
   onPrev: () => void;

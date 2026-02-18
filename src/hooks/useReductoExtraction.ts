@@ -6,7 +6,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { getReductoClient } from "@/api/reducto.client";
-import type { ProductDocumentType, Product } from "@/types/product";
+import type { ProductDocumentType, ExtractedProduct } from "@/types/product";
 
 interface ReductoExtractionParams {
   file: File;
@@ -32,7 +32,7 @@ interface ReductoExtractionParams {
  * ```
  */
 export function useReductoExtraction() {
-  return useMutation<Product[], Error, ReductoExtractionParams>({
+  return useMutation<ExtractedProduct[], Error, ReductoExtractionParams>({
     mutationFn: async ({ file, documentId, documentType, pdfPath }) => {
       const client = getReductoClient();
       return client.uploadAndExtract(file, documentId, documentType, pdfPath);

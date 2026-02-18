@@ -1,4 +1,4 @@
-import type { Product, ProductDocument } from "@/types/product";
+import type { ExtractedProduct, ProductDocument } from "@/types/product";
 import type {
   ReductoBBox,
   ReductoCitation,
@@ -68,7 +68,7 @@ export const mockDocuments: ProductDocument[] = [
   },
 ];
 
-export const mockProducts: Product[] = [
+export const mockProducts: ExtractedProduct[] = [
   {
     id: "prod-1",
     itemName: createField("Acoustic Ceiling Panel", 1),

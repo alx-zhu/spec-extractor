@@ -1,5 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
@@ -8,7 +8,7 @@ import { isSpecIdGenerated } from "@/utils/productHelpers";
 import { columnLayout } from "@/styles/tableLayout";
 import { getFieldLabel } from "@/config/fields";
 
-export const productColumns: ColumnDef<Product>[] = [
+export const productColumns: ColumnDef<ExtractedProduct>[] = [
   {
     id: "select",
     header: ({ table }) => (

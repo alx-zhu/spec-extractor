@@ -7,7 +7,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { classifySpecId } from "@/api/openai.client";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 
 /**
  * Check if a spec ID value is missing/empty.
@@ -25,7 +25,7 @@ function isMissingSpecId(value?: string): boolean {
  * @param availableSections - Optional project-specific MasterFormat sections to constrain results
  */
 export function useSpecIdGeneration(availableSections?: string[]) {
-  return useMutation<Product[], Error, Product[]>({
+  return useMutation<ExtractedProduct[], Error, ExtractedProduct[]>({
     mutationFn: async (products) => {
       const results = await Promise.all(
         products.map(async (product) => {

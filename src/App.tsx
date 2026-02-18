@@ -7,7 +7,7 @@ import { UploadModal } from "@/components/upload/UploadModal";
 import { ExportModal } from "@/components/export/ExportModal";
 import { useProducts } from "@/hooks/useProducts";
 import { useSidebarFilter } from "@/hooks/useSidebarFilter";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
 import { getPdfUrl } from "./utils/storage";
 
@@ -58,7 +58,7 @@ function App() {
     return "sample_spec.pdf";
   })();
 
-  const handleRowClick = (product: Product, fieldKey?: string) => {
+  const handleRowClick = (product: ExtractedProduct, fieldKey?: string) => {
     setSelectedProductId(product.id);
     setSelectedFieldKey((fieldKey as ProductFieldKey) || "itemName");
   };
