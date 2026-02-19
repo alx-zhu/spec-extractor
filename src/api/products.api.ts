@@ -7,7 +7,7 @@
 
 import type { ExtractedProduct } from "@/types/product";
 import { simulateApiCall } from "./client";
-import { mockProducts } from "@/data/mockData";
+import { mockProducts, mockReviewedProducts } from "@/data/mockData";
 
 // Storage key for localStorage
 const PRODUCTS_STORAGE_KEY = "sabana:products";
@@ -17,7 +17,10 @@ const PRODUCTS_STORAGE_KEY = "sabana:products";
  */
 const initializeStorage = (): void => {
   if (!localStorage.getItem(PRODUCTS_STORAGE_KEY)) {
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(mockProducts));
+    localStorage.setItem(
+      PRODUCTS_STORAGE_KEY,
+      JSON.stringify([...mockProducts, ...mockReviewedProducts]),
+    );
   }
 };
 

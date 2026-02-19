@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DocumentTypeBadge } from "@/components/table/DocumentTypeBadge";
+import { DocumentTypeBadge } from "@/components/table/shared/DocumentTypeBadge";
 import type { ExtractedProduct } from "@/types/product";
 
 interface SheetHeaderSectionProps {
@@ -54,7 +54,7 @@ export function SheetHeaderSection({
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </Button>
-          <span className="text-xs text-gray-500 tabular-nums min-w-[48px] text-center">
+          <span className="text-xs text-gray-500 tabular-nums min-w-12 text-center">
             {productIndex + 1} / {totalProducts}
           </span>
           <Button

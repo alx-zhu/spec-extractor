@@ -1,33 +1,38 @@
 import { type Row } from "@tanstack/react-table";
-import type { ExtractedProduct } from "@/types/product";
 import { cn } from "@/lib/utils";
-import { ProductCell } from "./ProductCell";
-import { RowActions } from "./RowActions";
+import { TableCell } from "./TableCell";
 
-interface ProductRowProps {
-  row: Row<ExtractedProduct>;
+interface TableRowProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: Row<any>;
   onClick?: (fieldKey?: string) => void;
-  onReview?: (productId: string) => void;
-  onUnreview?: (productId: string) => void;
   isSelected?: boolean;
   selectedFieldKey?: string | null;
+  /** Slot for hover action bar (e.g. RowActions, unmerge button) */
+  actions?: React.ReactNode;
+  /** Extra className on the row container (e.g. bg-gray-50 for source rows) */
+  className?: string;
+  /** Per-cell overlay callback — returns extra content for a given field key */
+  cellOverlay?: (fieldKey: string) => React.ReactNode;
 }
 
-export function ProductRow({
+export function TableRow({
   row,
   onClick,
-  onReview,
-  onUnreview,
   isSelected,
   selectedFieldKey,
-}: ProductRowProps) {
-  const isChecked = row.getIsSelected();
+  actions,
+  className,
+  cellOverlay,
+}: TableRowProps) {
+  const isChecked = row.getIsSelected?.() ?? false;
 
   return (
     <div
       className={cn(
         "flex border-b border-gray-100 transition-colors duration-150 relative group",
         isSelected ? "shadow-md z-10" : isChecked ? "bg-blue-50" : "bg-white",
+        className,
       )}
     >
       {row.getVisibleCells().map((cell) => {
@@ -35,8 +40,6 @@ export function ProductRow({
           | string
           | undefined;
 
-        // Check if this field is the selected field for the selected row
-        // productDescription lives inside the itemName column, so highlight it too
         const isFieldSelected =
           isSelected &&
           selectedFieldKey &&
@@ -44,21 +47,19 @@ export function ProductRow({
             (fieldName === "itemName" &&
               selectedFieldKey === "productDescription"));
 
+        const overlay = fieldName && cellOverlay ? cellOverlay(fieldName) : undefined;
+
         return (
-          <ProductCell
+          <TableCell
             key={cell.id}
             cell={cell}
             isFieldSelected={!!isFieldSelected}
             onClick={onClick}
+            overlay={overlay}
           />
         );
       })}
-      <RowActions
-        productId={row.original.id}
-        isReviewed={row.original.reviewed}
-        onReview={onReview}
-        onUnreview={onUnreview}
-      />
+      {actions}
     </div>
   );
 }

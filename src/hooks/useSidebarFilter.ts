@@ -102,19 +102,27 @@ export function useSidebarFilter(products: ExtractedProduct[]) {
     });
   }, []);
 
+  /** Check if a specIdNumber value matches the active filter */
+  const matchesFilter = useCallback(
+    (specId: string | undefined | null): boolean => {
+      if (!activeFilter) return true;
+      if (!specId) return false;
+      if (activeFilter.type === "division") {
+        return productMatchesDivision(specId, activeFilter.code);
+      }
+      return productMatchesSection(specId, activeFilter.code);
+    },
+    [activeFilter],
+  );
+
   const filterProducts = useCallback(
     (productsToFilter: ExtractedProduct[]): ExtractedProduct[] => {
       if (!activeFilter) return productsToFilter;
-      return productsToFilter.filter((product) => {
-        const specId = product.specIdNumber?.value;
-        if (!specId) return false;
-        if (activeFilter.type === "division") {
-          return productMatchesDivision(specId, activeFilter.code);
-        }
-        return productMatchesSection(specId, activeFilter.code);
-      });
+      return productsToFilter.filter((product) =>
+        matchesFilter(product.specIdNumber?.value),
+      );
     },
-    [activeFilter],
+    [activeFilter, matchesFilter],
   );
 
   return {
@@ -128,5 +136,6 @@ export function useSidebarFilter(products: ExtractedProduct[]) {
     expandedDivision,
     divisions,
     filterProducts,
+    matchesFilter,
   };
 }

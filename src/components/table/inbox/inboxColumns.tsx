@@ -3,12 +3,12 @@ import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
-import { DocumentTypeBadge } from "./DocumentTypeBadge";
+import { DocumentTypeBadge } from "@/components/table/shared/DocumentTypeBadge";
 import { isSpecIdGenerated } from "@/utils/productHelpers";
 import { columnLayout } from "@/styles/tableLayout";
 import { getFieldLabel } from "@/config/fields";
 
-export const productColumns: ColumnDef<ExtractedProduct>[] = [
+export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -72,7 +72,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "manufacturer",
     header: getFieldLabel("manufacturer"),
     accessorKey: "manufacturer",
-    size: 140,
+    size: columnLayout.manufacturer.width,
     meta: {
       fieldName: "manufacturer" as ProductFieldKey,
     },
@@ -89,7 +89,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "specIdNumber",
     header: getFieldLabel("specIdNumber"),
     accessorKey: "specIdNumber",
-    size: 140,
+    size: columnLayout.specIdNumber.width,
     meta: {
       fieldName: "specIdNumber" as ProductFieldKey,
     },
@@ -115,7 +115,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "tag",
     header: getFieldLabel("tag"),
     accessorKey: "tag",
-    size: 100,
+    size: columnLayout.tag.width,
     meta: {
       fieldName: "tag" as ProductFieldKey,
     },
@@ -132,7 +132,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "finish",
     header: getFieldLabel("finish"),
     accessorKey: "finish",
-    size: 280,
+    size: columnLayout.finish.width,
     meta: {
       fieldName: "finish" as ProductFieldKey,
     },
@@ -149,7 +149,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "size",
     header: getFieldLabel("size"),
     accessorKey: "size",
-    size: 280,
+    size: columnLayout.size.width,
     meta: {
       fieldName: "size" as ProductFieldKey,
     },
@@ -166,7 +166,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "price",
     header: getFieldLabel("price"),
     accessorKey: "price",
-    size: 140,
+    size: columnLayout.price.width,
     meta: {
       fieldName: "price" as ProductFieldKey,
     },
@@ -183,7 +183,7 @@ export const productColumns: ColumnDef<ExtractedProduct>[] = [
     id: "details",
     header: getFieldLabel("details"),
     accessorKey: "details",
-    size: 220,
+    size: columnLayout.details.width,
     meta: {
       fieldName: "details" as ProductFieldKey,
     },

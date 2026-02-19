@@ -111,19 +111,19 @@ export function ProductSheet({
               onClose={handleClose}
             />
 
-            {/* Summary strip: mini-table with all field values */}
-            <SummaryStrip
-              product={product}
-              selectedFieldKey={selectedFieldKey}
-              onFieldSelect={onFieldKeyChange}
-            />
-
             {/* Field editor: dropdown selector + input + citation (single row) */}
             <FieldEditor
               product={product}
               fieldKey={selectedFieldKey}
               onFieldKeyChange={onFieldKeyChange}
               onSave={handleFieldSave}
+            />
+
+            {/* Summary strip: mini-table with all field values */}
+            <SummaryStrip
+              product={product}
+              selectedFieldKey={selectedFieldKey}
+              onFieldSelect={onFieldKeyChange}
             />
 
             {/* PDF viewer: toolbar + canvas + citation overlays */}
