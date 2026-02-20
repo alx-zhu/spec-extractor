@@ -8,10 +8,22 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useDeleteProduct } from "@/hooks/useProducts";
 
 interface RowActionsProps {
   productId: string;
+  itemName?: string;
   isReviewed: boolean;
   onReview?: (productId: string) => void;
   onUnreview?: (productId: string) => void;
@@ -19,11 +31,14 @@ interface RowActionsProps {
 
 export function RowActions({
   productId,
+  itemName,
   isReviewed,
   onReview,
   onUnreview,
 }: RowActionsProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const deleteProduct = useDeleteProduct();
 
   return (
     <div className="sticky right-0 w-0 overflow-visible z-20 self-stretch">
@@ -89,13 +104,38 @@ export function RowActions({
               View
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => setDeleteDialogOpen(true)}
+            >
               <Trash2 className="size-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete product</AlertDialogTitle>
+            <AlertDialogDescription>
+              {itemName
+                ? `Are you sure you want to delete "${itemName}"? This action cannot be undone.`
+                : "Are you sure you want to delete this product? This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => deleteProduct.mutate(productId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

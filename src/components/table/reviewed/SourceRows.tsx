@@ -123,6 +123,7 @@ export function SourceRows({
             actions={
               <RowActions
                 productId={ep.id}
+                itemName={ep.itemName}
                 isReviewed={true}
                 onUnreview={onUnreview}
               />
