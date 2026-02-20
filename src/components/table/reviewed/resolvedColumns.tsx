@@ -4,8 +4,7 @@ import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { Badge } from "@/components/ui/badge";
 import { columnLayout } from "@/styles/tableLayout";
 import { getFieldLabel } from "@/config/fields";
-import { hasFieldConflict } from "@/utils/resolveProducts";
-import { ConflictDot, ResolvedFieldCell } from "./ResolvedFieldCell";
+import { ResolvedFieldCell } from "./ResolvedFieldCell";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
@@ -42,10 +41,8 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
       const resolved = row.original;
       const description = resolved.fields.productDescription?.value;
       const hasDescription = description && description !== "N/A";
-      const hasConflict = hasFieldConflict(resolved, "itemName");
-
       return (
-        <div className="relative flex flex-col gap-0.5 min-w-0 w-full">
+        <div className="flex flex-col gap-0.5 min-w-0 w-full">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
               {resolved.fields.itemName?.value || "—"}
@@ -64,7 +61,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
               {description}
             </div>
           )}
-          {/* {hasConflict && <ConflictDot />} */}
         </div>
       );
     },
@@ -77,8 +73,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     cell: ({ row }) => (
       <ResolvedFieldCell
         value={row.original.fields.manufacturer?.value}
-        resolved={row.original}
-        fieldKey="manufacturer"
       />
     ),
   },
@@ -89,16 +83,14 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     meta: { fieldName: "specIdNumber" as ProductFieldKey },
     cell: ({ row }) => {
       const value = row.original.fields.specIdNumber?.value;
-      const hasConflict = hasFieldConflict(row.original, "specIdNumber");
       return (
-        <div className="relative inline-flex items-center gap-2">
+        <div className="inline-flex items-center gap-2">
           <Badge
             variant="secondary"
             className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200"
           >
             {value || "—"}
           </Badge>
-          {/* {hasConflict && <ConflictDot />} */}
         </div>
       );
     },
@@ -111,8 +103,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     cell: ({ row }) => (
       <ResolvedFieldCell
         value={row.original.fields.tag?.value}
-        resolved={row.original}
-        fieldKey="tag"
       />
     ),
   },
@@ -124,8 +114,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     cell: ({ row }) => (
       <ResolvedFieldCell
         value={row.original.fields.finish?.value}
-        resolved={row.original}
-        fieldKey="finish"
       />
     ),
   },
@@ -137,8 +125,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     cell: ({ row }) => (
       <ResolvedFieldCell
         value={row.original.fields.size?.value}
-        resolved={row.original}
-        fieldKey="size"
       />
     ),
   },
@@ -150,8 +136,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     cell: ({ row }) => (
       <ResolvedFieldCell
         value={row.original.fields.price?.value}
-        resolved={row.original}
-        fieldKey="price"
       />
     ),
   },
@@ -163,8 +147,6 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     cell: ({ row }) => (
       <ResolvedFieldCell
         value={row.original.fields.details?.value}
-        resolved={row.original}
-        fieldKey="details"
       />
     ),
   },

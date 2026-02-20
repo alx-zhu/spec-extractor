@@ -87,25 +87,3 @@ export function resolveMergedProduct(
     updatedAt: merged.updatedAt,
   };
 }
-
-/**
- * Check if a field has conflicting values across the sources of a resolved product.
- * Used to show the blue dot indicator in the reviewed table.
- *
- * Always returns false for single-source products.
- */
-export function hasFieldConflict(
-  resolved: ResolvedProduct,
-  fieldKey: ProductFieldKey,
-): boolean {
-  if (resolved.source.type === "extracted") return false;
-
-  const resolvedValue = resolved.fields[fieldKey]?.value;
-
-  return resolved.source.extractedProducts.some((ep) => {
-    const epValue = ep[fieldKey]?.value;
-    // Both empty = no conflict
-    if (!epValue && !resolvedValue) return false;
-    return epValue !== resolvedValue;
-  });
-}
