@@ -43,7 +43,7 @@ const checkboxSpacer: ColumnDef<ExtractedProduct> = {
 export function SourceRows({
   resolved,
   onOverrideField,
-  onUnmerge,
+  onUnmerge: _onUnmerge,
   onUnreview,
   onSourceRowClick,
   selectedProductId,
