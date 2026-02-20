@@ -1,10 +1,10 @@
 import { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { PRODUCT_FIELDS } from "@/config/fields";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 
 interface SummaryStripProps {
-  product: Product;
+  product: ExtractedProduct;
   selectedFieldKey: ProductFieldKey;
   onFieldSelect: (fieldKey: ProductFieldKey) => void;
 }
@@ -23,7 +23,11 @@ export function SummaryStrip({
     const cell = container.querySelector<HTMLElement>(
       `[data-field="${selectedFieldKey}"]`,
     );
-    cell?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    cell?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
   }, [selectedFieldKey]);
 
   return (
@@ -77,7 +81,7 @@ export function SummaryStrip({
       </div>
 
       {/* Right fade gradient — signals horizontal scrollability */}
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-white to-transparent pointer-events-none" />
     </div>
   );
 }

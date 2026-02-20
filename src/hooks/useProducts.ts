@@ -9,7 +9,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 import * as productsApi from "@/api/products.api";
 
 // Query keys for cache management
@@ -73,7 +73,7 @@ export const useUpdateProduct = () => {
       updates,
     }: {
       productId: string;
-      updates: Partial<Product>;
+      updates: Partial<ExtractedProduct>;
     }) => productsApi.updateProduct(productId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
@@ -89,6 +89,22 @@ export const useDeleteProduct = () => {
 
   return useMutation({
     mutationFn: productsApi.deleteProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
+};
+
+/**
+ * Mark a product as reviewed.
+ * Convenience wrapper around updateProduct.
+ */
+export const useReviewProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (productId: string) =>
+      productsApi.updateProduct(productId, { reviewed: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
     },

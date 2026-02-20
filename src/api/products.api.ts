@@ -5,9 +5,9 @@
  * Future implementation will replace localStorage with Supabase.
  */
 
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 import { simulateApiCall } from "./client";
-import { mockProducts } from "@/data/mockData";
+import { mockProducts, mockReviewedProducts } from "@/data/mockData";
 
 // Storage key for localStorage
 const PRODUCTS_STORAGE_KEY = "sabana:products";
@@ -17,14 +17,17 @@ const PRODUCTS_STORAGE_KEY = "sabana:products";
  */
 const initializeStorage = (): void => {
   if (!localStorage.getItem(PRODUCTS_STORAGE_KEY)) {
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(mockProducts));
+    localStorage.setItem(
+      PRODUCTS_STORAGE_KEY,
+      JSON.stringify([...mockProducts, ...mockReviewedProducts]),
+    );
   }
 };
 
 /**
  * Get products from storage
  */
-const getProductsFromStorage = (): Product[] => {
+const getProductsFromStorage = (): ExtractedProduct[] => {
   initializeStorage();
   const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
@@ -33,7 +36,7 @@ const getProductsFromStorage = (): Product[] => {
 /**
  * Save products to storage
  */
-const saveProductsToStorage = (products: Product[]): void => {
+const saveProductsToStorage = (products: ExtractedProduct[]): void => {
   localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
 };
 
@@ -50,7 +53,7 @@ const saveProductsToStorage = (products: Product[]): void => {
  * return data;
  * ```
  */
-export const fetchProducts = async (): Promise<Product[]> => {
+export const fetchProducts = async (): Promise<ExtractedProduct[]> => {
   const products = getProductsFromStorage();
   return simulateApiCall(products);
 };
@@ -69,7 +72,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
  */
 export const fetchProductsByDocument = async (
   documentId: string,
-): Promise<Product[]> => {
+): Promise<ExtractedProduct[]> => {
   const products = getProductsFromStorage();
   const filtered = products.filter((p) => p.productDocumentId === documentId);
   return simulateApiCall(filtered);
@@ -89,12 +92,12 @@ export const fetchProductsByDocument = async (
  * ```
  */
 export const createProducts = async (
-  newProducts: Omit<Product, "id" | "reviewed" | "createdAt">[],
-): Promise<Product[]> => {
+  newProducts: Omit<ExtractedProduct, "id" | "reviewed" | "createdAt">[],
+): Promise<ExtractedProduct[]> => {
   const products = getProductsFromStorage();
 
   // Generate IDs and timestamps (in production, DB generates these)
-  const productsWithIds: Product[] = newProducts.map((product) => ({
+  const productsWithIds: ExtractedProduct[] = newProducts.map((product) => ({
     ...product,
     id: `prod-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     reviewed: false,
@@ -124,8 +127,8 @@ export const createProducts = async (
  */
 export const updateProduct = async (
   productId: string,
-  updates: Partial<Product>,
-): Promise<Product> => {
+  updates: Partial<ExtractedProduct>,
+): Promise<ExtractedProduct> => {
   const products = getProductsFromStorage();
 
   const updatedProducts = products.map((product) => {

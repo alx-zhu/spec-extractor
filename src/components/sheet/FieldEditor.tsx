@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import {
   getFieldCitations,
-  type Product,
+  type ExtractedProduct,
   type ProductFieldKey,
 } from "@/types/product";
 import { isSpecIdGenerated } from "@/utils/productHelpers";
@@ -19,7 +19,7 @@ import { PRODUCT_FIELDS, getFieldLabel } from "@/config/fields";
 import { cn } from "@/lib/utils";
 
 interface FieldEditorProps {
-  product: Product;
+  product: ExtractedProduct;
   fieldKey: ProductFieldKey;
   onFieldKeyChange: (fieldKey: ProductFieldKey) => void;
   onSave: (fieldKey: ProductFieldKey, newValue: string) => void;

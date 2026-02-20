@@ -4,7 +4,7 @@
  * Handles exporting product data to CSV format.
  */
 
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 
 export interface ExportColumn {
   key: ProductFieldKey;
@@ -47,7 +47,7 @@ function escapeCSVField(value: string): string {
  * @returns CSV string
  */
 export function exportProductsToCSV(
-  products: Product[],
+  products: ExtractedProduct[],
   columns: ExportColumn[],
 ): string {
   const enabledColumns = columns.filter((col) => col.enabled);

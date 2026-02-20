@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getFieldCitations,
-  type Product,
+  type ExtractedProduct,
   type ProductFieldKey,
 } from "@/types/product";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 interface SheetPdfViewerProps {
   pdfUrl: string;
-  product: Product;
+  product: ExtractedProduct;
   selectedFieldKey: ProductFieldKey | null;
 }
 

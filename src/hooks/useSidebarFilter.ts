@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import type { Product } from "@/types/product";
+import type { ExtractedProduct } from "@/types/product";
 import { DIVISIONS, SECTIONS } from "@/data/masterformat";
 import {
   getDivisionCode,
@@ -26,7 +26,7 @@ export interface SidebarDivision {
   sections: SidebarSection[];
 }
 
-export function useSidebarFilter(products: Product[]) {
+export function useSidebarFilter(products: ExtractedProduct[]) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<SidebarFilter>(null);
 
@@ -102,19 +102,27 @@ export function useSidebarFilter(products: Product[]) {
     });
   }, []);
 
-  const filterProducts = useCallback(
-    (productsToFilter: Product[]): Product[] => {
-      if (!activeFilter) return productsToFilter;
-      return productsToFilter.filter((product) => {
-        const specId = product.specIdNumber?.value;
-        if (!specId) return false;
-        if (activeFilter.type === "division") {
-          return productMatchesDivision(specId, activeFilter.code);
-        }
-        return productMatchesSection(specId, activeFilter.code);
-      });
+  /** Check if a specIdNumber value matches the active filter */
+  const matchesFilter = useCallback(
+    (specId: string | undefined | null): boolean => {
+      if (!activeFilter) return true;
+      if (!specId) return false;
+      if (activeFilter.type === "division") {
+        return productMatchesDivision(specId, activeFilter.code);
+      }
+      return productMatchesSection(specId, activeFilter.code);
     },
     [activeFilter],
+  );
+
+  const filterProducts = useCallback(
+    (productsToFilter: ExtractedProduct[]): ExtractedProduct[] => {
+      if (!activeFilter) return productsToFilter;
+      return productsToFilter.filter((product) =>
+        matchesFilter(product.specIdNumber?.value),
+      );
+    },
+    [activeFilter, matchesFilter],
   );
 
   return {
@@ -128,5 +136,6 @@ export function useSidebarFilter(products: Product[]) {
     expandedDivision,
     divisions,
     filterProducts,
+    matchesFilter,
   };
 }

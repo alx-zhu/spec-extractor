@@ -5,7 +5,7 @@ import { FieldEditor } from "./FieldEditor";
 import { SheetPdfViewer } from "./SheetPdfViewer";
 import { useUpdateProduct } from "@/hooks/useProducts";
 import { useSheetResize } from "@/hooks/useSheetResize";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { GripVertical } from "lucide-react";
 import { VisuallyHidden } from "radix-ui";
 import { SheetTitle } from "@/components/ui/sheet";
@@ -13,11 +13,11 @@ import { SheetTitle } from "@/components/ui/sheet";
 interface ProductSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: Product | null;
+  product: ExtractedProduct | null;
   selectedFieldKey: ProductFieldKey;
   onFieldKeyChange: (fieldKey: ProductFieldKey) => void;
   onProductChange: (productId: string) => void;
-  products: Product[];
+  products: ExtractedProduct[];
   pdfUrl: string | null;
 }
 
@@ -111,19 +111,19 @@ export function ProductSheet({
               onClose={handleClose}
             />
 
-            {/* Summary strip: mini-table with all field values */}
-            <SummaryStrip
-              product={product}
-              selectedFieldKey={selectedFieldKey}
-              onFieldSelect={onFieldKeyChange}
-            />
-
             {/* Field editor: dropdown selector + input + citation (single row) */}
             <FieldEditor
               product={product}
               fieldKey={selectedFieldKey}
               onFieldKeyChange={onFieldKeyChange}
               onSave={handleFieldSave}
+            />
+
+            {/* Summary strip: mini-table with all field values */}
+            <SummaryStrip
+              product={product}
+              selectedFieldKey={selectedFieldKey}
+              onFieldSelect={onFieldKeyChange}
             />
 
             {/* PDF viewer: toolbar + canvas + citation overlays */}

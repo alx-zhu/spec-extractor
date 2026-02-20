@@ -1,20 +1,23 @@
 import { flexRender, type Cell } from "@tanstack/react-table";
-import type { Product, ProductFieldKey } from "@/types/product";
+import type { ProductFieldKey } from "@/types/product";
 import { cn } from "@/lib/utils";
 import { getColumnType, getColumnWidth } from "@/styles/tableLayout";
 import { cellVariants } from "./tableVariants";
 
-interface ProductCellProps {
-  cell: Cell<Product, unknown>;
+interface TableCellProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cell: Cell<any, unknown>;
   isFieldSelected: boolean;
   onClick?: (fieldKey?: string) => void;
+  overlay?: React.ReactNode;
 }
 
-export function ProductCell({
+export function TableCell({
   cell,
   isFieldSelected,
   onClick,
-}: ProductCellProps) {
+  overlay,
+}: TableCellProps) {
   const columnType = getColumnType(cell.column.id);
   const width = getColumnWidth(cell.column.id) ?? cell.column.columnDef.size;
   const fieldName = cell.column.columnDef.meta?.fieldName as
@@ -73,6 +76,7 @@ export function ProductCell({
       onClick={handleClick}
     >
       {cellContent}
+      {overlay}
     </div>
   );
 }
