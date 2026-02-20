@@ -112,6 +112,20 @@ export const useReviewProduct = () => {
 };
 
 /**
+ * Delete multiple products by IDs
+ */
+export const useDeleteProducts = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: productsApi.deleteProducts,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
+};
+
+/**
  * Delete all products from a document
  */
 export const useDeleteProductsByDocument = () => {
