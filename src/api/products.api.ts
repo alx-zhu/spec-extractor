@@ -169,6 +169,27 @@ export const deleteProduct = async (productId: string): Promise<void> => {
 };
 
 /**
+ * Delete multiple products by IDs
+ *
+ * Future Supabase implementation:
+ * ```ts
+ * const { error } = await supabase
+ *   .from('products')
+ *   .delete()
+ *   .in('id', productIds);
+ * if (error) throw error;
+ * ```
+ */
+export const deleteProducts = async (productIds: string[]): Promise<void> => {
+  const products = getProductsFromStorage();
+  const idSet = new Set(productIds);
+  const updatedProducts = products.filter((product) => !idSet.has(product.id));
+  saveProductsToStorage(updatedProducts);
+
+  return simulateApiCall(undefined);
+};
+
+/**
  * Delete all products from a document
  * Useful when re-processing a document
  *

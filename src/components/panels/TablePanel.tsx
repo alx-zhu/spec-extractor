@@ -1,5 +1,7 @@
+import { useCallback, useState } from "react";
 import { InboxTable } from "@/components/table/inbox/InboxTable";
 import { ReviewedTable } from "@/components/table/reviewed/ReviewedTable";
+import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,6 +74,22 @@ export function TablePanel({
 }: TablePanelProps) {
   const activeCount =
     activeTab === "inbox" ? products.length : resolvedProducts.length;
+
+  const [selectedProducts, setSelectedProducts] = useState<ExtractedProduct[]>(
+    [],
+  );
+  const [selectionKey, setSelectionKey] = useState(0);
+
+  const handleSelectionChange = useCallback(
+    (products: ExtractedProduct[]) => {
+      setSelectedProducts(products);
+    },
+    [],
+  );
+
+  const handleClearSelection = useCallback(() => {
+    setSelectionKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
@@ -162,8 +180,8 @@ export function TablePanel({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-hidden">
+      {/* Table + Bulk Action Bar container */}
+      <div className="flex-1 overflow-hidden relative">
         {activeTab === "inbox" ? (
           <InboxTable
             data={products}
@@ -172,6 +190,8 @@ export function TablePanel({
             onUnreview={onUnreview}
             selectedProductId={selectedProductId}
             selectedFieldKey={selectedFieldKey}
+            onSelectionChange={handleSelectionChange}
+            selectionKey={selectionKey}
           />
         ) : (
           <ReviewedTable
@@ -182,6 +202,13 @@ export function TablePanel({
             onUnreview={onUnreviewResolved}
             selectedProductId={selectedProductId}
             selectedFieldKey={selectedFieldKey}
+          />
+        )}
+
+        {activeTab === "inbox" && (
+          <BulkActionBar
+            selectedProducts={selectedProducts}
+            onClearSelection={handleClearSelection}
           />
         )}
       </div>
