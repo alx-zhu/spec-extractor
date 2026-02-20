@@ -45,11 +45,12 @@ export function InboxTable({
 
   // Report selection changes to parent
   useEffect(() => {
-    const selectedRows = table
-      .getSelectedRowModel()
-      .rows.map((row) => row.original);
+    const selectedIds = Object.keys(rowSelection).filter(
+      (id) => rowSelection[id],
+    );
+    const selectedRows = data.filter((p) => selectedIds.includes(p.id));
     onSelectionChange?.(selectedRows);
-  }, [rowSelection, table, onSelectionChange]);
+  }, [rowSelection, data, onSelectionChange]);
 
   // Clear selection when parent requests it
   useEffect(() => {
