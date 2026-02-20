@@ -53,7 +53,7 @@ export function InboxTable({
                 actions={
                   <RowActions
                     productId={row.original.id}
-                    itemName={row.original.itemName}
+                    itemName={row.original.itemName?.value}
                     isReviewed={row.original.reviewed}
                     onReview={onReview}
                     onUnreview={onUnreview}
