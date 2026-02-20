@@ -133,19 +133,14 @@ export function BulkActionBar({
       <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Merge {count} products
-            </DialogTitle>
+            <DialogTitle>Merge {count} products</DialogTitle>
             <DialogDescription>
               Product merging is not yet available. This feature will allow you
               to combine duplicate products into a single entry.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setMergeDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setMergeDialogOpen(false)}>
               Close
             </Button>
           </DialogFooter>
