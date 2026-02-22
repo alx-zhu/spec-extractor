@@ -11,6 +11,7 @@ import {
 export type SidebarFilter =
   | { type: "division"; code: string }
   | { type: "section"; code: string }
+  | { type: "no-spec-id" }
   | null;
 
 export interface SidebarSection {
@@ -34,14 +35,18 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
   const clearFilter = useCallback(() => setActiveFilter(null), []);
 
   // Build a single tree of divisions → sections, with counts, filtered to only those with products
-  const divisions = useMemo(() => {
+  const { divisions, noSpecIdCount } = useMemo(() => {
     // Count products per division and per section prefix
     const divCounts = new Map<string, number>();
     const secCounts = new Map<string, number>();
+    let noSpecCount = 0;
 
     for (const product of products) {
       const specId = product.fields.specIdNumber?.value;
-      if (!specId || specId.length < 4) continue;
+      if (!specId || specId.trim() === "" || specId.length < 4) {
+        noSpecCount++;
+        continue;
+      }
 
       const divCode = getDivisionCode(specId);
       const secPrefix = getSectionPrefix(specId);
@@ -71,12 +76,13 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
         sections,
       });
     }
-    return result;
+    return { divisions: result, noSpecIdCount: noSpecCount };
   }, [products]);
 
   // Derived: which division is expanded (based on active filter)
   const expandedDivision = useMemo(() => {
     if (!activeFilter) return null;
+    if (activeFilter.type === "no-spec-id") return null;
     if (activeFilter.type === "division") return activeFilter.code;
     return getDivisionCode(activeFilter.code);
   }, [activeFilter]);
@@ -84,6 +90,7 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
   // Human-readable label for the active filter
   const activeFilterLabel = useMemo(() => {
     if (!activeFilter) return null;
+    if (activeFilter.type === "no-spec-id") return "No Spec ID";
     if (activeFilter.type === "division") {
       const div = DIVISIONS.find((d) => d.code === activeFilter.code);
       return div ? `${div.code} - ${div.name}` : null;
@@ -111,10 +118,20 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
     });
   }, []);
 
+  const selectNoSpecId = useCallback(() => {
+    setActiveFilter((prev) => {
+      if (prev?.type === "no-spec-id") return null;
+      return { type: "no-spec-id" };
+    });
+  }, []);
+
   /** Check if a specIdNumber value matches the active filter */
   const matchesFilter = useCallback(
     (specId: string | undefined | null): boolean => {
       if (!activeFilter) return true;
+      if (activeFilter.type === "no-spec-id") {
+        return !specId || specId.trim() === "";
+      }
       if (!specId) return false;
       if (activeFilter.type === "division") {
         return productMatchesDivision(specId, activeFilter.code);
@@ -142,8 +159,10 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
     activeFilterLabel,
     selectDivision,
     selectSection,
+    selectNoSpecId,
     expandedDivision,
     divisions,
+    noSpecIdCount,
     filterProducts,
     matchesFilter,
   };

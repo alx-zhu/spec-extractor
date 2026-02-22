@@ -124,8 +124,10 @@ interface FilterSidebarProps {
   divisions: SidebarDivision[];
   activeFilter: SidebarFilter;
   expandedDivision: string | null;
+  noSpecIdCount: number;
   onDivisionClick: (code: string) => void;
   onSectionClick: (code: string) => void;
+  onNoSpecIdClick: () => void;
 }
 
 export function FilterSidebar({
@@ -133,8 +135,10 @@ export function FilterSidebar({
   divisions,
   activeFilter,
   expandedDivision,
+  noSpecIdCount,
   onDivisionClick,
   onSectionClick,
+  onNoSpecIdClick,
 }: FilterSidebarProps) {
   return (
     <aside
@@ -180,6 +184,27 @@ export function FilterSidebar({
             <p className="px-4 py-8 text-sm text-gray-400 text-center">
               No divisions found
             </p>
+          )}
+
+          {/* No Spec ID filter */}
+          {noSpecIdCount > 0 && (
+            <>
+              <div className="mx-4 my-2 border-t border-gray-200" />
+              <button
+                onClick={onNoSpecIdClick}
+                className={cn(
+                  "w-full flex items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors rounded-r-md cursor-pointer",
+                  activeFilter?.type === "no-spec-id"
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700",
+                )}
+              >
+                <span>No Spec ID</span>
+                <span className="ml-3 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
+                  {noSpecIdCount}
+                </span>
+              </button>
+            </>
           )}
         </nav>
       </div>
