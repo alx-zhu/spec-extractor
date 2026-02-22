@@ -92,12 +92,9 @@ export function TablePanel({
   );
   const [selectionKey, setSelectionKey] = useState(0);
 
-  const handleSelectionChange = useCallback(
-    (products: ResolvedProduct[]) => {
-      setSelectedProducts(products);
-    },
-    [],
-  );
+  const handleSelectionChange = useCallback((products: ResolvedProduct[]) => {
+    setSelectedProducts(products);
+  }, []);
 
   const handleClearSelection = useCallback(() => {
     setSelectionKey((k) => k + 1);
@@ -105,7 +102,7 @@ export function TablePanel({
 
   // Pagination
   const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize, setPageSize] = useState<number>(25);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(resolvedProducts.length / pageSize));
 
@@ -122,7 +119,8 @@ export function TablePanel({
     return resolvedProducts.slice(start, start + pageSize);
   }, [resolvedProducts, safePage, pageSize]);
 
-  const rangeStart = resolvedProducts.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const rangeStart =
+    resolvedProducts.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const rangeEnd = Math.min(safePage * pageSize, resolvedProducts.length);
 
   return (
@@ -203,27 +201,25 @@ export function TablePanel({
               ? "No products"
               : `Showing ${rangeStart}–${rangeEnd} of ${resolvedProducts.length}`}
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400">Rows</span>
-            <Select
-              value={String(pageSize)}
-              onValueChange={(v) => setPageSize(Number(v))}
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => setPageSize(Number(v))}
+          >
+            <SelectTrigger
+              size="sm"
+              className="h-7 min-w-14 px-2 text-xs text-gray-500 border-gray-200"
             >
-              <SelectTrigger
-                size="sm"
-                className="h-7 min-w-[3.5rem] px-2 text-xs text-gray-500 border-gray-200 bg-transparent shadow-none"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent position="popper" align="start">
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" align="start">
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-gray-400">per page</span>
         </div>
         <div className="flex items-center gap-0.5">
           <Button
