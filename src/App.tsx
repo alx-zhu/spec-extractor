@@ -50,7 +50,8 @@ function App() {
         (rp) =>
           rp.fields.itemName?.value?.toLowerCase().includes(query) ||
           rp.fields.manufacturer?.value?.toLowerCase().includes(query) ||
-          rp.fields.specIdNumber?.value?.toLowerCase().includes(query),
+          rp.fields.specIdNumber?.value?.toLowerCase().includes(query) ||
+          rp.fields.tag?.value?.toLowerCase().includes(query),
       );
     }
 
@@ -158,8 +159,10 @@ function App() {
             divisions={sidebar.divisions}
             activeFilter={sidebar.activeFilter}
             expandedDivision={sidebar.expandedDivision}
+            noSpecIdCount={sidebar.noSpecIdCount}
             onDivisionClick={sidebar.selectDivision}
             onSectionClick={sidebar.selectSection}
+            onNoSpecIdClick={sidebar.selectNoSpecId}
           />
 
           <main className="flex-1 flex overflow-hidden p-8">
