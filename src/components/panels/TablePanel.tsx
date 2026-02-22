@@ -1,8 +1,15 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReviewedTable } from "@/components/table/reviewed/ReviewedTable";
 import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,6 +20,32 @@ import {
 import { cn } from "@/lib/utils";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
+
+/** Build a compact page number list like: 1 … 5 [6] 7 … 12 */
+function getPageNumbers(
+  current: number,
+  total: number,
+): (number | "ellipsis")[] {
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages: (number | "ellipsis")[] = [];
+  const nearStart = current <= 3;
+  const nearEnd = current >= total - 2;
+
+  if (nearStart) {
+    for (let i = 1; i <= 3; i++) pages.push(i);
+    pages.push("ellipsis", total);
+  } else if (nearEnd) {
+    pages.push(1, "ellipsis");
+    for (let i = total - 2; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1, "ellipsis", current, "ellipsis", total);
+  }
+
+  return pages;
+}
 
 interface TablePanelProps {
   // Data
@@ -59,16 +92,36 @@ export function TablePanel({
   );
   const [selectionKey, setSelectionKey] = useState(0);
 
-  const handleSelectionChange = useCallback(
-    (products: ResolvedProduct[]) => {
-      setSelectedProducts(products);
-    },
-    [],
-  );
+  const handleSelectionChange = useCallback((products: ResolvedProduct[]) => {
+    setSelectedProducts(products);
+  }, []);
 
   const handleClearSelection = useCallback(() => {
     setSelectionKey((k) => k + 1);
   }, []);
+
+  // Pagination
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+  const [pageSize, setPageSize] = useState<number>(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(resolvedProducts.length / pageSize));
+
+  // Reset to page 1 when the data or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [resolvedProducts.length, pageSize]);
+
+  // Clamp page if it exceeds total (e.g. after filter narrows results)
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return resolvedProducts.slice(start, start + pageSize);
+  }, [resolvedProducts, safePage, pageSize]);
+
+  const rangeStart =
+    resolvedProducts.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(safePage * pageSize, resolvedProducts.length);
 
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
@@ -124,7 +177,7 @@ export function TablePanel({
       {/* Table + Bulk Action Bar container */}
       <div className="flex-1 overflow-hidden relative">
         <ReviewedTable
-          data={resolvedProducts}
+          data={paginatedProducts}
           onViewSource={onViewSource}
           onOverrideField={onOverrideField}
           selectedProductId={selectedProductId}
@@ -142,18 +195,75 @@ export function TablePanel({
 
       {/* Table Footer */}
       <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
-        <span className="text-sm text-gray-500">
-          Showing 1-{resolvedProducts.length} of {resolvedProducts.length} products
-        </span>
-        <div className="flex gap-1">
-          <Button variant="outline" size="icon" disabled className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4 text-gray-400" />
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">
+            {resolvedProducts.length === 0
+              ? "No products"
+              : `Showing ${rangeStart}-${rangeEnd} of ${resolvedProducts.length}`}
+          </span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => setPageSize(Number(v))}
+          >
+            <SelectTrigger
+              size="sm"
+              className="h-7 min-w-14 px-2 text-xs text-gray-500 border-gray-200"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" align="start">
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-gray-400">per page</span>
+        </div>
+        <div className="flex items-center gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-gray-400 hover:text-gray-600"
+            disabled={safePage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" className="h-8 min-w-8 px-2">
-            1
-          </Button>
-          <Button variant="outline" size="icon" disabled className="h-8 w-8">
-            <ChevronRight className="h-4 w-4 text-gray-400" />
+          {getPageNumbers(safePage, totalPages).map((item, i) =>
+            item === "ellipsis" ? (
+              <span
+                key={`ellipsis-${i}`}
+                className="h-8 min-w-5 flex items-center justify-center text-xs text-gray-300 select-none"
+              >
+                …
+              </span>
+            ) : (
+              <Button
+                key={item}
+                variant={item === safePage ? "outline" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-8 min-w-8 px-2 text-xs",
+                  item === safePage
+                    ? "bg-gray-900 text-white border-gray-900 hover:bg-gray-800 hover:text-white"
+                    : "text-gray-400 hover:text-gray-600",
+                )}
+                onClick={() => setCurrentPage(item)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-gray-400 hover:text-gray-600"
+            disabled={safePage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
