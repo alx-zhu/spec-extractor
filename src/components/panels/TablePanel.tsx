@@ -4,6 +4,13 @@ import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ChevronLeft,
   ChevronRight,
   Search,
@@ -14,32 +21,27 @@ import { cn } from "@/lib/utils";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
 
-/** Build a truncated page number list like: 1 … 4 5 [6] 7 8 … 12 */
+/** Build a compact page number list like: 1 … 5 [6] 7 … 12 */
 function getPageNumbers(
   current: number,
   total: number,
 ): (number | "ellipsis")[] {
-  if (total <= 7) {
+  if (total <= 5) {
     return Array.from({ length: total }, (_, i) => i + 1);
   }
 
   const pages: (number | "ellipsis")[] = [];
-  const nearStart = current <= 4;
-  const nearEnd = current >= total - 3;
+  const nearStart = current <= 3;
+  const nearEnd = current >= total - 2;
 
   if (nearStart) {
-    // Show first 5, then ellipsis, then last
-    for (let i = 1; i <= 5; i++) pages.push(i);
+    for (let i = 1; i <= 3; i++) pages.push(i);
     pages.push("ellipsis", total);
   } else if (nearEnd) {
-    // Show first, ellipsis, then last 5
     pages.push(1, "ellipsis");
-    for (let i = total - 4; i <= total; i++) pages.push(i);
+    for (let i = total - 2; i <= total; i++) pages.push(i);
   } else {
-    // Show first, ellipsis, window of 3, ellipsis, last
-    pages.push(1, "ellipsis");
-    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
-    pages.push("ellipsis", total);
+    pages.push(1, "ellipsis", current, "ellipsis", total);
   }
 
   return pages;
@@ -102,25 +104,26 @@ export function TablePanel({
   }, []);
 
   // Pagination
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+  const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(resolvedProducts.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(resolvedProducts.length / pageSize));
 
-  // Reset to page 1 when the data changes (e.g. search/filter)
+  // Reset to page 1 when the data or page size changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [resolvedProducts.length]);
+  }, [resolvedProducts.length, pageSize]);
 
   // Clamp page if it exceeds total (e.g. after filter narrows results)
   const safePage = Math.min(currentPage, totalPages);
 
   const paginatedProducts = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return resolvedProducts.slice(start, start + PAGE_SIZE);
-  }, [resolvedProducts, safePage]);
+    const start = (safePage - 1) * pageSize;
+    return resolvedProducts.slice(start, start + pageSize);
+  }, [resolvedProducts, safePage, pageSize]);
 
-  const rangeStart = resolvedProducts.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(safePage * PAGE_SIZE, resolvedProducts.length);
+  const rangeStart = resolvedProducts.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(safePage * pageSize, resolvedProducts.length);
 
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
@@ -152,7 +155,7 @@ export function TablePanel({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search by name, tag..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-9 w-48 h-8 text-sm bg-gray-50 border-gray-200"
@@ -194,16 +197,39 @@ export function TablePanel({
 
       {/* Table Footer */}
       <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
-        <span className="text-sm text-gray-500">
-          {resolvedProducts.length === 0
-            ? "No products"
-            : `Showing ${rangeStart}–${rangeEnd} of ${resolvedProducts.length} products`}
-        </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">
+            {resolvedProducts.length === 0
+              ? "No products"
+              : `Showing ${rangeStart}–${rangeEnd} of ${resolvedProducts.length}`}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400">Rows</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => setPageSize(Number(v))}
+            >
+              <SelectTrigger
+                size="sm"
+                className="h-7 min-w-[3.5rem] px-2 text-xs text-gray-500 border-gray-200 bg-transparent shadow-none"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent position="popper" align="start">
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex items-center gap-0.5">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-gray-400 hover:text-gray-600"
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           >
@@ -213,19 +239,20 @@ export function TablePanel({
             item === "ellipsis" ? (
               <span
                 key={`ellipsis-${i}`}
-                className="h-8 min-w-6 flex items-center justify-center text-xs text-gray-400 select-none"
+                className="h-8 min-w-5 flex items-center justify-center text-xs text-gray-300 select-none"
               >
                 …
               </span>
             ) : (
               <Button
                 key={item}
-                variant="outline"
+                variant={item === safePage ? "outline" : "ghost"}
                 size="sm"
                 className={cn(
-                  "h-8 min-w-8 px-2",
-                  item === safePage &&
-                    "bg-gray-900 text-white border-gray-900 hover:bg-gray-800 hover:text-white",
+                  "h-8 min-w-8 px-2 text-xs",
+                  item === safePage
+                    ? "bg-gray-900 text-white border-gray-900 hover:bg-gray-800 hover:text-white"
+                    : "text-gray-400 hover:text-gray-600",
                 )}
                 onClick={() => setCurrentPage(item)}
               >
@@ -234,9 +261,9 @@ export function TablePanel({
             ),
           )}
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-gray-400 hover:text-gray-600"
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           >
