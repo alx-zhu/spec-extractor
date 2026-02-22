@@ -12,6 +12,7 @@ import { useSidebarFilter } from "@/hooks/useSidebarFilter";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
 import { getPdfUrl } from "./utils/storage";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function App() {
   // Fetch products from React Query
@@ -24,14 +25,19 @@ function App() {
   const sidebar = useSidebarFilter(resolvedProducts);
 
   // Selection state — store ID, derive the product from the array
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [selectedFieldKey, setSelectedFieldKey] = useState<ProductFieldKey>("itemName");
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null,
+  );
+  const [selectedFieldKey, setSelectedFieldKey] =
+    useState<ProductFieldKey>("itemName");
   const [searchQuery, setSearchQuery] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Track which merged group is active for scoped PDF navigation
-  const [activeMergedGroupId, setActiveMergedGroupId] = useState<string | null>(null);
+  const [activeMergedGroupId, setActiveMergedGroupId] = useState<string | null>(
+    null,
+  );
 
   // Filter resolved products: text search then sidebar filter
   const filteredProducts = useMemo(() => {
@@ -40,16 +46,17 @@ function App() {
     // Apply text search
     const query = searchQuery.toLowerCase();
     if (query) {
-      result = result.filter((rp) =>
-        rp.fields.itemName?.value?.toLowerCase().includes(query) ||
-        rp.fields.manufacturer?.value?.toLowerCase().includes(query) ||
-        rp.fields.specIdNumber?.value?.toLowerCase().includes(query),
+      result = result.filter(
+        (rp) =>
+          rp.fields.itemName?.value?.toLowerCase().includes(query) ||
+          rp.fields.manufacturer?.value?.toLowerCase().includes(query) ||
+          rp.fields.specIdNumber?.value?.toLowerCase().includes(query),
       );
     }
 
     // Apply sidebar filter
     return sidebar.filterProducts(result);
-  }, [resolvedProducts, searchQuery, sidebar.filterProducts]);
+  }, [resolvedProducts, searchQuery, sidebar]);
 
   // Build a map of document ID → filename for source document display in table
   const documentMap = useMemo(() => {
@@ -83,7 +90,9 @@ function App() {
   // Products list for sheet navigation — scoped to active merged group's sources
   const sheetProducts = useMemo(() => {
     if (!activeMergedGroupId) return [];
-    const resolved = resolvedProducts.find((rp) => rp.id === activeMergedGroupId);
+    const resolved = resolvedProducts.find(
+      (rp) => rp.id === activeMergedGroupId,
+    );
     if (!resolved) return [];
     return resolved.source.extractedProducts;
   }, [activeMergedGroupId, resolvedProducts]);
@@ -91,9 +100,10 @@ function App() {
   const handleViewSource = (
     ep: ExtractedProduct,
     resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
   ) => {
     setSelectedProductId(ep.id);
-    setSelectedFieldKey("itemName");
+    setSelectedFieldKey(fieldKey ?? "itemName");
     if (resolvedProductId) {
       setActiveMergedGroupId(resolvedProductId);
     }
@@ -132,66 +142,68 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      <Header
-        onUploadClick={() => setIsUploadModalOpen(true)}
-        onExportClick={() => setIsExportModalOpen(true)}
-        onSidebarToggle={sidebar.toggleSidebar}
-        isSidebarOpen={sidebar.isOpen}
-      />
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Filter sidebar — pushes table right */}
-        <FilterSidebar
-          isOpen={sidebar.isOpen}
-          divisions={sidebar.divisions}
-          activeFilter={sidebar.activeFilter}
-          expandedDivision={sidebar.expandedDivision}
-          onDivisionClick={sidebar.selectDivision}
-          onSectionClick={sidebar.selectSection}
+    <TooltipProvider>
+      <div className="h-screen flex flex-col bg-gray-50">
+        <Header
+          onUploadClick={() => setIsUploadModalOpen(true)}
+          onExportClick={() => setIsExportModalOpen(true)}
+          onSidebarToggle={sidebar.toggleSidebar}
+          isSidebarOpen={sidebar.isOpen}
         />
 
-        <main className="flex-1 flex overflow-hidden p-8">
-          {/* Table Panel */}
-          <TablePanel
-            resolvedProducts={filteredProducts}
-            selectedProductId={selectedProductId}
-            selectedFieldKey={selectedFieldKey}
-            onViewSource={handleViewSource}
-            onOverrideField={handleOverrideField}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onFilterToggle={sidebar.toggleSidebar}
-            activeFilterLabel={sidebar.activeFilterLabel}
-            onClearFilter={sidebar.clearFilter}
-            documentMap={documentMap}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Filter sidebar — pushes table right */}
+          <FilterSidebar
+            isOpen={sidebar.isOpen}
+            divisions={sidebar.divisions}
+            activeFilter={sidebar.activeFilter}
+            expandedDivision={sidebar.expandedDivision}
+            onDivisionClick={sidebar.selectDivision}
+            onSectionClick={sidebar.selectSection}
           />
-        </main>
+
+          <main className="flex-1 flex overflow-hidden p-8">
+            {/* Table Panel */}
+            <TablePanel
+              resolvedProducts={filteredProducts}
+              selectedProductId={selectedProductId}
+              selectedFieldKey={selectedFieldKey}
+              onViewSource={handleViewSource}
+              onOverrideField={handleOverrideField}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onFilterToggle={sidebar.toggleSidebar}
+              activeFilterLabel={sidebar.activeFilterLabel}
+              onClearFilter={sidebar.clearFilter}
+              documentMap={documentMap}
+            />
+          </main>
+        </div>
+
+        {/* Product detail sheet — overlays the table */}
+        <ProductSheet
+          open={!!selectedProductId}
+          onOpenChange={handleSheetOpenChange}
+          product={selectedProduct}
+          selectedFieldKey={selectedFieldKey}
+          onFieldKeyChange={setSelectedFieldKey}
+          onProductChange={handleProductChange}
+          products={sheetProducts}
+          pdfUrl={pdfUrl}
+        />
+
+        <UploadModal
+          open={isUploadModalOpen}
+          onOpenChange={setIsUploadModalOpen}
+        />
+
+        <ExportModal
+          open={isExportModalOpen}
+          onOpenChange={setIsExportModalOpen}
+          products={resolvedProducts}
+        />
       </div>
-
-      {/* Product detail sheet — overlays the table */}
-      <ProductSheet
-        open={!!selectedProductId}
-        onOpenChange={handleSheetOpenChange}
-        product={selectedProduct}
-        selectedFieldKey={selectedFieldKey}
-        onFieldKeyChange={setSelectedFieldKey}
-        onProductChange={handleProductChange}
-        products={sheetProducts}
-        pdfUrl={pdfUrl}
-      />
-
-      <UploadModal
-        open={isUploadModalOpen}
-        onOpenChange={setIsUploadModalOpen}
-      />
-
-      <ExportModal
-        open={isExportModalOpen}
-        onOpenChange={setIsExportModalOpen}
-        products={resolvedProducts}
-      />
-    </div>
+    </TooltipProvider>
   );
 }
 

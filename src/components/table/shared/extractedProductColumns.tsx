@@ -45,8 +45,17 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
       return (
-        <div className="text-sm text-gray-600">
-          {row.original.tag?.value || "—"}
+        <div className="flex items-center gap-1.5 min-w-0 w-full">
+          <Badge
+            variant="secondary"
+            className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200 shrink-0"
+          >
+            {row.original.tag?.value || "—"}
+          </Badge>
+          <DocumentTypeBadge
+            type={row.original.documentType}
+            className="shrink-0"
+          />
         </div>
       );
     },
@@ -55,32 +64,32 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
     id: "itemName",
     header: getFieldLabel("itemName"),
     accessorKey: "itemName",
+    size: columnLayout.itemName.width,
     meta: {
       fieldName: "itemName" as ProductFieldKey,
     },
     cell: ({ row }) => {
       if (!row?.original) return <span className="text-gray-400">—</span>;
-      const description = row.original.productDescription?.value;
-      const hasDescription = description && description !== "N/A";
       return (
-        <div className="flex flex-col gap-0.5 min-w-0 w-full">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
-              {row.original.itemName?.value || "—"}
-            </span>
-            <DocumentTypeBadge
-              type={row.original.documentType}
-              className="shrink-0"
-            />
-          </div>
-          {hasDescription && (
-            <div
-              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-0.5 -mx-0.5 transition-colors cursor-pointer hover:bg-black/4"
-              data-field="productDescription"
-            >
-              {description}
-            </div>
-          )}
+        <div className="text-sm text-gray-600">
+          {row.original.itemName?.value || "—"}
+        </div>
+      );
+    },
+  },
+  {
+    id: "productDescription",
+    header: getFieldLabel("productDescription"),
+    accessorKey: "productDescription",
+    size: columnLayout.productDescription.width,
+    meta: {
+      fieldName: "productDescription" as ProductFieldKey,
+    },
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.productDescription?.value || "—"}
         </div>
       );
     },

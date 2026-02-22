@@ -15,10 +15,11 @@ import { cn } from "@/lib/utils";
 
 interface ReviewedTableProps {
   data: ResolvedProduct[];
-  /** Opens the PDF viewer for a given EP (triggered by document header click) */
+  /** Opens the PDF viewer for a given EP, optionally focused on a specific field */
   onViewSource?: (
     extractedProduct: ExtractedProduct,
     resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
   ) => void;
   onOverrideField?: (
     mergedProductId: string,
@@ -123,7 +124,7 @@ export function ReviewedTable({
                 className={cn(
                   "transition-[border-color,box-shadow,margin] duration-200 ease-out overflow-hidden",
                   isExpanded
-                    ? "border border-gray-800 shadow-sm mb-2"
+                    ? "border border-gray-800 shadow-md"
                     : "border border-transparent",
                 )}
               >
@@ -133,12 +134,8 @@ export function ReviewedTable({
                   onClick={handleRowClick}
                   isSelected={isSelected}
                   selectedFieldKey={isExpanded ? null : selectedFieldKey}
-                  className={cn(
-                    "cursor-pointer transition-[background-color] duration-200 ease-out",
-                    isExpanded
-                      ? "bg-gray-800 border-b-gray-700 [&>div]:border-r-gray-700 [&_span]:text-white [&_div]:text-white [&_.text-gray-400]:text-gray-300! [&_.text-gray-500]:text-gray-300! [&_.text-gray-600]:text-gray-200! [&_.text-gray-900]:text-white! [&_.text-gray-700]:text-gray-200! [&_.bg-gray-200]:bg-gray-600 [&_.border-gray-100]:border-gray-700"
-                      : "",
-                  )}
+                  isExpanded={isExpanded}
+                  className="cursor-pointer"
                 />
 
                 {/* Expanded source rows — animated height */}

@@ -2,19 +2,27 @@
 // Single source of truth for ALL column widths — used by column definitions,
 // cell variants, and source row rendering.
 
+/** Standard data column widths */
+const colWidth = {
+  sm: 160,
+  md: 200,
+  lg: 300,
+} as const;
+
 export const columnLayout = {
   checkbox: { width: 48 },
   expand: { width: 32 },
   /** Combined expand + checkbox width, used for source row action column */
   sourceAction: { width: 80 },
-  tag: { width: 100 },
-  itemName: { width: 280 },
-  manufacturer: { width: 140 },
-  specIdNumber: { width: 140 },
-  finish: { width: 280 },
-  size: { width: 280 },
-  price: { width: 140 },
-  details: { width: 220 },
+  tag: { width: colWidth.sm },
+  itemName: { width: colWidth.md },
+  productDescription: { width: colWidth.lg },
+  manufacturer: { width: colWidth.md },
+  specIdNumber: { width: colWidth.sm },
+  finish: { width: colWidth.lg },
+  size: { width: colWidth.lg },
+  price: { width: colWidth.sm },
+  details: { width: colWidth.lg },
 } as const;
 
 export type ColumnType = "checkbox" | "expand" | "sourceAction" | "itemName" | "data";

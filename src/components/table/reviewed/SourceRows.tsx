@@ -10,7 +10,7 @@ import { inboxColumns } from "@/components/table/shared/extractedProductColumns"
 import { TableRow } from "@/components/table/shared/TableRow";
 import { columnLayout } from "@/styles/tableLayout";
 import { RadioIndicator } from "./RadioIndicator";
-import { FileText, EllipsisVertical, Trash2, Eye, MousePointer } from "lucide-react";
+import { FileText, EllipsisVertical, Trash2, Eye, MousePointer, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useDeleteProduct } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 interface SourceRowsProps {
   resolved: ResolvedProduct;
@@ -39,10 +40,11 @@ interface SourceRowsProps {
     fieldKey: ProductFieldKey,
     selectedProductId: string,
   ) => void;
-  /** Opens the PDF viewer for a given EP */
+  /** Opens the PDF viewer for a given EP, optionally focused on a specific field */
   onViewSource?: (
     extractedProduct: ExtractedProduct,
     resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
   ) => void;
   selectedProductId?: string | null;
   /** Map of document ID → document filename for tooltips */
@@ -59,7 +61,7 @@ function SourceActionCell({
   ep: ExtractedProduct;
   resolvedId: string;
   docName?: string;
-  onViewSource?: (ep: ExtractedProduct, resolvedProductId?: string) => void;
+  onViewSource?: (ep: ExtractedProduct, resolvedProductId?: string, fieldKey?: ProductFieldKey) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -99,17 +101,23 @@ function SourceActionCell({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <button
-        type="button"
-        className="flex items-center justify-center size-6 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-        title={docName ? `View PDF — ${docName}` : "View PDF"}
-        onClick={(e) => {
-          e.stopPropagation();
-          onViewSource?.(ep, resolvedId);
-        }}
-      >
-        <FileText className="size-3.5" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center justify-center size-6 rounded-md cursor-pointer text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewSource?.(ep, resolvedId);
+            }}
+          >
+            <FileText className="size-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          {docName ? `See source: ${docName}` : "See source"}
+        </TooltipContent>
+      </Tooltip>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
@@ -188,6 +196,22 @@ export function SourceRows({
     }
   };
 
+  /** Build per-cell overlay: edit button that appears on hover of the individual cell */
+  const renderCellOverlay = (ep: ExtractedProduct, fieldKey: string) => {
+    return (
+      <button
+        type="button"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center size-6 rounded-md cursor-pointer text-gray-400 opacity-0 group-hover/cell:opacity-100 hover:text-blue-600 hover:bg-blue-50 transition-all"
+        onClick={(e) => {
+          e.stopPropagation();
+          onViewSource?.(ep, resolved.id, fieldKey as ProductFieldKey);
+        }}
+      >
+        <Pencil className="size-3.5" />
+      </button>
+    );
+  };
+
   /** Build per-cell radio prefix: inline radio indicator before cell content */
   const renderCellPrefix = (ep: ExtractedProduct, fieldKey: string) => {
     // Only show radio indicators for products with multiple sources
@@ -227,6 +251,7 @@ export function SourceRows({
               "bg-gray-50/80 border-b-gray-100",
               hasMultipleSources && "cursor-pointer",
             )}
+            cellOverlay={(fieldKey) => renderCellOverlay(ep, fieldKey)}
             cellPrefix={(fieldKey) => renderCellPrefix(ep, fieldKey)}
           />
         );

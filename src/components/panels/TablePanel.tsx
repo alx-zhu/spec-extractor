@@ -17,10 +17,11 @@ import type { ResolvedProduct } from "@/types/resolvedProduct";
 interface TablePanelProps {
   // Data
   resolvedProducts: ResolvedProduct[];
-  /** Opens the PDF viewer for a given EP (triggered by document header click) */
+  /** Opens the PDF viewer for a given EP, optionally focused on a specific field */
   onViewSource?: (
     ep: ExtractedProduct,
     resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
   ) => void;
   onOverrideField?: (
     mergedProductId: string,

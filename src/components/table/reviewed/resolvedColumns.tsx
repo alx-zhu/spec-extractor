@@ -62,43 +62,45 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     header: getFieldLabel("tag"),
     size: columnLayout.tag.width,
     meta: { fieldName: "tag" as ProductFieldKey },
-    cell: ({ row }) => (
-      <ResolvedFieldCell
-        value={row.original.fields.tag?.value}
-      />
-    ),
-  },
-  // Item name + description + source count
-  {
-    id: "itemName",
-    header: getFieldLabel("itemName"),
-    meta: { fieldName: "itemName" as ProductFieldKey },
     cell: ({ row }) => {
       const resolved = row.original;
-      const description = resolved.fields.productDescription?.value;
-      const hasDescription = description && description !== "N/A";
-
       return (
-        <div className="flex flex-col gap-0.5 min-w-0 w-full">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
-              {resolved.fields.itemName?.value || "\u2014"}
-            </span>
-            <span className="shrink-0 text-xs text-gray-400">
-              {resolved.sourceCount} {resolved.sourceCount === 1 ? "source" : "sources"}
-            </span>
-          </div>
-          {hasDescription && (
-            <div
-              className="text-xs text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap rounded px-0.5 -mx-0.5 transition-colors cursor-pointer hover:bg-black/4"
-              data-field="productDescription"
-            >
-              {description}
-            </div>
-          )}
+        <div className="flex flex-col gap-1 min-w-0 w-full">
+          <Badge
+            variant="secondary"
+            className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200 w-fit"
+          >
+            {resolved.fields.tag?.value || "\u2014"}
+          </Badge>
+          <span className="text-xs text-gray-400">
+            {resolved.sourceCount} {resolved.sourceCount === 1 ? "source" : "sources"}
+          </span>
         </div>
       );
     },
+  },
+  {
+    id: "itemName",
+    header: getFieldLabel("itemName"),
+    size: columnLayout.itemName.width,
+    meta: { fieldName: "itemName" as ProductFieldKey },
+    cell: ({ row }) => (
+      <ResolvedFieldCell
+        value={row.original.fields.itemName?.value}
+      />
+    ),
+  },
+  // Product description — standalone data column
+  {
+    id: "productDescription",
+    header: getFieldLabel("productDescription"),
+    size: columnLayout.productDescription.width,
+    meta: { fieldName: "productDescription" as ProductFieldKey },
+    cell: ({ row }) => (
+      <ResolvedFieldCell
+        value={row.original.fields.productDescription?.value}
+      />
+    ),
   },
   {
     id: "manufacturer",

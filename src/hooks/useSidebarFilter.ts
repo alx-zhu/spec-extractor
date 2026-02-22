@@ -27,7 +27,7 @@ export interface SidebarDivision {
 }
 
 export function useSidebarFilter(products: ResolvedProduct[]) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [activeFilter, setActiveFilter] = useState<SidebarFilter>(null);
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
@@ -64,7 +64,12 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
         sections.push({ code: sec.code, name: sec.name, count: secCount });
       }
 
-      result.push({ code: div.code, name: div.name, count: divCount, sections });
+      result.push({
+        code: div.code,
+        name: div.name,
+        count: divCount,
+        sections,
+      });
     }
     return result;
   }, [products]);
@@ -90,7 +95,11 @@ export function useSidebarFilter(products: ResolvedProduct[]) {
   const selectDivision = useCallback((divisionCode: string) => {
     setActiveFilter((prev) => {
       if (prev?.type === "division" && prev.code === divisionCode) return null;
-      if (prev?.type === "section" && getDivisionCode(prev.code) === divisionCode) return null;
+      if (
+        prev?.type === "section" &&
+        getDivisionCode(prev.code) === divisionCode
+      )
+        return null;
       return { type: "division", code: divisionCode };
     });
   }, []);
