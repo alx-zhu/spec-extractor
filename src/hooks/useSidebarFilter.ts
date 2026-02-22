@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import type { ExtractedProduct } from "@/types/product";
+import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { DIVISIONS, SECTIONS } from "@/data/masterformat";
 import {
   getDivisionCode,
@@ -26,8 +26,8 @@ export interface SidebarDivision {
   sections: SidebarSection[];
 }
 
-export function useSidebarFilter(products: ExtractedProduct[]) {
-  const [isOpen, setIsOpen] = useState(false);
+export function useSidebarFilter(products: ResolvedProduct[]) {
+  const [isOpen, setIsOpen] = useState(true);
   const [activeFilter, setActiveFilter] = useState<SidebarFilter>(null);
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
@@ -40,7 +40,7 @@ export function useSidebarFilter(products: ExtractedProduct[]) {
     const secCounts = new Map<string, number>();
 
     for (const product of products) {
-      const specId = product.specIdNumber?.value;
+      const specId = product.fields.specIdNumber?.value;
       if (!specId || specId.length < 4) continue;
 
       const divCode = getDivisionCode(specId);
@@ -64,7 +64,12 @@ export function useSidebarFilter(products: ExtractedProduct[]) {
         sections.push({ code: sec.code, name: sec.name, count: secCount });
       }
 
-      result.push({ code: div.code, name: div.name, count: divCount, sections });
+      result.push({
+        code: div.code,
+        name: div.name,
+        count: divCount,
+        sections,
+      });
     }
     return result;
   }, [products]);
@@ -90,7 +95,11 @@ export function useSidebarFilter(products: ExtractedProduct[]) {
   const selectDivision = useCallback((divisionCode: string) => {
     setActiveFilter((prev) => {
       if (prev?.type === "division" && prev.code === divisionCode) return null;
-      if (prev?.type === "section" && getDivisionCode(prev.code) === divisionCode) return null;
+      if (
+        prev?.type === "section" &&
+        getDivisionCode(prev.code) === divisionCode
+      )
+        return null;
       return { type: "division", code: divisionCode };
     });
   }, []);
@@ -116,10 +125,10 @@ export function useSidebarFilter(products: ExtractedProduct[]) {
   );
 
   const filterProducts = useCallback(
-    (productsToFilter: ExtractedProduct[]): ExtractedProduct[] => {
+    (productsToFilter: ResolvedProduct[]): ResolvedProduct[] => {
       if (!activeFilter) return productsToFilter;
       return productsToFilter.filter((product) =>
-        matchesFilter(product.specIdNumber?.value),
+        matchesFilter(product.fields.specIdNumber?.value),
       );
     },
     [activeFilter, matchesFilter],

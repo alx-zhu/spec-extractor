@@ -20,12 +20,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { ExtractedProduct } from "@/types/product";
+import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { useDeleteProducts } from "@/hooks/useProducts";
 
 interface BulkActionBarProps {
-  selectedProducts: ExtractedProduct[];
+  selectedProducts: ResolvedProduct[];
   onClearSelection: () => void;
+}
+
+/** Extract all underlying ExtractedProduct IDs from a set of ResolvedProducts */
+function getExtractedProductIds(products: ResolvedProduct[]): string[] {
+  return products.flatMap((rp) =>
+    rp.source.extractedProducts.map((ep) => ep.id),
+  );
 }
 
 export function BulkActionBar({
@@ -40,7 +47,7 @@ export function BulkActionBar({
   const isVisible = count > 0;
 
   const handleDelete = () => {
-    const ids = selectedProducts.map((p) => p.id);
+    const ids = getExtractedProductIds(selectedProducts);
     deleteProducts.mutate(ids, {
       onSuccess: () => {
         onClearSelection();

@@ -8,7 +8,7 @@
 import type { ProductFieldKey } from "@/types/product";
 import type { MergedProduct } from "@/types/mergedProduct";
 import { simulateApiCall } from "./client";
-import { mockReviewedProducts } from "@/data/mockData";
+import { mockProducts, mockReviewedProducts } from "@/data/mockData";
 import { rebuildAllMergedProducts } from "@/utils/mergeProducts";
 
 // Storage key for localStorage
@@ -19,7 +19,7 @@ const MERGED_PRODUCTS_STORAGE_KEY = "sabana:merged-products";
  */
 const initializeStorage = (): void => {
   if (!localStorage.getItem(MERGED_PRODUCTS_STORAGE_KEY)) {
-    const seeded = rebuildAllMergedProducts(mockReviewedProducts);
+    const seeded = rebuildAllMergedProducts([...mockProducts, ...mockReviewedProducts]);
     localStorage.setItem(MERGED_PRODUCTS_STORAGE_KEY, JSON.stringify(seeded));
   }
 };

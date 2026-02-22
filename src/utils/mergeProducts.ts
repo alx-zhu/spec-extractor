@@ -315,15 +315,15 @@ function indexByTag(
 }
 
 /**
- * Rebuild all MergedProducts from the full set of reviewed ExtractedProducts.
+ * Rebuild all MergedProducts from the full set of ExtractedProducts.
  *
  * Groups by tag, calls buildMergedProduct per group, preserves user overrides
  * from existing MergedProducts.
  *
  * This is the "rebuild the world" function, called after extraction or
- * when reviewed status changes.
+ * when products change.
  *
- * @param extractedProducts - All ExtractedProducts (filters to reviewed only).
+ * @param extractedProducts - All ExtractedProducts.
  * @param existingMergedProducts - Previous MergedProducts for override preservation.
  * @returns New array of MergedProducts.
  */
@@ -331,11 +331,8 @@ export function rebuildAllMergedProducts(
   extractedProducts: ExtractedProduct[],
   existingMergedProducts: MergedProduct[] = [],
 ): MergedProduct[] {
-  // Filter to reviewed products only
-  const reviewed = extractedProducts.filter((p) => p.reviewed);
-
-  // Group by normalized tag
-  const groups = groupByTag(reviewed);
+  // Group all products by normalized tag
+  const groups = groupByTag(extractedProducts);
 
   // Index existing merged products for override preservation
   const existingIndex = indexByTag(existingMergedProducts);

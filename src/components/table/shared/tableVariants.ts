@@ -3,16 +3,26 @@ import { hoverOverlay } from "@/styles/layers";
 
 // Body cell variants.
 export const cellVariants = cva(
-  "px-3 py-3 flex items-center border-r border-gray-100 last:border-r-0 box-border group relative",
+  "px-3 flex items-center border-r last:border-r-0 box-border group relative",
   {
     variants: {
       column: {
         checkbox: "justify-center",
+        expand: "justify-center px-0",
+        sourceAction: "justify-center px-0",
         itemName: "",
         data: "",
       },
+      density: {
+        default: "py-3",
+        compact: "py-2 text-xs",
+      },
+      theme: {
+        default: "border-gray-100",
+        dark: "border-gray-700",
+      },
       selected: {
-        true: "bg-blue-50",
+        true: "bg-blue-50 font-semibold",
         false: "",
       },
       interactive: {
@@ -20,7 +30,13 @@ export const cellVariants = cva(
         false: "",
       },
     },
-    defaultVariants: { column: "data", selected: false, interactive: false },
+    defaultVariants: {
+      column: "data",
+      density: "default",
+      theme: "default",
+      selected: false,
+      interactive: false,
+    },
   },
 );
 
@@ -31,6 +47,8 @@ export const headerCellVariants = cva(
     variants: {
       column: {
         checkbox: "justify-center",
+        expand: "px-0",
+        sourceAction: "px-0",
         itemName: "",
         data: "",
       },

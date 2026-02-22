@@ -10,11 +10,11 @@ export interface FieldConfig {
  * Used by both the table columns and the sheet components.
  */
 export const PRODUCT_FIELDS: FieldConfig[] = [
+  { key: "tag", label: "Tag" },
   { key: "itemName", label: "Name" },
   { key: "productDescription", label: "Description" },
   { key: "manufacturer", label: "Manufacturer" },
   { key: "specIdNumber", label: "Spec ID" },
-  { key: "tag", label: "Tag" },
   { key: "project", label: "Project" },
   { key: "finish", label: "Finish" },
   { key: "size", label: "Size" },

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download } from "lucide-react";
-import type { ExtractedProduct } from "@/types/product";
+import type { ResolvedProduct } from "@/types/resolvedProduct";
 import {
   DEFAULT_EXPORT_COLUMNS,
   exportProductsToCSV,
@@ -20,7 +20,7 @@ import {
 interface ExportModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  products: ExtractedProduct[];
+  products: ResolvedProduct[];
 }
 
 export function ExportModal({

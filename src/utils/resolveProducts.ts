@@ -1,11 +1,11 @@
 /**
- * Pure resolver functions: ExtractedProduct / MergedProduct → ResolvedProduct
+ * Pure resolver: MergedProduct → ResolvedProduct
  *
  * One-directional read-only projection. Mutations always operate on the
  * source types directly — there is no reverse transform.
  *
- * Fields stay as ReductoFieldValue so consumers use the same access pattern
- * as ExtractedProduct (field?.value, field?.citations).
+ * Every product goes through the merge pipeline, so there is a single
+ * resolve path: MergedProduct + ExtractedProducts → ResolvedProduct.
  */
 
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
@@ -15,33 +15,6 @@ import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { PRODUCT_FIELDS } from "@/config/fields";
 
 const ALL_FIELD_KEYS: ProductFieldKey[] = PRODUCT_FIELDS.map((f) => f.key);
-
-/**
- * Resolve a single ExtractedProduct into a ResolvedProduct.
- */
-export function resolveExtractedProduct(
-  product: ExtractedProduct,
-): ResolvedProduct {
-  const fields: Partial<Record<ProductFieldKey, ReductoFieldValue<string>>> =
-    {};
-
-  for (const key of ALL_FIELD_KEYS) {
-    const field = product[key];
-    if (field) {
-      fields[key] = field;
-    }
-  }
-
-  return {
-    id: product.id,
-    tag: product.tag?.value ?? "",
-    fields,
-    source: { type: "extracted", extractedProduct: product },
-    sourceCount: 1,
-    reviewed: product.reviewed,
-    updatedAt: product.createdAt,
-  };
-}
 
 /**
  * Resolve a MergedProduct into a ResolvedProduct by looking up
@@ -60,9 +33,8 @@ export function resolveMergedProduct(
     if (ep) extractedProducts.push(ep);
   }
 
-  // All contributing products must be reviewed (rebuildAll filters for this),
-  // so treat the merged product as reviewed if it has any sources.
-  const reviewed = extractedProducts.length > 0;
+  // Preserved for future confirmation workflow — true if all sources are reviewed
+  const reviewed = extractedProducts.every((ep) => ep.reviewed);
 
   for (const key of ALL_FIELD_KEYS) {
     const selection = merged.fieldSelections[key];
@@ -81,7 +53,7 @@ export function resolveMergedProduct(
     id: merged.id,
     tag: merged.tag,
     fields,
-    source: { type: "merged", mergedProduct: merged, extractedProducts },
+    source: { mergedProduct: merged, extractedProducts },
     sourceCount: extractedProducts.length,
     reviewed,
     updatedAt: merged.updatedAt,

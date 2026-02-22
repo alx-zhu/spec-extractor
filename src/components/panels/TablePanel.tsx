@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { InboxTable } from "@/components/table/inbox/InboxTable";
 import { ReviewedTable } from "@/components/table/reviewed/ReviewedTable";
 import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
 import { Input } from "@/components/ui/input";
@@ -15,32 +14,20 @@ import { cn } from "@/lib/utils";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
 
-type TabKey = "inbox" | "reviewed";
-
 interface TablePanelProps {
-  // Tab state
-  activeTab: TabKey;
-  onTabChange: (tab: TabKey) => void;
-
-  // Inbox data
-  products: ExtractedProduct[];
-  onRowClick: (product: ExtractedProduct, fieldKey?: string) => void;
-  onReview?: (productId: string) => void;
-  onUnreview?: (productId: string) => void;
-
-  // Reviewed data
+  // Data
   resolvedProducts: ResolvedProduct[];
-  onSourceClick?: (ep: ExtractedProduct, fieldKey?: string) => void;
+  /** Opens the PDF viewer for a given EP, optionally focused on a specific field */
+  onViewSource?: (
+    ep: ExtractedProduct,
+    resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
+  ) => void;
   onOverrideField?: (
     mergedProductId: string,
     fieldKey: ProductFieldKey,
     selectedProductId: string,
   ) => void;
-  onUnmerge?: (
-    mergedProductId: string,
-    extractedProductId: string,
-  ) => void;
-  onUnreviewResolved?: (productId: string) => void;
 
   // Shared
   selectedProductId: string | null;
@@ -50,20 +37,14 @@ interface TablePanelProps {
   onFilterToggle: () => void;
   activeFilterLabel: string | null;
   onClearFilter: () => void;
+  /** Map of document ID → document filename for source document display */
+  documentMap?: Map<string, string>;
 }
 
 export function TablePanel({
-  activeTab,
-  onTabChange,
-  products,
-  onRowClick,
-  onReview,
-  onUnreview,
   resolvedProducts,
-  onSourceClick,
+  onViewSource,
   onOverrideField,
-  onUnmerge,
-  onUnreviewResolved,
   selectedProductId,
   selectedFieldKey,
   searchQuery,
@@ -71,17 +52,15 @@ export function TablePanel({
   onFilterToggle,
   activeFilterLabel,
   onClearFilter,
+  documentMap,
 }: TablePanelProps) {
-  const activeCount =
-    activeTab === "inbox" ? products.length : resolvedProducts.length;
-
-  const [selectedProducts, setSelectedProducts] = useState<ExtractedProduct[]>(
+  const [selectedProducts, setSelectedProducts] = useState<ResolvedProduct[]>(
     [],
   );
   const [selectionKey, setSelectionKey] = useState(0);
 
   const handleSelectionChange = useCallback(
-    (products: ExtractedProduct[]) => {
+    (products: ResolvedProduct[]) => {
       setSelectedProducts(products);
     },
     [],
@@ -95,50 +74,12 @@ export function TablePanel({
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       {/* Panel Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white">
-        {/* Tab switcher */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onTabChange("inbox")}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              activeTab === "inbox"
-                ? "bg-gray-900 text-white"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100",
-            )}
-          >
-            Inbox
-            <span
-              className={cn(
-                "ml-1.5 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium",
-                activeTab === "inbox"
-                  ? "bg-white/20 text-white"
-                  : "bg-gray-100 text-gray-500",
-              )}
-            >
-              {products.length}
-            </span>
-          </button>
-          <button
-            onClick={() => onTabChange("reviewed")}
-            className={cn(
-              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              activeTab === "reviewed"
-                ? "bg-gray-900 text-white"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100",
-            )}
-          >
-            Reviewed
-            <span
-              className={cn(
-                "ml-1.5 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium",
-                activeTab === "reviewed"
-                  ? "bg-white/20 text-white"
-                  : "bg-gray-100 text-gray-500",
-              )}
-            >
-              {resolvedProducts.length}
-            </span>
-          </button>
+        {/* Title */}
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-gray-900">Products</h2>
+          <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+            {resolvedProducts.length}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {/* Active filter chip */}
@@ -182,41 +123,27 @@ export function TablePanel({
 
       {/* Table + Bulk Action Bar container */}
       <div className="flex-1 overflow-hidden relative">
-        {activeTab === "inbox" ? (
-          <InboxTable
-            data={products}
-            onRowClick={onRowClick}
-            onReview={onReview}
-            onUnreview={onUnreview}
-            selectedProductId={selectedProductId}
-            selectedFieldKey={selectedFieldKey}
-            onSelectionChange={handleSelectionChange}
-            selectionKey={selectionKey}
-          />
-        ) : (
-          <ReviewedTable
-            data={resolvedProducts}
-            onSourceClick={onSourceClick}
-            onOverrideField={onOverrideField}
-            onUnmerge={onUnmerge}
-            onUnreview={onUnreviewResolved}
-            selectedProductId={selectedProductId}
-            selectedFieldKey={selectedFieldKey}
-          />
-        )}
+        <ReviewedTable
+          data={resolvedProducts}
+          onViewSource={onViewSource}
+          onOverrideField={onOverrideField}
+          selectedProductId={selectedProductId}
+          selectedFieldKey={selectedFieldKey}
+          onSelectionChange={handleSelectionChange}
+          selectionKey={selectionKey}
+          documentMap={documentMap}
+        />
 
-        {activeTab === "inbox" && (
-          <BulkActionBar
-            selectedProducts={selectedProducts}
-            onClearSelection={handleClearSelection}
-          />
-        )}
+        <BulkActionBar
+          selectedProducts={selectedProducts}
+          onClearSelection={handleClearSelection}
+        />
       </div>
 
       {/* Table Footer */}
       <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
         <span className="text-sm text-gray-500">
-          Showing 1-{activeCount} of {activeCount} products
+          Showing 1-{resolvedProducts.length} of {resolvedProducts.length} products
         </span>
         <div className="flex gap-1">
           <Button variant="outline" size="icon" disabled className="h-8 w-8">

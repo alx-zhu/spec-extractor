@@ -10,6 +10,12 @@ interface TableCellProps {
   isFieldSelected: boolean;
   onClick?: (fieldKey?: string) => void;
   overlay?: React.ReactNode;
+  /** Inline content rendered before cell content (e.g. radio indicator) */
+  prefix?: React.ReactNode;
+  /** Cell density — controls padding and text size */
+  density?: "default" | "compact";
+  /** Color theme — controls border and text colors */
+  theme?: "default" | "dark";
 }
 
 export function TableCell({
@@ -17,6 +23,9 @@ export function TableCell({
   isFieldSelected,
   onClick,
   overlay,
+  prefix,
+  density = "default",
+  theme = "default",
 }: TableCellProps) {
   const columnType = getColumnType(cell.column.id);
   const width = getColumnWidth(cell.column.id) ?? cell.column.columnDef.size;
@@ -41,7 +50,7 @@ export function TableCell({
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    // Check if user clicked on a sub-element with its own data-field (e.g. productDescription)
+    // Check if user clicked on a sub-element with its own data-field attribute
     const target = e.target as HTMLElement;
     const overrideField = target.closest<HTMLElement>("[data-field]")?.dataset
       .field as ProductFieldKey | undefined;
@@ -65,9 +74,13 @@ export function TableCell({
       className={cn(
         cellVariants({
           column: columnType,
+          density,
+          theme,
           selected: isFieldSelected,
           interactive: !!fieldName,
         }),
+        "group/cell",
+        prefix && "gap-2",
       )}
       style={{
         width: width ? `${width}px` : undefined,
@@ -75,6 +88,7 @@ export function TableCell({
       }}
       onClick={handleClick}
     >
+      {prefix}
       {cellContent}
       {overlay}
     </div>

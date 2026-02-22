@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Undo2, MoreHorizontal, MousePointer, Eye, Trash2 } from "lucide-react";
+import { MoreHorizontal, MousePointer, Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,17 +24,11 @@ import { useDeleteProduct } from "@/hooks/useProducts";
 interface RowActionsProps {
   productId: string;
   itemName?: string;
-  isReviewed: boolean;
-  onReview?: (productId: string) => void;
-  onUnreview?: (productId: string) => void;
 }
 
 export function RowActions({
   productId,
   itemName,
-  isReviewed,
-  onReview,
-  onUnreview,
 }: RowActionsProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -52,36 +46,7 @@ export function RowActions({
             : "opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto",
         )}
       >
-        {/* Left: Review / Unreview toggle */}
-        {isReviewed ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="size-7 text-gray-400 hover:text-amber-600 hover:bg-amber-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onUnreview?.(productId);
-            }}
-            title="Unmark as reviewed"
-          >
-            <Undo2 className="size-3.5" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="size-7 text-gray-400 hover:text-green-600 hover:bg-green-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onReview?.(productId);
-            }}
-            title="Mark as reviewed"
-          >
-            <Check className="size-3.5" />
-          </Button>
-        )}
-
-        {/* Right: More actions dropdown */}
+        {/* More actions dropdown */}
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button
