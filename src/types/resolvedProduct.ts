@@ -3,27 +3,19 @@ import type { MergedProduct } from "./mergedProduct";
 import type { ReductoFieldValue } from "./reducto";
 
 /**
- * Discriminated union identifying the underlying source of a ResolvedProduct.
+ * Source of a ResolvedProduct — always backed by a MergedProduct.
  *
- * Mutation-side code reaches through `source` to call the appropriate hook
- * (e.g. useUpdateProduct vs useOverrideMergedField).
- *
- * The merge detail UI accesses `source.extractedProducts` directly to render
- * each contributing ExtractedProduct with the existing row components.
+ * Every product goes through the merge pipeline (even single-source products
+ * get a MergedProduct with one EP). This means there is always a
+ * mergedProduct and an extractedProducts array (length >= 1).
  */
-export type ResolvedProductSource =
-  | {
-      type: "extracted";
-      extractedProduct: ExtractedProduct;
-    }
-  | {
-      type: "merged";
-      mergedProduct: MergedProduct;
-      extractedProducts: ExtractedProduct[];
-    };
+export interface ResolvedProductSource {
+  mergedProduct: MergedProduct;
+  extractedProducts: ExtractedProduct[];
+}
 
 /**
- * Read-only view type computed from ExtractedProduct or MergedProduct.
+ * Read-only view type computed from MergedProduct + ExtractedProducts.
  *
  * Never stored — always derived at read time.
  * Display, export, and table components consume this uniform type.

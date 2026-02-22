@@ -12,8 +12,12 @@ interface TableRowProps {
   actions?: React.ReactNode;
   /** Extra className on the row container (e.g. bg-gray-50 for source rows) */
   className?: string;
-  /** Per-cell overlay callback — returns extra content for a given field key */
+  /** Per-cell overlay callback — returns absolutely-positioned content for a given field key */
   cellOverlay?: (fieldKey: string) => React.ReactNode;
+  /** Per-cell prefix callback — returns inline content rendered before cell content (e.g. radio indicator) */
+  cellPrefix?: (fieldKey: string) => React.ReactNode;
+  /** Cell density — controls padding and text size */
+  density?: "default" | "compact";
 }
 
 export function TableRow({
@@ -24,6 +28,8 @@ export function TableRow({
   actions,
   className,
   cellOverlay,
+  cellPrefix,
+  density = "default",
 }: TableRowProps) {
   const isChecked = row.getIsSelected?.() ?? false;
 
@@ -48,6 +54,7 @@ export function TableRow({
               selectedFieldKey === "productDescription"));
 
         const overlay = fieldName && cellOverlay ? cellOverlay(fieldName) : undefined;
+        const prefix = fieldName && cellPrefix ? cellPrefix(fieldName) : undefined;
 
         return (
           <TableCell
@@ -56,6 +63,8 @@ export function TableRow({
             isFieldSelected={!!isFieldSelected}
             onClick={onClick}
             overlay={overlay}
+            prefix={prefix}
+            density={density}
           />
         );
       })}

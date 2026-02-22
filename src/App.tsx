@@ -5,46 +5,23 @@ import { ProductSheet } from "@/components/sheet/ProductSheet";
 import { FilterSidebar } from "@/components/sidebar/FilterSidebar";
 import { UploadModal } from "@/components/upload/UploadModal";
 import { ExportModal } from "@/components/export/ExportModal";
-import { useProducts, useReviewProduct, useUpdateProduct } from "@/hooks/useProducts";
+import { useProducts } from "@/hooks/useProducts";
 import { useResolvedProducts } from "@/hooks/useResolvedProducts";
-import {
-  useOverrideMergedField,
-  useUnmergeProduct,
-  useRebuildMergedProducts,
-} from "@/hooks/useMergedProducts";
+import { useOverrideMergedField } from "@/hooks/useMergedProducts";
 import { useSidebarFilter } from "@/hooks/useSidebarFilter";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import { useDocuments } from "./hooks/useDocuments";
 import { getPdfUrl } from "./utils/storage";
-
-type TabKey = "inbox" | "reviewed";
 
 function App() {
   // Fetch products from React Query
   const { data: products = [], isLoading } = useProducts();
   const { data: documents = [] } = useDocuments();
   const { data: resolvedProducts = [] } = useResolvedProducts();
-  const reviewProduct = useReviewProduct();
-  const updateProduct = useUpdateProduct();
   const overrideMergedField = useOverrideMergedField();
-  const unmergeProduct = useUnmergeProduct();
-  const rebuildMergedProducts = useRebuildMergedProducts();
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<TabKey>("inbox");
-
-  // Strict separation: inbox = unreviewed, reviewed = reviewed
-  const inboxProducts = useMemo(
-    () => products.filter((p) => !p.reviewed),
-    [products],
-  );
-  const reviewedResolved = useMemo(
-    () => resolvedProducts.filter((rp) => rp.reviewed),
-    [resolvedProducts],
-  );
-
-  // Sidebar filter state — applies to inbox only
-  const sidebar = useSidebarFilter(inboxProducts);
+  // Sidebar filter state — applies to all resolved products
+  const sidebar = useSidebarFilter(resolvedProducts);
 
   // Selection state — store ID, derive the product from the array
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -53,22 +30,12 @@ function App() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  // Derive filtered inbox products: text search then sidebar filter
-  const textFilteredInbox = useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    if (!query) return inboxProducts;
-    return inboxProducts.filter((product) =>
-      product?.itemName?.value?.toLowerCase().includes(query) ||
-      product?.manufacturer?.value?.toLowerCase().includes(query) ||
-      product?.specIdNumber?.value?.toLowerCase().includes(query) ||
-      product?.project?.value?.toLowerCase().includes(query),
-    );
-  }, [inboxProducts, searchQuery]);
-  const filteredInbox = sidebar.filterProducts(textFilteredInbox);
+  // Track which merged group is active for scoped PDF navigation
+  const [activeMergedGroupId, setActiveMergedGroupId] = useState<string | null>(null);
 
-  // Derive filtered reviewed products: text search + sidebar filter
-  const filteredReviewed = useMemo(() => {
-    let result = reviewedResolved;
+  // Filter resolved products: text search then sidebar filter
+  const filteredProducts = useMemo(() => {
+    let result = resolvedProducts;
 
     // Apply text search
     const query = searchQuery.toLowerCase();
@@ -81,27 +48,25 @@ function App() {
     }
 
     // Apply sidebar filter
-    if (sidebar.activeFilter) {
-      result = result.filter((rp) =>
-        sidebar.matchesFilter(rp.fields.specIdNumber?.value),
-      );
-    }
+    return sidebar.filterProducts(result);
+  }, [resolvedProducts, searchQuery, sidebar.filterProducts]);
 
-    return result;
-  }, [reviewedResolved, searchQuery, sidebar.activeFilter, sidebar.matchesFilter]);
+  // Build a map of document ID → filename for source document display in table
+  const documentMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const doc of documents) {
+      map.set(doc.id, doc.filename);
+    }
+    return map;
+  }, [documents]);
 
   // Derive selected product from fresh products array (never stale)
   const selectedProduct = useMemo(() => {
     if (!selectedProductId) return null;
-    if (activeTab === "inbox") {
-      return filteredInbox.find((p) => p.id === selectedProductId) ?? null;
-    }
-    // Reviewed tab: look up the EP directly from products array
+    // Look up the EP directly from products array
     // (source row clicks set selectedProductId to an EP id)
-    const directEp = products.find((p) => p.id === selectedProductId);
-    if (directEp) return directEp;
-    return null;
-  }, [selectedProductId, activeTab, filteredInbox, products]);
+    return products.find((p) => p.id === selectedProductId) ?? null;
+  }, [selectedProductId, products]);
 
   // Derive PDF URL from the selected product's document
   const pdfUrl = useMemo(() => {
@@ -115,42 +80,23 @@ function App() {
     return "sample_spec.pdf";
   }, [selectedProduct, documents]);
 
-  // Products list for sheet navigation (inbox only — reviewed uses different flow)
-  const sheetProducts = activeTab === "inbox" ? filteredInbox : [];
+  // Products list for sheet navigation — scoped to active merged group's sources
+  const sheetProducts = useMemo(() => {
+    if (!activeMergedGroupId) return [];
+    const resolved = resolvedProducts.find((rp) => rp.id === activeMergedGroupId);
+    if (!resolved) return [];
+    return resolved.source.extractedProducts;
+  }, [activeMergedGroupId, resolvedProducts]);
 
-  const handleTabChange = (tab: TabKey) => {
-    setActiveTab(tab);
-    setSelectedProductId(null);
-    setSelectedFieldKey("itemName");
-  };
-
-  const handleReview = (productId: string) => {
-    reviewProduct.mutate(productId, {
-      onSuccess: () => {
-        rebuildMergedProducts.mutate();
-      },
-    });
-  };
-
-  const handleUnreview = (productId: string) => {
-    updateProduct.mutate(
-      { productId, updates: { reviewed: false } },
-      {
-        onSuccess: () => {
-          rebuildMergedProducts.mutate();
-        },
-      },
-    );
-  };
-
-  const handleRowClick = (product: ExtractedProduct, fieldKey?: string) => {
-    setSelectedProductId(product.id);
-    setSelectedFieldKey((fieldKey as ProductFieldKey) || "itemName");
-  };
-
-  const handleSourceClick = (ep: ExtractedProduct, fieldKey?: string) => {
+  const handleViewSource = (
+    ep: ExtractedProduct,
+    resolvedProductId?: string,
+  ) => {
     setSelectedProductId(ep.id);
-    setSelectedFieldKey((fieldKey as ProductFieldKey) || "itemName");
+    setSelectedFieldKey("itemName");
+    if (resolvedProductId) {
+      setActiveMergedGroupId(resolvedProductId);
+    }
   };
 
   const handleOverrideField = (
@@ -165,16 +111,10 @@ function App() {
     });
   };
 
-  const handleUnmerge = (
-    mergedProductId: string,
-    extractedProductId: string,
-  ) => {
-    unmergeProduct.mutate({ mergedProductId, extractedProductId });
-  };
-
   const handleSheetOpenChange = (open: boolean) => {
     if (!open) {
       setSelectedProductId(null);
+      setActiveMergedGroupId(null);
     }
   };
 
@@ -214,24 +154,17 @@ function App() {
         <main className="flex-1 flex overflow-hidden p-8">
           {/* Table Panel */}
           <TablePanel
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            products={filteredInbox}
+            resolvedProducts={filteredProducts}
             selectedProductId={selectedProductId}
             selectedFieldKey={selectedFieldKey}
-            onRowClick={handleRowClick}
-            onReview={handleReview}
-            onUnreview={handleUnreview}
-            resolvedProducts={filteredReviewed}
-            onSourceClick={handleSourceClick}
+            onViewSource={handleViewSource}
             onOverrideField={handleOverrideField}
-            onUnmerge={handleUnmerge}
-            onUnreviewResolved={handleUnreview}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onFilterToggle={sidebar.toggleSidebar}
             activeFilterLabel={sidebar.activeFilterLabel}
             onClearFilter={sidebar.clearFilter}
+            documentMap={documentMap}
           />
         </main>
       </div>
@@ -256,7 +189,7 @@ function App() {
       <ExportModal
         open={isExportModalOpen}
         onOpenChange={setIsExportModalOpen}
-        products={products}
+        products={resolvedProducts}
       />
     </div>
   );

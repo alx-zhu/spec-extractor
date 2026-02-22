@@ -4,20 +4,25 @@
 
 export const columnLayout = {
   checkbox: { width: 48 },
+  expand: { width: 32 },
+  /** Combined expand + checkbox width, used for source row action column */
+  sourceAction: { width: 80 },
+  tag: { width: 100 },
   itemName: { width: 280 },
   manufacturer: { width: 140 },
   specIdNumber: { width: 140 },
-  tag: { width: 100 },
   finish: { width: 280 },
   size: { width: 280 },
   price: { width: 140 },
   details: { width: 220 },
 } as const;
 
-export type ColumnType = "checkbox" | "itemName" | "data";
+export type ColumnType = "checkbox" | "expand" | "sourceAction" | "itemName" | "data";
 
 export function getColumnType(columnId: string): ColumnType {
   if (columnId === "select") return "checkbox";
+  if (columnId === "expand") return "expand";
+  if (columnId === "sourceAction") return "sourceAction";
   if (columnId === "itemName") return "itemName";
   return "data";
 }

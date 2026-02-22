@@ -6,8 +6,33 @@ import { columnLayout } from "@/styles/tableLayout";
 import { getFieldLabel } from "@/config/fields";
 import { ResolvedFieldCell } from "./ResolvedFieldCell";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronRight, ChevronDown } from "lucide-react";
 
 export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
+  // Expand/collapse chevron column — first column, before checkbox
+  {
+    id: "expand",
+    header: "",
+    size: columnLayout.expand.width,
+    enableSorting: false,
+    enableHiding: false,
+    cell: ({ row, table }) => {
+      const resolved = row.original;
+      const expandedIds = (table.options.meta as { expandedIds?: Set<string> })
+        ?.expandedIds;
+      const isExpanded = expandedIds?.has(resolved.id) ?? false;
+
+      return (
+        <div className="text-gray-400">
+          {isExpanded ? (
+            <ChevronDown className="size-3.5" />
+          ) : (
+            <ChevronRight className="size-3.5" />
+          )}
+        </div>
+      );
+    },
+  },
   // Selection checkbox column
   {
     id: "select",
@@ -32,6 +57,17 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+  {
+    id: "tag",
+    header: getFieldLabel("tag"),
+    size: columnLayout.tag.width,
+    meta: { fieldName: "tag" as ProductFieldKey },
+    cell: ({ row }) => (
+      <ResolvedFieldCell
+        value={row.original.fields.tag?.value}
+      />
+    ),
+  },
   // Item name + description + source count
   {
     id: "itemName",
@@ -41,17 +77,16 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
       const resolved = row.original;
       const description = resolved.fields.productDescription?.value;
       const hasDescription = description && description !== "N/A";
+
       return (
         <div className="flex flex-col gap-0.5 min-w-0 w-full">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
-              {resolved.fields.itemName?.value || "—"}
+              {resolved.fields.itemName?.value || "\u2014"}
             </span>
-            {resolved.sourceCount > 1 && (
-              <span className="shrink-0 text-xs text-gray-400">
-                {resolved.sourceCount} sources
-              </span>
-            )}
+            <span className="shrink-0 text-xs text-gray-400">
+              {resolved.sourceCount} {resolved.sourceCount === 1 ? "source" : "sources"}
+            </span>
           </div>
           {hasDescription && (
             <div
@@ -89,22 +124,11 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
             variant="secondary"
             className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200"
           >
-            {value || "—"}
+            {value || "\u2014"}
           </Badge>
         </div>
       );
     },
-  },
-  {
-    id: "tag",
-    header: getFieldLabel("tag"),
-    size: columnLayout.tag.width,
-    meta: { fieldName: "tag" as ProductFieldKey },
-    cell: ({ row }) => (
-      <ResolvedFieldCell
-        value={row.original.fields.tag?.value}
-      />
-    ),
   },
   {
     id: "finish",

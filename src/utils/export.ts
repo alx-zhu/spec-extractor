@@ -4,7 +4,8 @@
  * Handles exporting product data to CSV format.
  */
 
-import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
+import type { ProductFieldKey } from "@/types/product";
+import type { ResolvedProduct } from "@/types/resolvedProduct";
 
 export interface ExportColumn {
   key: ProductFieldKey;
@@ -16,10 +17,10 @@ export interface ExportColumn {
  * Default export columns configuration
  */
 export const DEFAULT_EXPORT_COLUMNS: ExportColumn[] = [
+  { key: "tag", label: "Tag", enabled: true },
   { key: "itemName", label: "Product Name", enabled: true },
   { key: "productDescription", label: "Product Description", enabled: true },
   { key: "manufacturer", label: "Manufacturer", enabled: true },
-  { key: "tag", label: "Tag", enabled: true },
   { key: "specIdNumber", label: "Masterformat Code", enabled: true },
   { key: "project", label: "Project", enabled: false },
   { key: "finish", label: "Finish", enabled: true },
@@ -42,12 +43,12 @@ function escapeCSVField(value: string): string {
 /**
  * Export products to CSV
  *
- * @param products - Array of products to export
+ * @param products - Array of resolved products to export
  * @param columns - Selected columns to include in export
  * @returns CSV string
  */
 export function exportProductsToCSV(
-  products: ExtractedProduct[],
+  products: ResolvedProduct[],
   columns: ExportColumn[],
 ): string {
   const enabledColumns = columns.filter((col) => col.enabled);
@@ -59,7 +60,7 @@ export function exportProductsToCSV(
   // Create data rows
   products.forEach((product) => {
     const row = enabledColumns.map((col) => {
-      const fieldValue = product[col.key]?.value || "";
+      const fieldValue = product.fields[col.key]?.value || "";
       return escapeCSVField(fieldValue);
     });
     rows.push(row.join(","));

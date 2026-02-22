@@ -35,6 +35,23 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
     enableHiding: false,
   },
   {
+    id: "tag",
+    header: getFieldLabel("tag"),
+    accessorKey: "tag",
+    size: columnLayout.tag.width,
+    meta: {
+      fieldName: "tag" as ProductFieldKey,
+    },
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm text-gray-600">
+          {row.original.tag?.value || "—"}
+        </div>
+      );
+    },
+  },
+  {
     id: "itemName",
     header: getFieldLabel("itemName"),
     accessorKey: "itemName",
@@ -107,23 +124,6 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
           {isGenerated && (
             <Sparkles className="size-3 text-amber-400 shrink-0" />
           )}
-        </div>
-      );
-    },
-  },
-  {
-    id: "tag",
-    header: getFieldLabel("tag"),
-    accessorKey: "tag",
-    size: columnLayout.tag.width,
-    meta: {
-      fieldName: "tag" as ProductFieldKey,
-    },
-    cell: ({ row }) => {
-      if (!row?.original) return <span className="text-gray-400">—</span>;
-      return (
-        <div className="text-sm text-gray-600">
-          {row.original.tag?.value || "—"}
         </div>
       );
     },
