@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReviewedTable } from "@/components/table/reviewed/ReviewedTable";
 import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,37 @@ import {
 import { cn } from "@/lib/utils";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
+
+/** Build a truncated page number list like: 1 … 4 5 [6] 7 8 … 12 */
+function getPageNumbers(
+  current: number,
+  total: number,
+): (number | "ellipsis")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages: (number | "ellipsis")[] = [];
+  const nearStart = current <= 4;
+  const nearEnd = current >= total - 3;
+
+  if (nearStart) {
+    // Show first 5, then ellipsis, then last
+    for (let i = 1; i <= 5; i++) pages.push(i);
+    pages.push("ellipsis", total);
+  } else if (nearEnd) {
+    // Show first, ellipsis, then last 5
+    pages.push(1, "ellipsis");
+    for (let i = total - 4; i <= total; i++) pages.push(i);
+  } else {
+    // Show first, ellipsis, window of 3, ellipsis, last
+    pages.push(1, "ellipsis");
+    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+    pages.push("ellipsis", total);
+  }
+
+  return pages;
+}
 
 interface TablePanelProps {
   // Data
@@ -70,6 +101,27 @@ export function TablePanel({
     setSelectionKey((k) => k + 1);
   }, []);
 
+  // Pagination
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(resolvedProducts.length / PAGE_SIZE));
+
+  // Reset to page 1 when the data changes (e.g. search/filter)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [resolvedProducts.length]);
+
+  // Clamp page if it exceeds total (e.g. after filter narrows results)
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return resolvedProducts.slice(start, start + PAGE_SIZE);
+  }, [resolvedProducts, safePage]);
+
+  const rangeStart = resolvedProducts.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, resolvedProducts.length);
+
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       {/* Panel Header */}
@@ -124,7 +176,7 @@ export function TablePanel({
       {/* Table + Bulk Action Bar container */}
       <div className="flex-1 overflow-hidden relative">
         <ReviewedTable
-          data={resolvedProducts}
+          data={paginatedProducts}
           onViewSource={onViewSource}
           onOverrideField={onOverrideField}
           selectedProductId={selectedProductId}
@@ -143,17 +195,52 @@ export function TablePanel({
       {/* Table Footer */}
       <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
         <span className="text-sm text-gray-500">
-          Showing 1-{resolvedProducts.length} of {resolvedProducts.length} products
+          {resolvedProducts.length === 0
+            ? "No products"
+            : `Showing ${rangeStart}–${rangeEnd} of ${resolvedProducts.length} products`}
         </span>
-        <div className="flex gap-1">
-          <Button variant="outline" size="icon" disabled className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4 text-gray-400" />
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={safePage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" className="h-8 min-w-8 px-2">
-            1
-          </Button>
-          <Button variant="outline" size="icon" disabled className="h-8 w-8">
-            <ChevronRight className="h-4 w-4 text-gray-400" />
+          {getPageNumbers(safePage, totalPages).map((item, i) =>
+            item === "ellipsis" ? (
+              <span
+                key={`ellipsis-${i}`}
+                className="h-8 min-w-6 flex items-center justify-center text-xs text-gray-400 select-none"
+              >
+                …
+              </span>
+            ) : (
+              <Button
+                key={item}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-8 min-w-8 px-2",
+                  item === safePage &&
+                    "bg-gray-900 text-white border-gray-900 hover:bg-gray-800 hover:text-white",
+                )}
+                onClick={() => setCurrentPage(item)}
+              >
+                {item}
+              </Button>
+            ),
+          )}
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={safePage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
