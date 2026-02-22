@@ -199,7 +199,7 @@ export function TablePanel({
           <span className="text-sm text-gray-500">
             {resolvedProducts.length === 0
               ? "No products"
-              : `Showing ${rangeStart}–${rangeEnd} of ${resolvedProducts.length}`}
+              : `Showing ${rangeStart}-${rangeEnd} of ${resolvedProducts.length}`}
           </span>
           <Select
             value={String(pageSize)}
