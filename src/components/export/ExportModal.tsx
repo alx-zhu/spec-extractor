@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import type { RowSelectionState } from "@tanstack/react-table";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
 import type { SidebarFilter } from "@/hooks/useSidebarFilter";
 import { useSidebarFilter } from "@/hooks/useSidebarFilter";
@@ -53,6 +54,15 @@ export function ExportModal({
   );
 }
 
+// ── Helpers ──────────────────────────────────────────────────────
+
+/** Build a RowSelectionState with every product selected */
+function selectAll(products: ResolvedProduct[]): RowSelectionState {
+  const state: RowSelectionState = {};
+  for (const p of products) state[p.id] = true;
+  return state;
+}
+
 // ── Inner content — remounts on each open ────────────────────────
 
 interface ExportModalContentProps {
@@ -69,40 +79,55 @@ function ExportModalContent({
   const [columns, setColumns] = useState<ExportColumn[]>(
     DEFAULT_EXPORT_COLUMNS,
   );
-  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(
-    new Set(),
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>(() =>
+    selectAll(allProducts),
   );
 
   // Fresh instance each mount — initialFilter seeds useState directly, no sync needed
   const sidebar = useSidebarFilter(allProducts, initialFilter);
 
-  const filteredProducts = useMemo(
-    () => sidebar.filterProducts(allProducts),
-    [sidebar, allProducts],
-  );
+  // Plain derived value — no useMemo needed since this component remounts on each open
+  const filteredProducts = sidebar.filterProducts(allProducts);
 
-  const handleToggleColumn = useCallback((key: string) => {
+  const handleToggleColumn = (key: string) => {
     setColumns((prev) =>
       prev.map((col) =>
         col.key === key ? { ...col, enabled: !col.enabled } : col,
       ),
     );
-  }, []);
+  };
 
-  const handleToggleAllColumns = useCallback(() => {
+  const handleToggleAllColumns = () => {
     setColumns((prev) => {
       const allEnabled = prev.every((col) => col.enabled);
       return prev.map((col) => ({ ...col, enabled: !allEnabled }));
     });
-  }, []);
+  };
 
-  const handleSelectionChange = useCallback((ids: Set<string>) => {
-    setSelectedProductIds(ids);
-  }, []);
+  // Wrap sidebar actions to also reset selection when filter changes
+  const handleDivisionClick = (code: string) => {
+    sidebar.selectDivision(code);
+    setRowSelection(selectAll(allProducts));
+  };
+
+  const handleSectionClick = (code: string) => {
+    sidebar.selectSection(code);
+    setRowSelection(selectAll(allProducts));
+  };
+
+  const handleNoSpecIdClick = () => {
+    sidebar.selectNoSpecId();
+    setRowSelection(selectAll(allProducts));
+  };
+
+  const handleClearFilter = () => {
+    sidebar.clearFilter();
+    setRowSelection(selectAll(allProducts));
+  };
 
   const handleExport = () => {
-    const productsToExport = filteredProducts.filter((p) =>
-      selectedProductIds.has(p.id),
+    const productsToExport = filteredProducts.filter(
+      (p) => rowSelection[p.id],
     );
     const csvContent = exportProductsToCSV(productsToExport, columns);
     const timestamp = new Date().toISOString().split("T")[0];
@@ -111,7 +136,9 @@ function ExportModalContent({
   };
 
   const enabledColumnCount = columns.filter((col) => col.enabled).length;
-  const selectedCount = selectedProductIds.size;
+  const selectedCount = filteredProducts.filter(
+    (p) => rowSelection[p.id],
+  ).length;
 
   return (
     <>
@@ -134,10 +161,10 @@ function ExportModalContent({
           expandedDivision={sidebar.expandedDivision}
           noSpecIdCount={sidebar.noSpecIdCount}
           totalCount={allProducts.length}
-          onDivisionClick={sidebar.selectDivision}
-          onSectionClick={sidebar.selectSection}
-          onNoSpecIdClick={sidebar.selectNoSpecId}
-          onClearFilter={sidebar.clearFilter}
+          onDivisionClick={handleDivisionClick}
+          onSectionClick={handleSectionClick}
+          onNoSpecIdClick={handleNoSpecIdClick}
+          onClearFilter={handleClearFilter}
         />
 
         {/* Right: column bar + table preview */}
@@ -156,7 +183,8 @@ function ExportModalContent({
             <ExportPreviewTable
               products={filteredProducts}
               columns={columns}
-              onSelectionChange={handleSelectionChange}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
             />
           </div>
         </div>

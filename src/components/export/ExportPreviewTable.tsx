@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,7 +16,8 @@ import type { ExportColumn } from "@/utils/export";
 interface ExportPreviewTableProps {
   products: ResolvedProduct[];
   columns: ExportColumn[];
-  onSelectionChange: (selectedIds: Set<string>) => void;
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: (updated: RowSelectionState) => void;
 }
 
 function buildColumns(
@@ -67,44 +68,12 @@ function buildColumns(
   return [selectColumn, ...dataColumns];
 }
 
-/** Build an all-selected RowSelectionState from a product list */
-function selectAll(products: ResolvedProduct[]): RowSelectionState {
-  const state: RowSelectionState = {};
-  for (const p of products) state[p.id] = true;
-  return state;
-}
-
 export function ExportPreviewTable({
   products,
   columns,
-  onSelectionChange,
+  rowSelection,
+  onRowSelectionChange,
 }: ExportPreviewTableProps) {
-  // All rows selected by default
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>(() =>
-    selectAll(products),
-  );
-
-  // When the product list changes (e.g. sidebar filter), re-select all
-  const prevProductIdsRef = useRef(products.map((p) => p.id).join(","));
-  useEffect(() => {
-    const key = products.map((p) => p.id).join(",");
-    if (key !== prevProductIdsRef.current) {
-      prevProductIdsRef.current = key;
-      setRowSelection(selectAll(products));
-    }
-  }, [products]);
-
-  // Report selection to parent via ref so the callback identity doesn't matter
-  const onSelectionChangeRef = useRef(onSelectionChange);
-  onSelectionChangeRef.current = onSelectionChange;
-
-  useEffect(() => {
-    const ids = new Set(
-      Object.keys(rowSelection).filter((id) => rowSelection[id]),
-    );
-    onSelectionChangeRef.current(ids);
-  }, [rowSelection]);
-
   const tableColumns = useMemo(() => buildColumns(columns), [columns]);
 
   const table = useReactTable({
@@ -112,11 +81,13 @@ export function ExportPreviewTable({
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    getRowId: (row) => row.id,
-    state: {
-      rowSelection,
+    onRowSelectionChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      onRowSelectionChange(next);
     },
+    getRowId: (row) => row.id,
+    state: { rowSelection },
   });
 
   return (

@@ -154,36 +154,19 @@ export function useSidebarFilter(
     [activeFilter, matchesFilter],
   );
 
-  return useMemo(
-    () => ({
-      isOpen,
-      toggleSidebar,
-      activeFilter,
-      clearFilter,
-      activeFilterLabel,
-      selectDivision,
-      selectSection,
-      selectNoSpecId,
-      expandedDivision,
-      divisions,
-      noSpecIdCount,
-      filterProducts,
-      matchesFilter,
-    }),
-    [
-      isOpen,
-      toggleSidebar,
-      activeFilter,
-      clearFilter,
-      activeFilterLabel,
-      selectDivision,
-      selectSection,
-      selectNoSpecId,
-      expandedDivision,
-      divisions,
-      noSpecIdCount,
-      filterProducts,
-      matchesFilter,
-    ],
-  );
+  return {
+    isOpen,
+    toggleSidebar,
+    activeFilter,
+    clearFilter,
+    activeFilterLabel,
+    selectDivision,
+    selectSection,
+    selectNoSpecId,
+    expandedDivision,
+    divisions,
+    noSpecIdCount,
+    filterProducts,
+    matchesFilter,
+  };
 }
