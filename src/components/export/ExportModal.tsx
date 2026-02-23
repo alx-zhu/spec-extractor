@@ -27,6 +27,8 @@ interface ExportModalProps {
   onOpenChange: (open: boolean) => void;
   allProducts: ResolvedProduct[];
   initialFilter: SidebarFilter;
+  /** Pre-select only these product IDs. When omitted, all products are selected. */
+  initialSelection?: string[];
 }
 
 /**
@@ -38,6 +40,7 @@ export function ExportModal({
   onOpenChange,
   allProducts,
   initialFilter,
+  initialSelection,
 }: ExportModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,6 +49,7 @@ export function ExportModal({
           <ExportModalContent
             allProducts={allProducts}
             initialFilter={initialFilter}
+            initialSelection={initialSelection}
             onClose={() => onOpenChange(false)}
           />
         )}
@@ -56,10 +60,18 @@ export function ExportModal({
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-/** Build a RowSelectionState with every product selected */
-function selectAll(products: ResolvedProduct[]): RowSelectionState {
+/** Build a RowSelectionState from a product list or a subset of IDs */
+function buildSelection(
+  products: ResolvedProduct[],
+  selectedIds?: string[],
+): RowSelectionState {
   const state: RowSelectionState = {};
-  for (const p of products) state[p.id] = true;
+  if (selectedIds) {
+    const idSet = new Set(selectedIds);
+    for (const p of products) state[p.id] = idSet.has(p.id);
+  } else {
+    for (const p of products) state[p.id] = true;
+  }
   return state;
 }
 
@@ -68,19 +80,21 @@ function selectAll(products: ResolvedProduct[]): RowSelectionState {
 interface ExportModalContentProps {
   allProducts: ResolvedProduct[];
   initialFilter: SidebarFilter;
+  initialSelection?: string[];
   onClose: () => void;
 }
 
 function ExportModalContent({
   allProducts,
   initialFilter,
+  initialSelection,
   onClose,
 }: ExportModalContentProps) {
   const [columns, setColumns] = useState<ExportColumn[]>(
     DEFAULT_EXPORT_COLUMNS,
   );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>(() =>
-    selectAll(allProducts),
+    buildSelection(allProducts, initialSelection),
   );
 
   // Fresh instance each mount — initialFilter seeds useState directly, no sync needed
@@ -107,22 +121,22 @@ function ExportModalContent({
   // Wrap sidebar actions to also reset selection when filter changes
   const handleDivisionClick = (code: string) => {
     sidebar.selectDivision(code);
-    setRowSelection(selectAll(allProducts));
+    setRowSelection(buildSelection(allProducts));
   };
 
   const handleSectionClick = (code: string) => {
     sidebar.selectSection(code);
-    setRowSelection(selectAll(allProducts));
+    setRowSelection(buildSelection(allProducts));
   };
 
   const handleNoSpecIdClick = () => {
     sidebar.selectNoSpecId();
-    setRowSelection(selectAll(allProducts));
+    setRowSelection(buildSelection(allProducts));
   };
 
   const handleClearFilter = () => {
     sidebar.clearFilter();
-    setRowSelection(selectAll(allProducts));
+    setRowSelection(buildSelection(allProducts));
   };
 
   const handleExport = () => {

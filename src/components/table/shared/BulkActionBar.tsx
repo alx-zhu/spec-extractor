@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Merge, Trash2, X } from "lucide-react";
+import { Download, Merge, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -26,6 +26,7 @@ import { useDeleteProducts } from "@/hooks/useProducts";
 interface BulkActionBarProps {
   selectedProducts: ResolvedProduct[];
   onClearSelection: () => void;
+  onExport: (products: ResolvedProduct[]) => void;
 }
 
 /** Extract all underlying ExtractedProduct IDs from a set of ResolvedProducts */
@@ -38,6 +39,7 @@ function getExtractedProductIds(products: ResolvedProduct[]): string[] {
 export function BulkActionBar({
   selectedProducts,
   onClearSelection,
+  onExport,
 }: BulkActionBarProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
@@ -79,6 +81,15 @@ export function BulkActionBar({
 
           {/* Actions */}
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/10 hover:text-white gap-1.5 h-8"
+              onClick={() => onExport(selectedProducts)}
+            >
+              <Download className="size-3.5" />
+              Export
+            </Button>
             <Button
               variant="ghost"
               size="sm"

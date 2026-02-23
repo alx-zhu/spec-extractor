@@ -72,6 +72,7 @@ interface TablePanelProps {
   onClearFilter: () => void;
   /** Map of document ID → document filename for source document display */
   documentMap?: Map<string, string>;
+  onExportSelection?: (products: ResolvedProduct[]) => void;
 }
 
 export function TablePanel({
@@ -86,6 +87,7 @@ export function TablePanel({
   activeFilterLabel,
   onClearFilter,
   documentMap,
+  onExportSelection,
 }: TablePanelProps) {
   const [selectedProducts, setSelectedProducts] = useState<ResolvedProduct[]>(
     [],
@@ -190,6 +192,7 @@ export function TablePanel({
         <BulkActionBar
           selectedProducts={selectedProducts}
           onClearSelection={handleClearSelection}
+          onExport={onExportSelection ?? (() => {})}
         />
       </div>
 
