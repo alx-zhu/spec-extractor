@@ -11,6 +11,7 @@ import { resolvedColumns } from "./resolvedColumns";
 import { TableRow } from "@/components/table/shared/TableRow";
 import { TableHeader } from "@/components/table/shared/TableHeader";
 import { SourceRows } from "./SourceRows";
+import { ManualSourceRow } from "./ManualSourceRow";
 import { cn } from "@/lib/utils";
 
 interface ReviewedTableProps {
@@ -33,6 +34,19 @@ interface ReviewedTableProps {
   selectionKey?: number;
   /** Map of document ID → document filename for source document display */
   documentMap?: Map<string, string>;
+  /** Called to add a manual source EP to a merged product */
+  onAddManualSource?: (
+    mergedProductId: string,
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => void;
+  /** Whether the inline manual-product creation row is visible */
+  isCreatingManual?: boolean;
+  /** Called to save the new manual product */
+  onCreateManualProduct?: (
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => void;
+  /** Called to cancel manual product creation */
+  onCancelCreateManual?: () => void;
 }
 
 /** Check if a resolved product or any of its source EPs match the selected id */
@@ -56,6 +70,10 @@ export function ReviewedTable({
   onSelectionChange,
   selectionKey,
   documentMap,
+  onAddManualSource,
+  isCreatingManual,
+  onCreateManualProduct,
+  onCancelCreateManual,
 }: ReviewedTableProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -104,67 +122,86 @@ export function ReviewedTable({
       <div className="min-w-min">
         <TableHeader headerGroups={table.getHeaderGroups()} />
 
-        {table.getRowModel().rows.length === 0 ? (
+        {/* Inline manual product creation — scrolls with the table */}
+        {isCreatingManual && onCreateManualProduct && onCancelCreateManual && (
+          <ManualSourceRow
+            onSave={(fields) => {
+              onCreateManualProduct(fields);
+            }}
+            onCancel={onCancelCreateManual}
+          />
+        )}
+
+        {table.getRowModel().rows.length === 0 && !isCreatingManual ? (
           <div className="p-8 text-center text-gray-400 text-sm">
             No products found.
           </div>
         ) : (
-          table.getRowModel().rows.map((row) => {
-            const resolved = row.original;
-            const isSelected = isResolvedSelected(resolved, selectedProductId);
-            const isExpanded = expandedIds.has(resolved.id);
+          <>
+            {table.getRowModel().rows.map((row) => {
+              const resolved = row.original;
+              const isSelected = isResolvedSelected(
+                resolved,
+                selectedProductId,
+              );
+              const isExpanded = expandedIds.has(resolved.id);
 
-            // Every row toggles expand on click — uniform behavior
-            // regardless of source count. Source rows open the PDF viewer.
-            const handleRowClick = () => toggleExpand(resolved.id);
+              // Every row toggles expand on click — uniform behavior
+              // regardless of source count. Source rows open the PDF viewer.
+              const handleRowClick = () => toggleExpand(resolved.id);
 
-            return (
-              <div
-                key={row.id}
-                className={cn(
-                  "transition-[border-color,box-shadow,margin] duration-200 ease-out overflow-hidden",
-                  isExpanded
-                    ? "border border-gray-800 shadow-md"
-                    : "border-none",
-                )}
-              >
-                {/* Main resolved row — transforms to dark group header when expanded */}
-                <TableRow
-                  row={row}
-                  onClick={handleRowClick}
-                  isSelected={isSelected}
-                  selectedFieldKey={isExpanded ? null : selectedFieldKey}
-                  isExpanded={isExpanded}
-                  className="cursor-pointer"
-                />
-
-                {/* Expanded source rows — animated height */}
-                <AnimatePresence initial={false}>
-                  {isExpanded && (
-                    <motion.div
-                      key="source-rows"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{
-                        height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
-                        opacity: { duration: 0.2, ease: "easeOut" },
-                      }}
-                      className="overflow-hidden"
-                    >
-                      <SourceRows
-                        resolved={resolved}
-                        onOverrideField={onOverrideField}
-                        onViewSource={onViewSource}
-                        selectedProductId={selectedProductId}
-                        documentMap={documentMap}
-                      />
-                    </motion.div>
+              return (
+                <div
+                  key={row.id}
+                  className={cn(
+                    "transition-[border-color,box-shadow,margin] duration-200 ease-out overflow-hidden",
+                    isExpanded
+                      ? "border border-gray-800 shadow-md"
+                      : "border-none",
                   )}
-                </AnimatePresence>
-              </div>
-            );
-          })
+                >
+                  {/* Main resolved row — transforms to dark group header when expanded */}
+                  <TableRow
+                    row={row}
+                    onClick={handleRowClick}
+                    isSelected={isSelected}
+                    selectedFieldKey={isExpanded ? null : selectedFieldKey}
+                    isExpanded={isExpanded}
+                    className="cursor-pointer"
+                  />
+
+                  {/* Expanded source rows — animated height */}
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        key="source-rows"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{
+                          height: {
+                            duration: 0.25,
+                            ease: [0.4, 0, 0.2, 1],
+                          },
+                          opacity: { duration: 0.2, ease: "easeOut" },
+                        }}
+                        className="overflow-hidden"
+                      >
+                        <SourceRows
+                          resolved={resolved}
+                          onOverrideField={onOverrideField}
+                          onViewSource={onViewSource}
+                          selectedProductId={selectedProductId}
+                          documentMap={documentMap}
+                          onAddManualSource={onAddManualSource}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </>
         )}
       </div>
     </div>

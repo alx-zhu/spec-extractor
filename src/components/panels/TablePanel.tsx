@@ -13,6 +13,7 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  Plus,
   Search,
   SlidersHorizontal,
   X,
@@ -73,6 +74,15 @@ interface TablePanelProps {
   /** Map of document ID → document filename for source document display */
   documentMap?: Map<string, string>;
   onExportSelection?: (products: ResolvedProduct[]) => void;
+  /** Called to add a manual source EP to a merged product */
+  onAddManualSource?: (
+    mergedProductId: string,
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => void;
+  /** Called to create a brand-new manual product */
+  onCreateManualProduct?: (
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => void;
 }
 
 export function TablePanel({
@@ -88,6 +98,8 @@ export function TablePanel({
   onClearFilter,
   documentMap,
   onExportSelection,
+  onAddManualSource,
+  onCreateManualProduct,
 }: TablePanelProps) {
   const [selectedProducts, setSelectedProducts] = useState<ResolvedProduct[]>(
     [],
@@ -101,6 +113,8 @@ export function TablePanel({
   const handleClearSelection = useCallback(() => {
     setSelectionKey((k) => k + 1);
   }, []);
+
+  const [isCreating, setIsCreating] = useState(false);
 
   // Pagination
   const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
@@ -173,6 +187,22 @@ export function TablePanel({
           >
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
+          {onCreateManualProduct && (
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-8 gap-1.5 text-xs",
+                isCreating
+                  ? "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+                  : "",
+              )}
+              onClick={() => setIsCreating((v) => !v)}
+            >
+              <Plus className="h-4 w-4" />
+              Add product
+            </Button>
+          )}
         </div>
       </div>
 
@@ -187,6 +217,17 @@ export function TablePanel({
           onSelectionChange={handleSelectionChange}
           selectionKey={selectionKey}
           documentMap={documentMap}
+          onAddManualSource={onAddManualSource}
+          isCreatingManual={isCreating}
+          onCreateManualProduct={
+            onCreateManualProduct
+              ? (fields) => {
+                  onCreateManualProduct(fields);
+                  setIsCreating(false);
+                }
+              : undefined
+          }
+          onCancelCreateManual={() => setIsCreating(false)}
         />
 
         <BulkActionBar

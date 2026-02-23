@@ -10,7 +10,18 @@ import { inboxColumns } from "@/components/table/shared/extractedProductColumns"
 import { TableRow } from "@/components/table/shared/TableRow";
 import { columnLayout } from "@/styles/tableLayout";
 import { RadioIndicator } from "./RadioIndicator";
-import { FileText, EllipsisVertical, Trash2, Eye, MousePointer, Pencil } from "lucide-react";
+import {
+  FileText,
+  EllipsisVertical,
+  Trash2,
+  Eye,
+  MousePointer,
+  Pencil,
+  Plus,
+  FileX,
+} from "lucide-react";
+import { isManualProduct } from "@/utils/productHelpers";
+import { ManualSourceRow } from "./ManualSourceRow";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,9 +40,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDeleteProduct } from "@/hooks/useProducts";
+import { useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
+import { PRODUCT_FIELDS } from "@/config/fields";
+import type { ReductoFieldValue } from "@/types/reducto";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 interface SourceRowsProps {
   resolved: ResolvedProduct;
@@ -49,6 +66,11 @@ interface SourceRowsProps {
   selectedProductId?: string | null;
   /** Map of document ID → document filename for tooltips */
   documentMap?: Map<string, string>;
+  /** Called to add a manual source EP to this merged product */
+  onAddManualSource?: (
+    mergedProductId: string,
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => void;
 }
 
 /** Action cell content — View PDF button + more actions dropdown */
@@ -61,11 +83,21 @@ function SourceActionCell({
   ep: ExtractedProduct;
   resolvedId: string;
   docName?: string;
-  onViewSource?: (ep: ExtractedProduct, resolvedProductId?: string, fieldKey?: ProductFieldKey) => void;
+  onViewSource?: (
+    ep: ExtractedProduct,
+    resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
+  ) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const deleteProduct = useDeleteProduct();
+  const isManualEntry = isManualProduct(ep);
+  const tooltipContent = isManualEntry
+    ? "No source (manual entry)"
+    : docName
+      ? `View source: ${docName}`
+      : "View source";
 
   return (
     <div className="flex items-center gap-0.5">
@@ -105,18 +137,26 @@ function SourceActionCell({
         <TooltipTrigger asChild>
           <button
             type="button"
-            className="flex items-center justify-center size-6 rounded-md cursor-pointer text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className={cn(
+              "flex items-center justify-center size-6 rounded-md cursor-pointer text-gray-400",
+              isManualEntry && "opacity-50 cursor-not-allowed",
+              !isManualEntry &&
+                "hover:text-blue-600 hover:bg-blue-50 transition-all",
+            )}
             onClick={(e) => {
               e.stopPropagation();
               onViewSource?.(ep, resolvedId);
             }}
+            disabled={isManualEntry}
           >
-            <FileText className="size-3.5" />
+            {isManualEntry ? (
+              <FileX className="size-3.5 text-gray-300" />
+            ) : (
+              <FileText className="size-3.5" />
+            )}
           </button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {docName ? `See source: ${docName}` : "See source"}
-        </TooltipContent>
+        <TooltipContent side="bottom">{tooltipContent}</TooltipContent>
       </Tooltip>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -150,9 +190,40 @@ export function SourceRows({
   onViewSource,
   selectedProductId,
   documentMap,
+  onAddManualSource,
 }: SourceRowsProps) {
   const { mergedProduct, extractedProducts } = resolved.source;
   const hasMultipleSources = resolved.sourceCount > 1;
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingEpId, setEditingEpId] = useState<string | null>(null);
+  const updateProduct = useUpdateProduct();
+
+  /** Extract string values from an EP's fields for the edit form */
+  const getEpFieldValues = (
+    ep: ExtractedProduct,
+  ): Partial<Record<ProductFieldKey, string>> => {
+    const values: Partial<Record<ProductFieldKey, string>> = {};
+    for (const field of PRODUCT_FIELDS) {
+      const v = ep[field.key]?.value;
+      if (v) values[field.key] = v;
+    }
+    return values;
+  };
+
+  /** Save edits to an existing manual source EP */
+  const handleEditSave = (
+    epId: string,
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => {
+    const updates: Partial<ExtractedProduct> = {};
+    for (const field of PRODUCT_FIELDS) {
+      const value = fields[field.key]?.trim() ?? "";
+      const fieldValue: ReductoFieldValue<string> = { value, citations: [] };
+      (updates as Record<string, unknown>)[field.key] = fieldValue;
+    }
+    updateProduct.mutate({ productId: epId, updates });
+    setEditingEpId(null);
+  };
 
   // Build source columns: action column (expand+checkbox width), then data cols (minus checkbox).
   const sourceColumns = useMemo<ColumnDef<ExtractedProduct>[]>(() => {
@@ -198,6 +269,22 @@ export function SourceRows({
 
   /** Build per-cell overlay: edit button that appears on hover of the individual cell */
   const renderCellOverlay = (ep: ExtractedProduct, fieldKey: string) => {
+    if (isManualProduct(ep)) {
+      // For manual products, pencil enters inline edit mode
+      return (
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center size-6 rounded-md cursor-pointer text-gray-400 opacity-0 group-hover/cell:opacity-100 hover:text-blue-600 hover:bg-blue-50 transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            setEditingEpId(ep.id);
+          }}
+        >
+          <Pencil className="size-3.5" />
+        </button>
+      );
+    }
+
     return (
       <button
         type="button"
@@ -236,26 +323,65 @@ export function SourceRows({
         const ep = row.original;
         const isSelected = selectedProductId === ep.id;
 
+        // Render inline edit form for manual products in edit mode
+        if (editingEpId === ep.id && isManualProduct(ep)) {
+          return (
+            <ManualSourceRow
+              key={row.id}
+              initialValues={getEpFieldValues(ep)}
+              onSave={(fields) => handleEditSave(ep.id, fields)}
+              onCancel={() => setEditingEpId(null)}
+            />
+          );
+        }
+
         return (
           <TableRow
             key={row.id}
             row={row}
             density="compact"
             onClick={
-              hasMultipleSources
-                ? (fieldKey) => handleCellClick(ep, fieldKey)
-                : undefined
+              isManualProduct(ep)
+                ? () => setEditingEpId(ep.id)
+                : hasMultipleSources
+                  ? (fieldKey) => handleCellClick(ep, fieldKey)
+                  : undefined
             }
             isSelected={isSelected}
             className={cn(
               "bg-gray-50/80 border-b-gray-100",
-              hasMultipleSources && "cursor-pointer",
+              (hasMultipleSources || isManualProduct(ep)) && "cursor-pointer",
             )}
             cellOverlay={(fieldKey) => renderCellOverlay(ep, fieldKey)}
             cellPrefix={(fieldKey) => renderCellPrefix(ep, fieldKey)}
           />
         );
       })}
+
+      {/* Manual source: inline draft row or add button */}
+      {isAdding ? (
+        <ManualSourceRow
+          onSave={(fields) => {
+            onAddManualSource?.(mergedProduct.id, fields);
+            setIsAdding(false);
+          }}
+          onCancel={() => setIsAdding(false)}
+        />
+      ) : (
+        onAddManualSource && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAdding(true);
+            }}
+            className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors border-t border-dashed border-gray-200 cursor-pointer"
+          >
+            <Plus className="size-3.5" />
+            Add source
+          </button>
+        )
+      )}
     </div>
   );
 }

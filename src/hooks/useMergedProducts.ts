@@ -11,7 +11,8 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ProductFieldKey } from "@/types/product";
+import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
+import type { ReductoFieldValue } from "@/types/reducto";
 import * as mergedProductsApi from "@/api/mergedProducts.api";
 import * as productsApi from "@/api/products.api";
 import {
@@ -21,6 +22,7 @@ import {
   buildMergedProduct,
   buildExtractedProductsMap,
 } from "@/utils/mergeProducts";
+import { productKeys } from "./useProducts";
 
 // Query keys for cache management
 export const mergedProductKeys = {
@@ -225,6 +227,127 @@ export const useDeleteMergedProduct = () => {
   return useMutation({
     mutationFn: mergedProductsApi.deleteMergedProduct,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
+    },
+  });
+};
+
+/**
+ * Build an EP data object from user-entered field strings.
+ * Shared by useAddManualSource and useCreateManualProduct.
+ */
+function buildManualEpData(
+  fields: Partial<Record<ProductFieldKey, string>>,
+): Omit<ExtractedProduct, "id" | "reviewed" | "createdAt"> {
+  const epData: Omit<ExtractedProduct, "id" | "reviewed" | "createdAt"> = {
+    productDocumentId: "",
+    documentType: "purchase_order",
+    sourceType: "manual",
+  };
+
+  for (const [key, value] of Object.entries(fields)) {
+    if (value && value.trim()) {
+      const fieldValue: ReductoFieldValue<string> = {
+        value: value.trim(),
+        citations: [],
+      };
+      (epData as Record<string, unknown>)[key] = fieldValue;
+    }
+  }
+
+  return epData;
+}
+
+/**
+ * Add a manual source (ExtractedProduct) to an existing MergedProduct.
+ *
+ * Creates a new EP with sourceType "manual" and empty citations,
+ * then surgically adds it to the target MergedProduct (avoids global rebuild).
+ * Since the manual EP is newest, its non-empty fields auto-win in field selection.
+ */
+export const useAddManualSource = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      mergedProductId,
+      fields,
+    }: {
+      mergedProductId: string;
+      fields: Partial<Record<ProductFieldKey, string>>;
+    }) => {
+      const [createdEp] = await productsApi.createProducts([
+        buildManualEpData(fields),
+      ]);
+
+      // Fetch current state
+      const [mergedProducts, allProducts] = await Promise.all([
+        mergedProductsApi.fetchMergedProducts(),
+        productsApi.fetchProducts(),
+      ]);
+
+      const epMap = buildExtractedProductsMap(allProducts);
+      const target = mergedProducts.find((p) => p.id === mergedProductId);
+      if (!target) {
+        throw new Error(`MergedProduct ${mergedProductId} not found`);
+      }
+
+      // Collect all EPs for this merged product including the new one
+      const epIds = [...target.extractedProductIds, createdEp.id];
+      const eps = epIds
+        .map((id) => epMap.get(id))
+        .filter((ep): ep is ExtractedProduct => ep != null);
+
+      // Rebuild field selections preserving user overrides
+      const rebuilt = buildMergedProduct(eps, target);
+      rebuilt.id = target.id;
+      rebuilt.tag = target.tag;
+
+      // Replace in the list and save
+      const updatedList = mergedProducts.map((p) =>
+        p.id === mergedProductId ? rebuilt : p,
+      );
+
+      return mergedProductsApi.saveMergedProducts(updatedList);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
+    },
+  });
+};
+
+/**
+ * Create a brand-new manual product (merged product with a single manual source).
+ *
+ * Creates a manual EP, wraps it in a new MergedProduct, and appends to the list.
+ */
+export const useCreateManualProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      fields,
+    }: {
+      fields: Partial<Record<ProductFieldKey, string>>;
+    }) => {
+      const [createdEp] = await productsApi.createProducts([
+        buildManualEpData(fields),
+      ]);
+
+      // Build a MergedProduct wrapping the single EP
+      const merged = buildMergedProduct([createdEp]);
+      merged.tag = createdEp.tag?.value ?? `__manual_${createdEp.id}`;
+
+      // Prepend so the new product appears at the top of the list
+      const mergedProducts = await mergedProductsApi.fetchMergedProducts();
+      return mergedProductsApi.saveMergedProducts([
+        merged,
+        ...mergedProducts,
+      ]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
       queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
     },
   });
