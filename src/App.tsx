@@ -7,7 +7,11 @@ import { UploadModal } from "@/components/upload/UploadModal";
 import { ExportModal } from "@/components/export/ExportModal";
 import { useProducts } from "@/hooks/useProducts";
 import { useResolvedProducts } from "@/hooks/useResolvedProducts";
-import { useOverrideMergedField } from "@/hooks/useMergedProducts";
+import {
+  useOverrideMergedField,
+  useAddManualSource,
+  useCreateManualProduct,
+} from "@/hooks/useMergedProducts";
 import { useSidebarFilter } from "@/hooks/useSidebarFilter";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
@@ -21,6 +25,8 @@ function App() {
   const { data: documents = [] } = useDocuments();
   const { data: resolvedProducts = [] } = useResolvedProducts();
   const overrideMergedField = useOverrideMergedField();
+  const addManualSource = useAddManualSource();
+  const createManualProduct = useCreateManualProduct();
 
   // Sidebar filter state — applies to all resolved products
   const sidebar = useSidebarFilter(resolvedProducts);
@@ -89,6 +95,10 @@ function App() {
     if (document?.filename) {
       return getPdfUrl(document.filename);
     }
+    // No PDF source for manual products
+    if (selectedProduct.sourceType === "manual") {
+      return null;
+    }
     return "sample_spec.pdf";
   }, [selectedProduct, documents]);
 
@@ -134,6 +144,19 @@ function App() {
       fieldKey,
       selectedProductId: selectedProductIdForField,
     });
+  };
+
+  const handleAddManualSource = (
+    mergedProductId: string,
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => {
+    addManualSource.mutate({ mergedProductId, fields });
+  };
+
+  const handleCreateManualProduct = (
+    fields: Partial<Record<ProductFieldKey, string>>,
+  ) => {
+    createManualProduct.mutate({ fields });
   };
 
   const handleSheetOpenChange = (open: boolean) => {
@@ -199,6 +222,8 @@ function App() {
               onClearFilter={sidebar.clearFilter}
               documentMap={documentMap}
               onExportSelection={handleExportSelection}
+              onAddManualSource={handleAddManualSource}
+              onCreateManualProduct={handleCreateManualProduct}
             />
           </main>
         </div>

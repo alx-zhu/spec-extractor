@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { DocumentTypeBadge } from "@/components/table/shared/DocumentTypeBadge";
-import { isSpecIdGenerated } from "@/utils/productHelpers";
+import { isSpecIdGenerated, isManualProduct } from "@/utils/productHelpers";
 import { columnLayout } from "@/styles/tableLayout";
 import { getFieldLabel } from "@/config/fields";
 
@@ -52,10 +52,16 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
           >
             {row.original.tag?.value || "—"}
           </Badge>
-          <DocumentTypeBadge
-            type={row.original.documentType}
-            className="shrink-0"
-          />
+          {isManualProduct(row.original) ? (
+            <Badge className="px-1.5 py-0 text-[10px] font-semibold tracking-wide rounded bg-teal-50 text-teal-700 border-teal-200 shrink-0">
+              MAN
+            </Badge>
+          ) : (
+            <DocumentTypeBadge
+              type={row.original.documentType}
+              className="shrink-0"
+            />
+          )}
         </div>
       );
     },

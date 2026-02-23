@@ -4,12 +4,16 @@ import type {
   ReductoFieldValue,
 } from "./reducto";
 
+export type ProductSourceType = "extracted" | "manual";
+
 export interface ExtractedProduct extends ReductoExtractedProduct {
   id: string;
   productDocumentId: string;
   documentType: ProductDocumentType;
   reviewed: boolean;
   createdAt: Date;
+  /** How this product was created. Omitted (or "extracted") for AI-extracted products. */
+  sourceType?: ProductSourceType;
 }
 
 // Type for table columns - only the fields with bboxes
