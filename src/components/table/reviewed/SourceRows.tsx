@@ -345,16 +345,14 @@ export function SourceRows({
             row={row}
             density="compact"
             onClick={
-              isManualProduct(ep)
-                ? () => setEditingEpId(ep.id)
-                : hasMultipleSources
-                  ? (fieldKey) => handleCellClick(ep, fieldKey)
-                  : undefined
+              hasMultipleSources
+                ? (fieldKey) => handleCellClick(ep, fieldKey)
+                : undefined
             }
             isSelected={isSelected}
             className={cn(
               "bg-gray-50/80 border-b-gray-100",
-              (hasMultipleSources || isManualProduct(ep)) && "cursor-pointer",
+              hasMultipleSources && "cursor-pointer",
             )}
             cellOverlay={(fieldKey) => renderCellOverlay(ep, fieldKey)}
             cellPrefix={(fieldKey) => renderCellPrefix(ep, fieldKey)}
