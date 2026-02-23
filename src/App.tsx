@@ -10,6 +10,7 @@ import { useResolvedProducts } from "@/hooks/useResolvedProducts";
 import { useOverrideMergedField } from "@/hooks/useMergedProducts";
 import { useSidebarFilter } from "@/hooks/useSidebarFilter";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
+import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { useDocuments } from "./hooks/useDocuments";
 import { getPdfUrl } from "./utils/storage";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,6 +34,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportSelection, setExportSelection] = useState<string[] | undefined>(
+    undefined,
+  );
 
   // Track which merged group is active for scoped PDF navigation
   const [activeMergedGroupId, setActiveMergedGroupId] = useState<string | null>(
@@ -98,6 +102,16 @@ function App() {
     return resolved.source.extractedProducts;
   }, [activeMergedGroupId, resolvedProducts]);
 
+  const handleExportSelection = (products: ResolvedProduct[]) => {
+    setExportSelection(products.map((p) => p.id));
+    setIsExportModalOpen(true);
+  };
+
+  const handleExportModalChange = (open: boolean) => {
+    setIsExportModalOpen(open);
+    if (!open) setExportSelection(undefined);
+  };
+
   const handleViewSource = (
     ep: ExtractedProduct,
     resolvedProductId?: string,
@@ -147,7 +161,10 @@ function App() {
       <div className="h-screen flex flex-col bg-gray-50">
         <Header
           onUploadClick={() => setIsUploadModalOpen(true)}
-          onExportClick={() => setIsExportModalOpen(true)}
+          onExportClick={() => {
+            setExportSelection(undefined);
+            setIsExportModalOpen(true);
+          }}
           onSidebarToggle={sidebar.toggleSidebar}
           isSidebarOpen={sidebar.isOpen}
         />
@@ -181,6 +198,7 @@ function App() {
               activeFilterLabel={sidebar.activeFilterLabel}
               onClearFilter={sidebar.clearFilter}
               documentMap={documentMap}
+              onExportSelection={handleExportSelection}
             />
           </main>
         </div>
@@ -204,9 +222,10 @@ function App() {
 
         <ExportModal
           open={isExportModalOpen}
-          onOpenChange={setIsExportModalOpen}
+          onOpenChange={handleExportModalChange}
           allProducts={resolvedProducts}
           initialFilter={sidebar.activeFilter}
+          initialSelection={exportSelection}
         />
       </div>
     </TooltipProvider>
