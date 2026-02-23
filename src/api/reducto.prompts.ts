@@ -41,12 +41,12 @@ const PURCHASE_ORDER_SCHEMA = {
           tag: {
             type: "string",
             description:
-              "The architect's project-specific reference code used in drawings and project documentation. This is distinct from the manufacturer's product identifier. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., 'C-01', 'T-04', 'ACC-01', 'B-01', 'EQ1', 'EQ-01'). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use 'N/A'. Each unique tag should appear in ONLY ONE product entry. N/A if not found.",
+              "The architect's project-specific reference code. STRICT FORMAT: Must be CAPITAL LETTERS followed by DIGITS, with optional dash (e.g., 'C-01', 'T-04', 'ACC-01', 'EQ1'). REJECT and use 'N/A' for: pure numbers ('01', '123'), pure letters ('ACC', 'EQ'), lowercase ('c-01'), descriptions ('Chair'), model numbers ('K-28669-9-2MB', '5T524'). Each tag must appear in exactly ONE product entry.",
           },
           specIdNumber: {
             type: "string",
             description:
-              "The CSI Masterformat code (also known as CSI Section Number) that classifies this product's specification section. Follows the structure 'DD SS ss' where DD=division (2 digits), SS=section (2 digits), ss=subsection (2 digits). Common examples: '09 51 00' (Acoustical Ceilings), '08 71 00' (Door Hardware), '26 51 00' (Interior Lighting). Separators may be spaces, periods, dashes, or none. Only extract if the value matches this numeric Masterformat pattern. N/A if not found.",
+              "The CSI Masterformat code (CSI Section Number). Structure: 'DD SS ss' (2-digit division, 2-digit section, 2-digit subsection). Examples: '09 51 00', '08 71 00', '26 51 00'. Separators may be spaces, periods, dashes, or none. Only extract if value matches this numeric pattern. N/A if not found.",
           },
           project: {
             type: "string",
@@ -56,7 +56,7 @@ const PURCHASE_ORDER_SCHEMA = {
           finish: {
             type: "string",
             description:
-              "The finish designation for the architectural product, including color, surface finish, coating, material treatment, fabric grade, or any combination (e.g., 'Brushed Nickel', 'White', 'Powder Coated', 'Fabric - Grade 5 Bernhardt Plush 3550-033 Forest', 'Anthracite', 'Wood Veneer', 'Matte Black'). Include finish codes, color codes, fabric specifications, and material grades if present. N/A if not found.",
+              "The finish designation, including color, surface finish, coating, material treatment, fabric grade, or combination (e.g., 'Brushed Nickel', 'Fabric - Grade 5 Bernhardt Plush 3550-033 Forest', 'Matte Black'). Include finish codes, color codes, fabric specs, material grades if present. MUST come from THIS product's row only. N/A if not found.",
           },
           size: {
             type: "string",
@@ -99,8 +99,50 @@ const PURCHASE_ORDER_SCHEMA = {
  */
 const PURCHASE_ORDER_PROMPT = `EXTRACTION TASK: Extract ALL products from furniture purchase orders into precise, structured data for catalog reference.
 
-CRITICAL RULE - ONE PRODUCT PER TAG:
-When a TAG is present (e.g., "CH-01", "T-04"), extract ONLY ONE product entry for that tag. If a description appears to have multiple components or features, consolidate them into a SINGLE entry. Do NOT create separate product rows for what is clearly one tagged item with multiple descriptive parts.
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #1 — STRICT ROW ISOLATION:
+═══════════════════════════════════════════════════════════════════
+
+Each product entry MUST contain ONLY information from its own table row. NEVER pull data from adjacent rows.
+
+- If a field is empty in a row, output "N/A" — do NOT fill it with data from the row above or below.
+- If a description spans multiple lines WITHIN the same cell, consolidate it. But NEVER merge data across rows.
+- Double-check: for every field you extract, verify it belongs to the SAME row as the tag/identifier for that product.
+
+VIOLATION EXAMPLES (these are WRONG):
+  - Copying the manufacturer from the row above because the current row's manufacturer cell is empty
+  - Using a finish value from a different product's row
+  - Combining descriptions from two separate row entries into one product
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #2 — EXTRACT EVERY SINGLE ROW:
+═══════════════════════════════════════════════════════════════════
+
+You MUST extract EVERY product line item in the document. Missing even one product is a critical error.
+
+- Count the number of product rows in the table. Your output MUST have the same number of product entries.
+- If a row has sparse data (only a tag and description, no manufacturer), still extract it with "N/A" for missing fields.
+- If a row has only a tag and no other data, still extract it.
+- After extraction, verify: "Did I extract every row? Is my product count equal to the row count?"
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #3 — TAG FORMAT ENFORCEMENT:
+═══════════════════════════════════════════════════════════════════
+
+Tags MUST match this pattern: one or more CAPITAL LETTERS, optionally followed by a dash, then one or more DIGITS.
+Valid examples: C-01, T-04, ACC-01, B-01, EQ1, EQ-01, CH-03, WB-1
+Invalid examples that MUST be rejected (use "N/A" instead):
+  - Pure numbers: "01", "123", "4"
+  - Pure letters: "ACC", "EQ", "CHAIR"
+  - Lowercase: "c-01", "eq1"
+  - Descriptions: "Chair", "Table", "Equipment"
+  - Model numbers: "K-28669-9-2MB", "5T524"
+  - Row numbers or line numbers that are just digits
+
+If a value does not match LETTERS+NUMBERS, it is NOT a tag — always output "N/A".
+Each valid tag MUST appear in exactly ONE product entry. If you see the same tag on multiple rows, consolidate into one entry.
+
+═══════════════════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════════════════
 MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
@@ -191,28 +233,32 @@ SECONDARY FIELDS (populate with "N/A" if absent):
 
 EXTRACTION GUIDELINES:
 
-- Extract every line item that is a product - missing products is a critical error.
+- Extract EVERY line item that is a product — missing even one product is a critical error.
+- Count the product rows in the table and verify your output count matches.
 - ONE PRODUCT PER TAG: Each tag must correspond to exactly ONE product entry. Never create multiple rows with the same tag.
+- STRICT ROW ISOLATION: Every field for a product MUST come from that product's own row. Never borrow data from adjacent rows. If a cell is empty, use "N/A".
 - Do not include non-product line items, like services (freight, tax, install).
 - One product entry per line item.
-- Consolidate multi-line descriptions into a single entry per product.
-- Use "N/A" when information cannot be confidently identified - do not guess or infer.
+- Consolidate multi-line descriptions WITHIN a single cell into a single entry per product.
+- Use "N/A" when information cannot be confidently identified — do not guess or infer.
 - For Product Name: if you are not confident in a common, generic name, use "N/A". Do NOT put the full description here.
 - Preserve document order in output.
-- Only extract explicitly stated information.
+- Only extract explicitly stated information from each row.
 
 OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
 
-VALIDATION CHECKLIST:
+VALIDATION CHECKLIST (verify EVERY item before returning):
 
-- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product name like "Dual Monitor Arm" or "Mesh-Back Task Chair"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Chair" or "Light"), add the distinguishing qualifier.
-- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-- Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
-- Tag: Is this the architect's identifier from the TAG column? Does each tag appear only ONCE in the output?
-- Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
-- Finish: Have I captured all finish, color, fabric, and material specifications?
-- Details: Are these critical implementation notes, not information already in other fields?
-- Tag uniqueness: Have I verified that no tag appears in multiple product entries?
+1. ROW COUNT: Does my product count match the number of product rows in the table? If not, I am missing products — go back and find them.
+2. ROW ISOLATION: For each product, did every field value come from that product's own row? If I filled in a blank field with data from a neighboring row, that is WRONG — change it to "N/A".
+3. TAG FORMAT: Does every tag match the pattern LETTERS+NUMBERS (e.g., C-01, EQ1)? If any tag is pure numbers, pure letters, lowercase, or a model number, change it to "N/A".
+4. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
+5. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "Dual Monitor Arm" or "Mesh-Back Task Chair"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description.
+6. Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
+7. Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
+8. Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
+9. Finish: Have I captured all finish, color, fabric, and material specifications?
+10. Details: Are these critical implementation notes, not information already in other fields?
 `;
 
 const SPECIFICATION_SCHEMA = {
@@ -241,7 +287,7 @@ const SPECIFICATION_SCHEMA = {
           tag: {
             type: "string",
             description:
-              "The architect's project-specific reference code if present. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., 'C-01', 'EQ-01', 'ACC-01', 'EQ1'). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use 'N/A'. Usually N/A in specifications (tags typically appear in schedules and drawings). If tags ARE present, each unique tag should appear in ONLY ONE product entry.",
+              "The architect's project-specific reference code if present. STRICT FORMAT: Must be CAPITAL LETTERS followed by DIGITS, with optional dash (e.g., 'C-01', 'EQ-01', 'ACC-01', 'EQ1'). REJECT and use 'N/A' for: pure numbers ('01', '123'), pure letters ('ACC', 'EQ'), lowercase ('c-01'), descriptions ('Chair'), model numbers, section/article numbers ('2.1', '2.3A'). Usually N/A in specifications. Each tag must appear in exactly ONE product entry.",
           },
           specIdNumber: {
             type: "string",
@@ -294,6 +340,35 @@ const SPECIFICATION_SCHEMA = {
 } as const;
 
 const SPECIFICATION_PROMPT = `EXTRACTION TASK: Extract PRIMARY products from CSI 3-part specifications. Extract only products with explicit manufacturer approval sections that belong to the specification's CSI Masterformat section.
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE — TAG FORMAT ENFORCEMENT:
+═══════════════════════════════════════════════════════════════════
+
+If tags appear in the specification, they MUST match this pattern: one or more CAPITAL LETTERS, optionally followed by a dash, then one or more DIGITS.
+Valid examples: C-01, T-04, ACC-01, B-01, EQ1, EQ-01
+Invalid examples that MUST be rejected (use "N/A" instead):
+  - Pure numbers: "01", "123", "4"
+  - Pure letters: "ACC", "EQ", "CHAIR"
+  - Lowercase: "c-01", "eq1"
+  - Descriptions: "Chair", "Table", "Equipment"
+  - Model numbers: "K-28669-9-2MB", "5T524"
+  - Section/article numbers: "2.1", "2.3A"
+
+If a value does not match LETTERS+NUMBERS, it is NOT a tag — always output "N/A".
+Tags are usually N/A in specifications (they typically appear in schedules and drawings).
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE — PRODUCT ISOLATION:
+═══════════════════════════════════════════════════════════════════
+
+Each product entry MUST contain ONLY information from its own specification subsection. NEVER mix data between different product subsections.
+
+- If a specification has multiple product subsections (e.g., 2.3 Locksets, 2.4 Hinges, 2.5 Closers), each is a SEPARATE product.
+- Manufacturers listed under one product subsection MUST NOT be applied to a different product subsection.
+- Performance criteria from one product MUST NOT be attributed to another.
+
+═══════════════════════════════════════════════════════════════════
 
 DOCUMENT CONTEXT:
 You are processing a specification section with a CSI Masterformat code that defines what product category this section specifies (e.g., "09 64 66" = Wood Athletic Flooring, "08 71 00" = Door Hardware, "12 50 00" = Furniture).
@@ -426,16 +501,17 @@ EXTRACTION RULES:
 
 OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
 
-VALIDATION CHECKLIST:
+VALIDATION CHECKLIST (verify EVERY item before returning):
 
-- Manufacturer Approval: Does this product have a dedicated manufacturer approval subsection with specific company names?
-- Masterformat Alignment: Does this product belong to the CSI Masterformat section being specified? Is this product the reason this spec section exists?
-- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Flooring" or "Panel"), add the distinguishing qualifier.
-- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-- Tag Format: If present, does the tag match patterns like "C-01", "T-04", "ACC-01" (not generic text)?
-- Tag Uniqueness: If tags exist, does each appear only once?
-- Spec ID Number: Does this match the section number from the header?
-- Supporting Materials: Have I avoided extracting materials from other Masterformat sections that support but are not the subject of this specification?`;
+1. PRODUCT ISOLATION: For each product, did all extracted data come from that product's own subsection? If I mixed manufacturers or descriptions from different subsections, that is WRONG — fix it.
+2. TAG FORMAT: If tags are present, does every tag match the pattern LETTERS+NUMBERS (e.g., C-01, EQ1)? Section numbers like "2.1" or article numbers are NOT tags — use "N/A". Pure numbers, pure letters, lowercase, or model numbers are NOT tags — use "N/A".
+3. TAG UNIQUENESS: If tags exist, does each appear only once?
+4. Manufacturer Approval: Does this product have a dedicated manufacturer approval subsection with specific company names?
+5. Masterformat Alignment: Does this product belong to the CSI Masterformat section being specified? Is this product the reason this spec section exists?
+6. Item Name: Is this a CONCISE, DESCRIPTIVE product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG.
+7. Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
+8. Spec ID Number: Does this match the section number from the header?
+9. Supporting Materials: Have I avoided extracting materials from other Masterformat sections?`;
 
 /**
  * JSON Schema for drawing schedule extraction
@@ -466,7 +542,7 @@ const DRAWING_SCHEMA = {
           tag: {
             type: "string",
             description:
-              "The schedule's row identifier from the TAG/Type/Mark column. Tags MUST follow the format of capital letters followed by numbers, with an optional dash separator (e.g., 'EQ1', 'EQ-01', 'B-01', 'CPT-02', 'ACT-01', 'LVT-01'). If a value does not match this LETTERS-NUMBERS pattern, it is NOT a valid tag — use 'N/A'. Each unique tag should appear in ONLY ONE product entry. N/A if not found.",
+              "The schedule's row identifier from the TAG/Type/Mark column. STRICT FORMAT: Must be CAPITAL LETTERS followed by DIGITS, with optional dash (e.g., 'EQ1', 'EQ-01', 'B-01', 'CPT-02', 'ACT-01', 'LVT-01'). REJECT and use 'N/A' for: pure numbers ('01', '1', '123'), pure letters ('ACC', 'EQ', 'CARPET'), lowercase ('eq-01'), descriptions ('Chair', 'Table'), model numbers ('K-28669-9-2MB', '5T524', '9923-ML'). Each tag must appear in exactly ONE product entry.",
           },
           specIdNumber: {
             type: "string",
@@ -525,7 +601,54 @@ const DRAWING_SCHEMA = {
 const DRAWING_PROMPT = `EXTRACTION TASK: Extract ALL products from schedule tables embedded in architectural drawings into precise, structured data for catalog reference.
 
 ═══════════════════════════════════════════════════════════════════
-CRITICAL — EXTRACTION SCOPE:
+CRITICAL RULE #1 — STRICT ROW ISOLATION:
+═══════════════════════════════════════════════════════════════════
+
+Each product entry MUST contain ONLY information from its own table row. NEVER pull data from adjacent rows.
+
+- If a field is empty in a row, output "N/A" — do NOT fill it with data from the row above or below.
+- If a cell spans multiple lines WITHIN the same row, consolidate it. But NEVER merge data across different rows.
+- Double-check: for every field you extract, verify it belongs to the SAME row as the tag/identifier for that product.
+- Schedules often have rows that look similar — pay close attention to horizontal grid lines and cell boundaries.
+
+VIOLATION EXAMPLES (these are WRONG):
+  - Copying the manufacturer from the row above because the current row's manufacturer cell is empty
+  - Using a finish value from a different product's row
+  - Combining descriptions from two separate rows into one product
+  - Attributing a size from one row to a different product
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #2 — EXTRACT EVERY SINGLE ROW:
+═══════════════════════════════════════════════════════════════════
+
+You MUST extract EVERY row from EVERY schedule table on the drawing. Missing even one row is a critical error.
+
+- Count the number of data rows in each schedule table (excluding the header row). Your output MUST have the same total number of product entries.
+- If a row has sparse data (e.g., only a tag and description, no manufacturer), STILL extract it with "N/A" for missing fields.
+- If a row has only a tag and no other data, STILL extract it.
+- Rows at the bottom of the schedule are easy to miss — scan to the very last row.
+- If a schedule continues on another part of the drawing or another page, extract ALL rows from ALL parts.
+- After extraction, COUNT your output products and compare to the total rows across all schedules. If they don't match, go back and find the missing rows.
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #3 — TAG FORMAT ENFORCEMENT:
+═══════════════════════════════════════════════════════════════════
+
+Tags MUST match this pattern: one or more CAPITAL LETTERS, optionally followed by a dash, then one or more DIGITS.
+Valid examples: EQ-01, EQ1, B-01, CPT-02, ACT-01, LVT-01, WD-01, P-1, F-03
+Invalid examples that MUST be rejected (use "N/A" instead):
+  - Pure numbers: "01", "123", "4", "1"
+  - Pure letters: "ACC", "EQ", "CARPET"
+  - Lowercase: "eq-01", "cpt1"
+  - Descriptions: "Chair", "Table", "Equipment"
+  - Model numbers: "K-28669-9-2MB", "5T524", "9923-ML"
+  - Row/line numbers that are just sequential digits
+
+If a value does not match LETTERS+NUMBERS, it is NOT a tag — always output "N/A".
+Each valid tag MUST appear in exactly ONE product entry.
+
+═══════════════════════════════════════════════════════════════════
+EXTRACTION SCOPE:
 ═══════════════════════════════════════════════════════════════════
 
 Extract ONLY from tables explicitly labeled as SCHEDULES. These are structured tables with column headers typically found in the margins or dedicated areas of architectural drawing sheets.
@@ -660,12 +783,14 @@ SECONDARY FIELDS (populate with "N/A" if absent):
 
 EXTRACTION GUIDELINES:
 
-- Extract every row from the schedule table that represents a product — missing products is a critical error.
+- Extract EVERY row from EVERY schedule table — missing even one row is a critical error.
+- Count rows in each schedule and verify your output count matches the total.
 - ONE PRODUCT PER TAG: Each tag must correspond to exactly ONE product entry. Never create multiple rows with the same tag.
+- STRICT ROW ISOLATION: Every field for a product MUST come from that product's own row. Never borrow data from adjacent rows. If a cell is empty, use "N/A".
 - Extract ALL rows, even those with incomplete data. Use "N/A" for missing fields but preserve whatever information IS present.
 - Do not extract non-product items like services, general notes, or legend entries.
 - One product entry per schedule row.
-- Consolidate multi-line descriptions within a single row into a single entry.
+- Consolidate multi-line descriptions WITHIN a single row into a single entry.
 - Use "N/A" when information cannot be confidently identified — do not guess or infer.
 - For Product Name: if you are not confident in a common, generic name, use "N/A". Do NOT put the full description here.
 - Preserve schedule order in output.
@@ -673,18 +798,19 @@ EXTRACTION GUIDELINES:
 
 OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
 
-VALIDATION CHECKLIST:
+VALIDATION CHECKLIST (verify EVERY item before returning):
 
-- Schedule Source: Did I extract ONLY from tables labeled as schedules? Did I ignore elevations, plans, legends, and other non-schedule content?
-- Item Name (Product Name): Is this a CONCISE, DESCRIPTIVE product name like "Pull Down Faucet" or "Carpet Tile"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description. If it is too vague (e.g., just "Faucet" or "Tile"), add the distinguishing qualifier.
-- Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-- Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
-- Tag: Is this the schedule row identifier? Does each tag appear only ONCE in the output?
-- Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
-- Finish: Have I captured all finish, color, fabric, and material specifications from the schedule?
-- Details: Have I consolidated supplementary columns (provided by, contact, comments, notes) here?
-- Tag uniqueness: Have I verified that no tag appears in multiple product entries?
-- Completeness: Have I extracted ALL rows from ALL schedule tables on the drawing?`;
+1. ROW COUNT: Count the total data rows across ALL schedule tables on the drawing. Does my product count match? If not, I am missing products — go back and find them. Pay special attention to rows at the bottom of schedules and schedules that continue on other parts of the drawing.
+2. ROW ISOLATION: For each product, did every field value come from that product's own row? If I filled a blank field with data from a neighboring row, that is WRONG — change it to "N/A".
+3. TAG FORMAT: Does every tag match the pattern LETTERS+NUMBERS (e.g., EQ-01, CPT-02, B-01)? If any tag is pure numbers, pure letters, lowercase, or a model number, change it to "N/A".
+4. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
+5. Schedule Source: Did I extract ONLY from tables labeled as schedules? Did I ignore elevations, plans, legends, and other non-schedule content?
+6. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "Pull Down Faucet" or "Carpet Tile"? If it contains a model name, brand, or detailed feature lists, it is WRONG.
+7. Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
+8. Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
+9. Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
+10. Finish: Have I captured all finish, color, fabric, and material specifications from the schedule?
+11. Details: Have I consolidated supplementary columns (provided by, contact, comments, notes) here?`;
 
 /**
  * Extraction configs per document type.

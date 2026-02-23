@@ -36,7 +36,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [generateSpecIds, setGenerateSpecIds] = useState(false);
+  const [generateSpecIds, setGenerateSpecIds] = useState(true);
 
   const createDocument = useCreateDocument();
   const updateDocumentStatus = useUpdateDocumentStatus();
