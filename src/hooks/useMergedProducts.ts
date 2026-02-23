@@ -99,8 +99,10 @@ export const useMergeTwoProducts = () => {
       const target = mergedProducts.find((p) => p.id === targetId);
       const source = mergedProducts.find((p) => p.id === sourceId);
 
-      if (!target) throw new Error(`Target MergedProduct ${targetId} not found`);
-      if (!source) throw new Error(`Source MergedProduct ${sourceId} not found`);
+      if (!target)
+        throw new Error(`Target MergedProduct ${targetId} not found`);
+      if (!source)
+        throw new Error(`Source MergedProduct ${sourceId} not found`);
 
       const extractedMap = buildExtractedProductsMap(extractedProducts);
       const merged = mergeTwoProducts(target, source, extractedMap);
@@ -141,7 +143,9 @@ export const useUnmergeProduct = () => {
         productsApi.fetchProducts(),
       ]);
 
-      const mergedProduct = mergedProducts.find((p) => p.id === mergedProductId);
+      const mergedProduct = mergedProducts.find(
+        (p) => p.id === mergedProductId,
+      );
       if (!mergedProduct) {
         throw new Error(`MergedProduct ${mergedProductId} not found`);
       }
@@ -162,7 +166,9 @@ export const useUnmergeProduct = () => {
       }
 
       // Update the list
-      let updatedList = mergedProducts.filter((p) => p.id !== mergedProductId);
+      const updatedList = mergedProducts.filter(
+        (p) => p.id !== mergedProductId,
+      );
 
       // Add back the original (updated) if it still has products
       if (updatedMerged) {

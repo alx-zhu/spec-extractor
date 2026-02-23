@@ -27,9 +27,12 @@ export interface SidebarDivision {
   sections: SidebarSection[];
 }
 
-export function useSidebarFilter(products: ResolvedProduct[]) {
+export function useSidebarFilter(
+  products: ResolvedProduct[],
+  initialFilter: SidebarFilter = null,
+) {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<SidebarFilter>(null);
+  const [activeFilter, setActiveFilter] = useState<SidebarFilter>(initialFilter);
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
   const clearFilter = useCallback(() => setActiveFilter(null), []);

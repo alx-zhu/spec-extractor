@@ -125,7 +125,7 @@ export function ReviewedTable({
                   "transition-[border-color,box-shadow,margin] duration-200 ease-out overflow-hidden",
                   isExpanded
                     ? "border border-gray-800 shadow-md"
-                    : "border border-transparent",
+                    : "border-none",
                 )}
               >
                 {/* Main resolved row — transforms to dark group header when expanded */}
