@@ -122,7 +122,17 @@ export function ReviewedTable({
       <div className="min-w-min">
         <TableHeader headerGroups={table.getHeaderGroups()} />
 
-        {table.getRowModel().rows.length === 0 ? (
+        {/* Inline manual product creation — scrolls with the table */}
+        {isCreatingManual && onCreateManualProduct && onCancelCreateManual && (
+          <ManualSourceRow
+            onSave={(fields) => {
+              onCreateManualProduct(fields);
+            }}
+            onCancel={onCancelCreateManual}
+          />
+        )}
+
+        {table.getRowModel().rows.length === 0 && !isCreatingManual ? (
           <div className="p-8 text-center text-gray-400 text-sm">
             No products found.
           </div>
@@ -192,16 +202,6 @@ export function ReviewedTable({
               );
             })}
           </>
-        )}
-
-        {/* Inline manual product creation — scrolls with the table */}
-        {isCreatingManual && onCreateManualProduct && onCancelCreateManual && (
-          <ManualSourceRow
-            onSave={(fields) => {
-              onCreateManualProduct(fields);
-            }}
-            onCancel={onCancelCreateManual}
-          />
         )}
       </div>
     </div>

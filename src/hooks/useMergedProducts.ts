@@ -339,11 +339,11 @@ export const useCreateManualProduct = () => {
       const merged = buildMergedProduct([createdEp]);
       merged.tag = createdEp.tag?.value ?? `__manual_${createdEp.id}`;
 
-      // Append to existing merged products
+      // Prepend so the new product appears at the top of the list
       const mergedProducts = await mergedProductsApi.fetchMergedProducts();
       return mergedProductsApi.saveMergedProducts([
-        ...mergedProducts,
         merged,
+        ...mergedProducts,
       ]);
     },
     onSuccess: () => {

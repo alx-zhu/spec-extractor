@@ -18,6 +18,7 @@ import {
   MousePointer,
   Pencil,
   Plus,
+  FileX,
 } from "lucide-react";
 import { isManualProduct } from "@/utils/productHelpers";
 import { ManualSourceRow } from "./ManualSourceRow";
@@ -148,7 +149,11 @@ function SourceActionCell({
             }}
             disabled={isManualEntry}
           >
-            <FileText className="size-3.5" />
+            {isManualEntry ? (
+              <FileX className="size-3.5 text-gray-300" />
+            ) : (
+              <FileText className="size-3.5" />
+            )}
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom">{tooltipContent}</TooltipContent>
