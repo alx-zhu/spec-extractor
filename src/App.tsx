@@ -160,9 +160,11 @@ function App() {
             activeFilter={sidebar.activeFilter}
             expandedDivision={sidebar.expandedDivision}
             noSpecIdCount={sidebar.noSpecIdCount}
+            totalCount={resolvedProducts.length}
             onDivisionClick={sidebar.selectDivision}
             onSectionClick={sidebar.selectSection}
             onNoSpecIdClick={sidebar.selectNoSpecId}
+            onClearFilter={sidebar.clearFilter}
           />
 
           <main className="flex-1 flex overflow-hidden p-8">
@@ -203,7 +205,8 @@ function App() {
         <ExportModal
           open={isExportModalOpen}
           onOpenChange={setIsExportModalOpen}
-          products={resolvedProducts}
+          allProducts={resolvedProducts}
+          initialFilter={sidebar.activeFilter}
         />
       </div>
     </TooltipProvider>
