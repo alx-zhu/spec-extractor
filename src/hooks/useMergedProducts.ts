@@ -233,6 +233,84 @@ export const useDeleteMergedProduct = () => {
 };
 
 /**
+ * Delete multiple merged products by IDs
+ */
+export const useDeleteMergedProducts = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: mergedProductsApi.deleteMergedProducts,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
+    },
+  });
+};
+
+/**
+ * Delete a single source (ExtractedProduct) from a MergedProduct.
+ *
+ * Deletes the EP, then updates the parent MergedProduct:
+ * - If the MP has no remaining EPs, it is deleted entirely.
+ * - Otherwise, field selections are rebuilt from remaining EPs.
+ */
+export const useDeleteSourceFromMergedProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      mergedProductId,
+      extractedProductId,
+    }: {
+      mergedProductId: string;
+      extractedProductId: string;
+    }) => {
+      // Delete the EP first
+      await productsApi.deleteProduct(extractedProductId);
+
+      // Fetch current state after EP deletion
+      const [mergedProducts, allProducts] = await Promise.all([
+        mergedProductsApi.fetchMergedProducts(),
+        productsApi.fetchProducts(),
+      ]);
+
+      const mp = mergedProducts.find((p) => p.id === mergedProductId);
+      if (!mp) return;
+
+      const remainingIds = mp.extractedProductIds.filter(
+        (id) => id !== extractedProductId,
+      );
+
+      if (remainingIds.length === 0) {
+        // MP is now empty — delete it
+        const updatedList = mergedProducts.filter(
+          (p) => p.id !== mergedProductId,
+        );
+        return mergedProductsApi.saveMergedProducts(updatedList);
+      }
+
+      // Rebuild the MP with remaining EPs, preserving user overrides
+      const epMap = buildExtractedProductsMap(allProducts);
+      const remainingEps = remainingIds
+        .map((id) => epMap.get(id))
+        .filter((ep): ep is ExtractedProduct => ep != null);
+
+      const rebuilt = buildMergedProduct(remainingEps, mp);
+      rebuilt.id = mp.id;
+      rebuilt.tag = mp.tag;
+
+      const updatedList = mergedProducts.map((p) =>
+        p.id === mergedProductId ? rebuilt : p,
+      );
+      return mergedProductsApi.saveMergedProducts(updatedList);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
+    },
+  });
+};
+
+/**
  * Build an EP data object from user-entered field strings.
  * Shared by useAddManualSource and useCreateManualProduct.
  */

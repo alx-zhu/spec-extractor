@@ -161,3 +161,28 @@ export const deleteMergedProduct = async (
 
   return simulateApiCall(undefined);
 };
+
+/**
+ * Delete multiple merged products by IDs
+ *
+ * Future Supabase implementation:
+ * ```ts
+ * const { error } = await supabase
+ *   .from('merged_products')
+ *   .delete()
+ *   .in('id', mergedProductIds);
+ * if (error) throw error;
+ * ```
+ */
+export const deleteMergedProducts = async (
+  mergedProductIds: string[],
+): Promise<void> => {
+  const products = getMergedProductsFromStorage();
+  const idSet = new Set(mergedProductIds);
+  const updatedProducts = products.filter(
+    (product) => !idSet.has(product.id),
+  );
+  saveMergedProductsToStorage(updatedProducts);
+
+  return simulateApiCall(undefined);
+};

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReviewedTable } from "@/components/table/reviewed/ReviewedTable";
 import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
+import { SelectAllBanner } from "@/components/table/shared/SelectAllBanner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -105,6 +106,7 @@ export function TablePanel({
     [],
   );
   const [selectionKey, setSelectionKey] = useState(0);
+  const [selectAllMode, setSelectAllMode] = useState(false);
 
   const handleSelectionChange = useCallback((products: ResolvedProduct[]) => {
     setSelectedProducts(products);
@@ -112,6 +114,7 @@ export function TablePanel({
 
   const handleClearSelection = useCallback(() => {
     setSelectionKey((k) => k + 1);
+    setSelectAllMode(false);
   }, []);
 
   const [isCreating, setIsCreating] = useState(false);
@@ -122,9 +125,10 @@ export function TablePanel({
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(resolvedProducts.length / pageSize));
 
-  // Reset to page 1 when the data or page size changes
+  // Reset to page 1 and exit select-all when data or page size changes
   useEffect(() => {
     setCurrentPage(1);
+    setSelectAllMode(false);
   }, [resolvedProducts.length, pageSize]);
 
   // Clamp page if it exceeds total (e.g. after filter narrows results)
@@ -138,6 +142,25 @@ export function TablePanel({
   const rangeStart =
     resolvedProducts.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const rangeEnd = Math.min(safePage * pageSize, resolvedProducts.length);
+
+  // Show the "select all" banner when all page rows are selected and there are more products beyond this page
+  const isAllPageSelected =
+    selectedProducts.length > 0 &&
+    selectedProducts.length === paginatedProducts.length;
+  const showSelectAllBanner =
+    isAllPageSelected && resolvedProducts.length > paginatedProducts.length;
+
+  // Exit select-all mode when user deselects a row
+  useEffect(() => {
+    if (selectAllMode && !isAllPageSelected) {
+      setSelectAllMode(false);
+    }
+  }, [selectAllMode, isAllPageSelected]);
+
+  // The products to pass to the bulk action bar: all products when in select-all mode, otherwise just the page selection
+  const effectiveSelectedProducts = selectAllMode
+    ? resolvedProducts
+    : selectedProducts;
 
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
@@ -206,6 +229,17 @@ export function TablePanel({
         </div>
       </div>
 
+      {/* Select-all banner — pinned above the table, outside scroll */}
+      {showSelectAllBanner && (
+        <SelectAllBanner
+          selectAllMode={selectAllMode}
+          pageCount={paginatedProducts.length}
+          totalCount={resolvedProducts.length}
+          onSelectAll={() => setSelectAllMode(true)}
+          onClearSelectAll={handleClearSelection}
+        />
+      )}
+
       {/* Table + Bulk Action Bar container */}
       <div className="flex-1 overflow-hidden relative">
         <ReviewedTable
@@ -231,7 +265,7 @@ export function TablePanel({
         />
 
         <BulkActionBar
-          selectedProducts={selectedProducts}
+          selectedProducts={effectiveSelectedProducts}
           onClearSelection={handleClearSelection}
           onExport={onExportSelection ?? (() => {})}
         />

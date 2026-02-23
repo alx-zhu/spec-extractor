@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { useDeleteProducts } from "@/hooks/useProducts";
 import { useMergeTwoProducts } from "@/hooks/useMergedProducts";
+import { useDeleteMergedProducts } from "@/hooks/useMergedProducts";
 
 interface BulkActionBarProps {
   selectedProducts: ResolvedProduct[];
@@ -29,6 +30,11 @@ function getExtractedProductIds(products: ResolvedProduct[]): string[] {
   );
 }
 
+/** Extract MergedProduct IDs from a set of ResolvedProducts */
+function getMergedProductIds(products: ResolvedProduct[]): string[] {
+  return products.map((rp) => rp.source.mergedProduct.id);
+}
+
 export function BulkActionBar({
   selectedProducts,
   onClearSelection,
@@ -38,16 +44,24 @@ export function BulkActionBar({
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
   const deleteProducts = useDeleteProducts();
   const mergeTwoProducts = useMergeTwoProducts();
+  const deleteMergedProducts = useDeleteMergedProducts();
 
   const count = selectedProducts.length;
+  const epCount = getExtractedProductIds(selectedProducts).length;
   const isVisible = count > 0;
 
   const handleDelete = () => {
-    const ids = getExtractedProductIds(selectedProducts);
-    deleteProducts.mutate(ids, {
+    const epIds = getExtractedProductIds(selectedProducts);
+    const mpIds = getMergedProductIds(selectedProducts);
+
+    deleteProducts.mutate(epIds, {
       onSuccess: () => {
-        onClearSelection();
-        setDeleteDialogOpen(false);
+        deleteMergedProducts.mutate(mpIds, {
+          onSuccess: () => {
+            onClearSelection();
+            setDeleteDialogOpen(false);
+          },
+        });
       },
     });
   };
@@ -84,9 +98,7 @@ export function BulkActionBar({
   // Readable product names for the merge confirmation dialog
   const productNames = selectedProducts.map(
     (rp) =>
-      rp.fields.itemName?.value ||
-      rp.fields.tag?.value ||
-      "Unnamed product",
+      rp.fields.itemName?.value || rp.fields.tag?.value || "Unnamed product",
   );
 
   return (
@@ -165,8 +177,8 @@ export function BulkActionBar({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {count === 1
-                ? "Are you sure you want to delete this product? This action cannot be undone."
-                : `Are you sure you want to delete these ${count} products? This action cannot be undone.`}
+                ? `Are you sure you want to delete this product and its ${epCount === 1 ? "1 source" : `${epCount} sources`}? This action cannot be undone.`
+                : `Are you sure you want to delete these ${count} products and their ${epCount} ${epCount === 1 ? "source" : "sources"}? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -188,9 +200,7 @@ export function BulkActionBar({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Merge {count} products into one
-            </AlertDialogTitle>
+            <AlertDialogTitle>Merge {count} products into one</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3">
                 <p>

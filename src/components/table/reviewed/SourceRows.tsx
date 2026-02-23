@@ -40,7 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDeleteProduct, useUpdateProduct } from "@/hooks/useProducts";
+import { useUpdateProduct } from "@/hooks/useProducts";
+import { useDeleteSourceFromMergedProduct } from "@/hooks/useMergedProducts";
 import { PRODUCT_FIELDS } from "@/config/fields";
 import type { ReductoFieldValue } from "@/types/reducto";
 import { cn } from "@/lib/utils";
@@ -77,11 +78,13 @@ interface SourceRowsProps {
 function SourceActionCell({
   ep,
   resolvedId,
+  mergedProductId,
   docName,
   onViewSource,
 }: {
   ep: ExtractedProduct;
   resolvedId: string;
+  mergedProductId: string;
   docName?: string;
   onViewSource?: (
     ep: ExtractedProduct,
@@ -91,7 +94,7 @@ function SourceActionCell({
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const deleteProduct = useDeleteProduct();
+  const deleteSource = useDeleteSourceFromMergedProduct();
   const isManualEntry = isManualProduct(ep);
   const tooltipContent = isManualEntry
     ? "No source (manual entry)"
@@ -173,7 +176,7 @@ function SourceActionCell({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={() => deleteProduct.mutate(ep.id)}
+              onClick={() => deleteSource.mutate({ mergedProductId, extractedProductId: ep.id })}
             >
               Delete
             </AlertDialogAction>
@@ -244,6 +247,7 @@ export function SourceRows({
           <SourceActionCell
             ep={ep}
             resolvedId={resolved.id}
+            mergedProductId={resolved.source.mergedProduct.id}
             docName={docName}
             onViewSource={onViewSource}
           />
