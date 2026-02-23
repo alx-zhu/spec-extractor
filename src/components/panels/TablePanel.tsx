@@ -172,7 +172,7 @@ export function TablePanel({
               placeholder="Search by name, tag..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9 w-48 h-8 text-sm bg-gray-50 border-gray-200"
+              className="pl-9 w-80 h-8 text-sm bg-gray-50 border-gray-200"
             />
           </div>
           <Button
