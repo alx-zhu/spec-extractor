@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Merge, Trash2, X } from "lucide-react";
+import { Download, Loader2, Merge, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -11,17 +11,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { useDeleteProducts } from "@/hooks/useProducts";
+import { useMergeTwoProducts } from "@/hooks/useMergedProducts";
 
 interface BulkActionBarProps {
   selectedProducts: ResolvedProduct[];
@@ -44,6 +37,7 @@ export function BulkActionBar({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
   const deleteProducts = useDeleteProducts();
+  const mergeTwoProducts = useMergeTwoProducts();
 
   const count = selectedProducts.length;
   const isVisible = count > 0;
@@ -57,6 +51,43 @@ export function BulkActionBar({
       },
     });
   };
+
+  /**
+   * Merge N products by chaining pairwise merges.
+   * First selected product is the target; each subsequent product is merged into it.
+   * useMergeTwoProducts re-fetches from storage each call, so chaining is safe.
+   *
+   * We call e.preventDefault() to stop Radix's AlertDialogAction from
+   * auto-closing the dialog before the async work completes.
+   */
+  const handleMerge = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (count < 2) return;
+
+    const mergedProductIds = selectedProducts.map(
+      (rp) => rp.source.mergedProduct.id,
+    );
+    const targetId = mergedProductIds[0];
+
+    // Sequentially merge each source into the target
+    for (let i = 1; i < mergedProductIds.length; i++) {
+      await mergeTwoProducts.mutateAsync({
+        targetId,
+        sourceId: mergedProductIds[i],
+      });
+    }
+
+    onClearSelection();
+    setMergeDialogOpen(false);
+  };
+
+  // Readable product names for the merge confirmation dialog
+  const productNames = selectedProducts.map(
+    (rp) =>
+      rp.fields.itemName?.value ||
+      rp.fields.tag?.value ||
+      "Unnamed product",
+  );
 
   return (
     <>
@@ -147,23 +178,59 @@ export function BulkActionBar({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Merge placeholder */}
-      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Merge {count} products</DialogTitle>
-            <DialogDescription>
-              Product merging is not yet available. This feature will allow you
-              to combine duplicate products into a single entry.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMergeDialogOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Merge confirmation */}
+      <AlertDialog
+        open={mergeDialogOpen}
+        onOpenChange={(open) => {
+          // Don't allow closing while merge is in progress
+          if (!mergeTwoProducts.isPending) setMergeDialogOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Merge {count} products into one
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  The following products will be combined into a single entry.
+                  All source data will be preserved and you can switch between
+                  sources for each field afterwards.
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                  {productNames.map((name, i) => (
+                    <li key={selectedProducts[i].id} className="truncate">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={mergeTwoProducts.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleMerge}
+              disabled={mergeTwoProducts.isPending}
+            >
+              {mergeTwoProducts.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Merging…
+                </>
+              ) : (
+                <>
+                  <Merge className="size-4" />
+                  Merge {count} products
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

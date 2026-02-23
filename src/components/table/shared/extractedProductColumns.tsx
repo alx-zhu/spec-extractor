@@ -48,7 +48,7 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
         <div className="flex items-center gap-1.5 min-w-0 w-full">
           <Badge
             variant="secondary"
-            className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200 shrink-0"
+            className="rounded font-mono text-xs font-medium text-gray-700 bg-gray-200 min-w-0 truncate"
           >
             {row.original.tag?.value || "—"}
           </Badge>

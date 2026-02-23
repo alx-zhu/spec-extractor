@@ -10,7 +10,14 @@ import { inboxColumns } from "@/components/table/shared/extractedProductColumns"
 import { TableRow } from "@/components/table/shared/TableRow";
 import { columnLayout } from "@/styles/tableLayout";
 import { RadioIndicator } from "./RadioIndicator";
-import { FileText, EllipsisVertical, Trash2, Eye, MousePointer, Pencil } from "lucide-react";
+import {
+  FileText,
+  EllipsisVertical,
+  Trash2,
+  Eye,
+  MousePointer,
+  Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,7 +38,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useDeleteProduct } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 interface SourceRowsProps {
   resolved: ResolvedProduct;
@@ -61,7 +72,11 @@ function SourceActionCell({
   ep: ExtractedProduct;
   resolvedId: string;
   docName?: string;
-  onViewSource?: (ep: ExtractedProduct, resolvedProductId?: string, fieldKey?: ProductFieldKey) => void;
+  onViewSource?: (
+    ep: ExtractedProduct,
+    resolvedProductId?: string,
+    fieldKey?: ProductFieldKey,
+  ) => void;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

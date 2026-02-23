@@ -3,7 +3,7 @@ import { hoverOverlay } from "@/styles/layers";
 
 // Body cell variants.
 export const cellVariants = cva(
-  "px-3 flex items-center border-r last:border-r-0 box-border group relative",
+  "px-3 flex items-center border-r last:border-r-0 box-border group relative overflow-hidden",
   {
     variants: {
       column: {
