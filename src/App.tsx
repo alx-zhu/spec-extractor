@@ -224,6 +224,7 @@ function App() {
               onExportSelection={handleExportSelection}
               onAddManualSource={handleAddManualSource}
               onCreateManualProduct={handleCreateManualProduct}
+              onUploadClick={() => setIsUploadModalOpen(true)}
             />
           </main>
         </div>

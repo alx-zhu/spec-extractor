@@ -50,6 +50,8 @@ interface TablePanelProps {
   onCreateManualProduct?: (
     fields: Partial<Record<ProductFieldKey, string>>,
   ) => void;
+  /** Called to open the upload modal from the empty state */
+  onUploadClick?: () => void;
 }
 
 export function TablePanel({
@@ -67,6 +69,7 @@ export function TablePanel({
   onExportSelection,
   onAddManualSource,
   onCreateManualProduct,
+  onUploadClick,
 }: TablePanelProps) {
   const [selectedProducts, setSelectedProducts] = useState<ResolvedProduct[]>(
     [],
@@ -184,6 +187,7 @@ export function TablePanel({
               : undefined
           }
           onCancelCreateManual={() => setIsCreating(false)}
+          onUploadClick={onUploadClick}
         />
 
         <BulkActionBar
