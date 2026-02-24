@@ -7,9 +7,10 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import type { ExtractedProduct, ProductFieldKey } from "@/types/product";
 import type { ResolvedProduct } from "@/types/resolvedProduct";
+import type { SortConfig } from "@/components/table/shared/sorting";
 import { resolvedColumns } from "./resolvedColumns";
 import { TableRow } from "@/components/table/shared/TableRow";
-import { TableHeader } from "@/components/table/shared/TableHeader";
+import { ColumnHeaders } from "@/components/table/shared/ColumnHeaders";
 import { SourceRows } from "./SourceRows";
 import { ManualSourceRow } from "./ManualSourceRow";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,10 @@ interface ReviewedTableProps {
     mergedProductId: string,
     fields: Partial<Record<ProductFieldKey, string>>,
   ) => void;
+  /** Current sort configuration for header indicators */
+  sortConfig?: SortConfig;
+  /** Called when a column header is clicked to change sort */
+  onSortChange?: (config: SortConfig) => void;
   /** Whether the inline manual-product creation row is visible */
   isCreatingManual?: boolean;
   /** Called to save the new manual product */
@@ -71,6 +76,8 @@ export function ReviewedTable({
   selectionKey,
   documentMap,
   onAddManualSource,
+  sortConfig,
+  onSortChange,
   isCreatingManual,
   onCreateManualProduct,
   onCancelCreateManual,
@@ -120,7 +127,11 @@ export function ReviewedTable({
   return (
     <div className="h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
       <div className="min-w-min">
-        <TableHeader headerGroups={table.getHeaderGroups()} />
+        <ColumnHeaders
+          headerGroups={table.getHeaderGroups()}
+          sortConfig={sortConfig}
+          onSortChange={onSortChange}
+        />
 
         {/* Inline manual product creation — scrolls with the table */}
         {isCreatingManual && onCreateManualProduct && onCancelCreateManual && (

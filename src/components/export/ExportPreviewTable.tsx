@@ -6,7 +6,7 @@ import {
   type RowSelectionState,
 } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { TableHeader } from "@/components/table/shared/TableHeader";
+import { ColumnHeaders } from "@/components/table/shared/ColumnHeaders";
 import { TableRow } from "@/components/table/shared/TableRow";
 import { columnLayout } from "@/styles/tableLayout";
 import type { ProductFieldKey } from "@/types/product";
@@ -93,7 +93,7 @@ export function ExportPreviewTable({
   return (
     <div className="h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
       <div className="min-w-min">
-        <TableHeader headerGroups={table.getHeaderGroups()} />
+        <ColumnHeaders headerGroups={table.getHeaderGroups()} />
 
         {table.getRowModel().rows.length === 0 ? (
           <div className="p-8 text-center text-gray-400 text-sm">
