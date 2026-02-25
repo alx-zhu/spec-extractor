@@ -201,7 +201,6 @@ export function SourceRows({
   onAddManualSource,
 }: SourceRowsProps) {
   const { mergedProduct, extractedProducts } = resolved.source;
-  const hasMultipleSources = resolved.sourceCount > 1;
   const [isAdding, setIsAdding] = useState(false);
   const [editingEpId, setEditingEpId] = useState<string | null>(null);
   const updateProduct = useUpdateProduct();
@@ -265,15 +264,10 @@ export function SourceRows({
 
   /** Handle cell click on a source row — triggers field override */
   const handleCellClick = (ep: ExtractedProduct, fieldKey?: string) => {
-    if (!fieldKey || !hasMultipleSources) return;
-
+    if (!fieldKey) return;
     const key = fieldKey as ProductFieldKey;
-    const currentSelection = mergedProduct.fieldSelections[key];
-
-    // Only override if this EP isn't already the selected source for this field
-    if (currentSelection?.selectedProductId !== ep.id) {
-      onOverrideField?.(mergedProduct.id, key, ep.id);
-    }
+    if (mergedProduct.fieldSelections[key].selectedProductId === ep.id) return;
+    onOverrideField?.(mergedProduct.id, key, ep.id);
   };
 
   /** Build per-cell overlay: edit button that appears on hover of the individual cell */
@@ -310,12 +304,9 @@ export function SourceRows({
 
   /** Build per-cell radio prefix: inline radio indicator before cell content */
   const renderCellPrefix = (ep: ExtractedProduct, fieldKey: string) => {
-    // Only show radio indicators for products with multiple sources
-    if (!hasMultipleSources) return null;
-
     const key = fieldKey as ProductFieldKey;
     const isFieldSource =
-      mergedProduct.fieldSelections[key]?.selectedProductId === ep.id;
+      mergedProduct.fieldSelections[key].selectedProductId === ep.id;
 
     return <RadioIndicator selected={isFieldSource} />;
   };
@@ -349,16 +340,9 @@ export function SourceRows({
             key={row.id}
             row={row}
             density="compact"
-            onClick={
-              hasMultipleSources
-                ? (fieldKey) => handleCellClick(ep, fieldKey)
-                : undefined
-            }
+            onClick={(fieldKey) => handleCellClick(ep, fieldKey)}
             isSelected={isSelected}
-            className={cn(
-              "bg-gray-50/80 border-b-gray-100",
-              hasMultipleSources && "cursor-pointer",
-            )}
+            className="bg-gray-50/80 border-b-gray-100 cursor-pointer"
             cellOverlay={(fieldKey) => renderCellOverlay(ep, fieldKey)}
             cellPrefix={(fieldKey) => renderCellPrefix(ep, fieldKey)}
           />

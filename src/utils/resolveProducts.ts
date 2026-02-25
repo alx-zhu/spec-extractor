@@ -38,8 +38,6 @@ export function resolveMergedProduct(
 
   for (const key of ALL_FIELD_KEYS) {
     const selection = merged.fieldSelections[key];
-    if (!selection) continue;
-
     const sourceProduct = extractedProductsMap.get(selection.selectedProductId);
     if (!sourceProduct) continue;
 

@@ -87,7 +87,7 @@ function pickDefaultSource(
 function resolveFieldSelections(
   products: ExtractedProduct[],
   existingMerged?: MergedProduct,
-): Partial<Record<ProductFieldKey, MergedFieldSelection>> {
+): Record<ProductFieldKey, MergedFieldSelection> {
   const selections: Partial<Record<ProductFieldKey, MergedFieldSelection>> = {};
   const productIdSet = new Set(products.map((p) => p.id));
 
@@ -103,18 +103,17 @@ function resolveFieldSelections(
       continue;
     }
 
-    // Auto-resolve: pick latest non-empty value
-    const selectedId = pickDefaultSource(products, fieldKey);
-    if (selectedId) {
-      selections[fieldKey] = {
-        selectedProductId: selectedId,
-        isUserOverride: false,
-      };
-    }
-    // If no source has a value for this field, omit from selections
+    // Auto-resolve: pick latest non-empty value, fall back to newest product
+    const selectedId =
+      pickDefaultSource(products, fieldKey) ??
+      products[products.length - 1].id;
+    selections[fieldKey] = {
+      selectedProductId: selectedId,
+      isUserOverride: false,
+    };
   }
 
-  return selections;
+  return selections as Record<ProductFieldKey, MergedFieldSelection>;
 }
 
 /**
@@ -143,13 +142,14 @@ export function buildMergedProduct(
   existingMerged?: MergedProduct,
 ): MergedProduct {
   if (extractedProducts.length === 0) {
-    throw new Error("buildMergedProduct requires at least one ExtractedProduct");
+    throw new Error(
+      "buildMergedProduct requires at least one ExtractedProduct",
+    );
   }
 
   // Sort oldest-first for consistent ordering and "latest wins" field resolution
   const sorted = [...extractedProducts].sort(
-    (a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
   const fieldSelections = resolveFieldSelections(sorted, existingMerged);
@@ -216,7 +216,9 @@ export function mergeTwoProducts(
   const allProducts = [...targetProducts, ...sourceProducts];
 
   if (allProducts.length === 0) {
-    throw new Error("Cannot merge: no ExtractedProducts found for either product");
+    throw new Error(
+      "Cannot merge: no ExtractedProducts found for either product",
+    );
   }
 
   // Build with target as the existing merged (preserves target's overrides)
@@ -375,8 +377,6 @@ export function resolveMergedField(
   extractedProductsMap: Map<string, ExtractedProduct>,
 ): ReductoFieldValue<string> | undefined {
   const selection = mergedProduct.fieldSelections[fieldKey];
-  if (!selection) return undefined;
-
   const sourceProduct = extractedProductsMap.get(selection.selectedProductId);
   if (!sourceProduct) return undefined;
 

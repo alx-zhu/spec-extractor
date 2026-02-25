@@ -6,7 +6,8 @@
  */
 
 import type { ProductFieldKey } from "@/types/product";
-import type { MergedProduct } from "@/types/mergedProduct";
+import type { MergedFieldSelection, MergedProduct } from "@/types/mergedProduct";
+import { PRODUCT_FIELDS } from "@/config/fields";
 import { simulateApiCall } from "./client";
 import { mockProducts, mockReviewedProducts } from "@/data/mockData";
 import { rebuildAllMergedProducts } from "@/utils/mergeProducts";
@@ -24,13 +25,56 @@ const initializeStorage = (): void => {
   }
 };
 
+const ALL_FIELD_KEYS = PRODUCT_FIELDS.map((f) => f.key);
+
+/**
+ * One-time migration: fill any missing fieldSelections entries that were
+ * stored before the non-partial type guarantee was introduced.
+ * Falls back to the newest ExtractedProduct in the pool (last by insertion order).
+ * Writes back to storage only if changes were made.
+ */
+function migrateFieldSelections(products: MergedProduct[]): MergedProduct[] {
+  let didMigrate = false;
+
+  const migrated = products.map((mp) => {
+    const missing = ALL_FIELD_KEYS.filter((k) => !mp.fieldSelections[k]);
+    if (missing.length === 0) return mp;
+
+    didMigrate = true;
+    const fallbackId =
+      mp.extractedProductIds[mp.extractedProductIds.length - 1];
+    const additions: Partial<Record<ProductFieldKey, MergedFieldSelection>> =
+      {};
+    for (const key of missing) {
+      additions[key] = { selectedProductId: fallbackId, isUserOverride: false };
+    }
+    return {
+      ...mp,
+      fieldSelections: {
+        ...mp.fieldSelections,
+        ...additions,
+      } as Record<ProductFieldKey, MergedFieldSelection>,
+    };
+  });
+
+  if (didMigrate) {
+    localStorage.setItem(
+      MERGED_PRODUCTS_STORAGE_KEY,
+      JSON.stringify(migrated),
+    );
+  }
+
+  return migrated;
+}
+
 /**
  * Get merged products from storage
  */
 const getMergedProductsFromStorage = (): MergedProduct[] => {
   initializeStorage();
   const stored = localStorage.getItem(MERGED_PRODUCTS_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+  if (!stored) return [];
+  return migrateFieldSelections(JSON.parse(stored));
 };
 
 /**

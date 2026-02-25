@@ -24,7 +24,7 @@ export interface MergedProduct {
   /** IDs of all contributing ExtractedProducts (ordered by createdAt ascending) */
   extractedProductIds: string[];
   /** Per-field: which ExtractedProduct's value to use */
-  fieldSelections: Partial<Record<ProductFieldKey, MergedFieldSelection>>;
+  fieldSelections: Record<ProductFieldKey, MergedFieldSelection>;
   /** Timestamp of last merge/update */
   updatedAt: Date;
 }
