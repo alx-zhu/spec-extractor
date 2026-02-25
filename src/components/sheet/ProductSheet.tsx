@@ -52,6 +52,10 @@ export function ProductSheet({
   };
 
   const handleClose = () => {
+    // Blur active input to trigger save before closing
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     onOpenChange(false);
   };
 
@@ -81,6 +85,12 @@ export function ProductSheet({
           transition: isDragging ? "none" : undefined,
         }}
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={() => {
+          // Blur active input to trigger save before sheet closes
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        }}
       >
         {/* Drag handle — overlaps the left edge, sitting half outside the sheet */}
         <div
