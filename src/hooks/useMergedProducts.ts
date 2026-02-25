@@ -17,6 +17,7 @@ import * as mergedProductsApi from "@/api/mergedProducts.api";
 import * as productsApi from "@/api/products.api";
 import {
   rebuildAllMergedProducts,
+  integrateNewProducts,
   mergeTwoProducts,
   unmergeProduct,
   buildMergedProduct,
@@ -68,6 +69,35 @@ export const useRebuildMergedProducts = () => {
       );
 
       return mergedProductsApi.saveMergedProducts(newMergedProducts);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
+    },
+  });
+};
+
+/**
+ * Integrate newly extracted products into existing merged products.
+ *
+ * Unlike useRebuildMergedProducts, this preserves existing MP groupings
+ * (including manual merges) and only processes new EPs.
+ */
+export const useIntegrateNewProducts = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const [extractedProducts, existingMergedProducts] = await Promise.all([
+        productsApi.fetchProducts(),
+        mergedProductsApi.fetchMergedProducts(),
+      ]);
+
+      const updatedMergedProducts = integrateNewProducts(
+        extractedProducts,
+        existingMergedProducts,
+      );
+
+      return mergedProductsApi.saveMergedProducts(updatedMergedProducts);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });

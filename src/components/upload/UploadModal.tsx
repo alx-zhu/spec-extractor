@@ -15,7 +15,7 @@ import {
   useUpdateDocumentStatus,
 } from "@/hooks/useDocuments";
 import { useCreateProducts } from "@/hooks/useProducts";
-import { useRebuildMergedProducts } from "@/hooks/useMergedProducts";
+import { useIntegrateNewProducts } from "@/hooks/useMergedProducts";
 import { useReductoExtraction } from "@/hooks/useReductoExtraction";
 import { useSpecIdGeneration } from "@/hooks/useSpecIdGeneration";
 import { savePdfToPublic } from "@/utils/storage";
@@ -41,7 +41,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const createDocument = useCreateDocument();
   const updateDocumentStatus = useUpdateDocumentStatus();
   const createProducts = useCreateProducts();
-  const rebuildMergedProducts = useRebuildMergedProducts();
+  const integrateNewProducts = useIntegrateNewProducts();
   const reductoExtraction = useReductoExtraction();
   const specIdGeneration = useSpecIdGeneration();
 
@@ -185,7 +185,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       }
 
       // Rebuild merged products after all files are processed
-      await rebuildMergedProducts.mutateAsync();
+      await integrateNewProducts.mutateAsync();
 
       // Success - reset and close
       setSelectedFiles([]);
