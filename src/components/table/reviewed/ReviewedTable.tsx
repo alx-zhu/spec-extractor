@@ -56,6 +56,10 @@ interface ReviewedTableProps {
   onCancelCreateManual?: () => void;
   /** Called to open the upload modal from the empty state */
   onUploadClick?: () => void;
+  /** Called when a product row is expanded */
+  onExpand?: (productId: string) => void;
+  /** Called when a product row is collapsed */
+  onCollapse?: (productId: string) => void;
 }
 
 /** Check if a resolved product or any of its source EPs match the selected id */
@@ -86,19 +90,22 @@ export function ReviewedTable({
   onCreateManualProduct,
   onCancelCreateManual,
   onUploadClick,
+  onExpand,
+  onCollapse,
 }: ReviewedTableProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => {
-      // Accordion: only one group open at a time
       if (prev.has(id)) {
+        onCollapse?.(id);
         return new Set();
       }
+      onExpand?.(id);
       return new Set([id]);
     });
-  }, []);
+  }, [onExpand, onCollapse]);
 
   const table = useReactTable({
     data,
@@ -167,6 +174,7 @@ export function ReviewedTable({
               return (
                 <div
                   key={row.id}
+                  data-product-id={resolved.id}
                   className={cn(
                     "transition-[border-color,box-shadow,margin] duration-200 ease-out overflow-hidden",
                     isExpanded

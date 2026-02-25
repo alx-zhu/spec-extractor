@@ -29,10 +29,10 @@ export function Header({
           </Button>
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-semibold text-gray-900 tracking-tight">
-              Sabana
+              Cousins Properties
             </h1>
             <p className="text-sm text-gray-500 font-normal">
-              Extract and analyze architectural documents
+              3350 Peachtree Suite 250 Regional Office
             </p>
           </div>
         </div>
