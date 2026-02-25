@@ -93,7 +93,7 @@ export function useSidebarFilter(
   // Human-readable label for the active filter
   const activeFilterLabel = useMemo(() => {
     if (!activeFilter) return null;
-    if (activeFilter.type === "no-spec-id") return "No Spec ID";
+    if (activeFilter.type === "no-spec-id") return "? - Unclassified";
     if (activeFilter.type === "division") {
       const div = DIVISIONS.find((d) => d.code === activeFilter.code);
       return div ? `${div.code} - ${div.name}` : null;

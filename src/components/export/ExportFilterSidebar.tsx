@@ -1,6 +1,6 @@
-import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getDivisionCode } from "@/utils/masterformatHelpers";
+import { DivisionRow } from "@/components/sidebar/DivisionRow";
 import type {
   SidebarFilter,
   SidebarDivision,
@@ -55,40 +55,17 @@ function DivisionItem({
 
   return (
     <div>
-      <button
+      <DivisionRow
+        code={division.code}
+        name={division.name}
+        count={division.count}
+        isActive={isActive}
         onClick={onDivisionClick}
-        aria-expanded={isExpanded}
-        className={cn(
-          "w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] transition-colors rounded-r-md cursor-pointer",
-          isActive
-            ? "bg-blue-50 text-blue-700 font-medium"
-            : hasActiveChild
-              ? "text-blue-600 font-medium hover:bg-gray-50"
-              : "text-gray-700 hover:bg-gray-50",
-        )}
-      >
-        <ChevronRight
-          className={cn(
-            "h-3 w-3 shrink-0 transition-transform duration-200",
-            isActive || hasActiveChild ? "text-blue-500" : "text-gray-400",
-            isExpanded && "rotate-90",
-          )}
-        />
-        <span className="truncate">
-          <span
-            className={cn(
-              "tabular-nums mr-1",
-              hasActiveChild ? "text-blue-400" : "text-gray-400",
-            )}
-          >
-            {division.code}
-          </span>
-          {division.name}
-        </span>
-        <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
-          {division.count}
-        </span>
-      </button>
+        expandable
+        isExpanded={isExpanded}
+        hasActiveChild={hasActiveChild}
+        compact
+      />
 
       {isExpanded && division.sections.length > 0 && (
         <div className="relative pb-0.5 ml-[19px] border-l border-gray-200">
@@ -164,7 +141,7 @@ export function ExportFilterSidebar({
 
         <div className="mx-2 my-1 border-t border-gray-200" />
 
-        {divisions.length > 0 ? (
+        {divisions.length > 0 || noSpecIdCount > 0 ? (
           <div className="space-y-0.5">
             {divisions.map((division) => {
               const isDivisionActive =
@@ -184,31 +161,23 @@ export function ExportFilterSidebar({
                 />
               );
             })}
+
+            {/* Unclassified – products with no valid Spec ID */}
+            {noSpecIdCount > 0 && (
+              <DivisionRow
+                code="??"
+                name="Unclassified"
+                count={noSpecIdCount}
+                isActive={activeFilter?.type === "no-spec-id"}
+                onClick={onNoSpecIdClick}
+                compact
+              />
+            )}
           </div>
         ) : (
           <p className="px-3 py-6 text-xs text-gray-400 text-center">
             No divisions found
           </p>
-        )}
-
-        {noSpecIdCount > 0 && (
-          <>
-            <div className="mx-2 my-1 border-t border-gray-200" />
-            <button
-              onClick={onNoSpecIdClick}
-              className={cn(
-                "w-full flex items-center justify-between px-3 py-2 text-left text-[12px] transition-colors rounded-md cursor-pointer",
-                activeFilter?.type === "no-spec-id"
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
-              )}
-            >
-              <span>No Spec ID</span>
-              <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
-                {noSpecIdCount}
-              </span>
-            </button>
-          </>
         )}
       </nav>
     </div>

@@ -1,6 +1,6 @@
-import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getDivisionCode } from "@/utils/masterformatHelpers";
+import { DivisionRow } from "@/components/sidebar/DivisionRow";
 import type {
   SidebarFilter,
   SidebarDivision,
@@ -36,7 +36,7 @@ function SectionItem({
   );
 }
 
-// ── Division row (folder node with collapsible children) ─────────
+// ── Division row with collapsible section children ───────────────
 
 function DivisionItem({
   division,
@@ -59,40 +59,16 @@ function DivisionItem({
 
   return (
     <div>
-      <button
+      <DivisionRow
+        code={division.code}
+        name={division.name}
+        count={division.count}
+        isActive={isActive}
         onClick={onDivisionClick}
-        aria-expanded={isExpanded}
-        className={cn(
-          "w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-[13px] transition-colors rounded-r-md cursor-pointer",
-          isActive
-            ? "bg-blue-50 text-blue-700 font-medium"
-            : hasActiveChild
-              ? "text-blue-600 font-medium hover:bg-gray-50"
-              : "text-gray-700 hover:bg-gray-50",
-        )}
-      >
-        <ChevronRight
-          className={cn(
-            "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
-            isActive || hasActiveChild ? "text-blue-500" : "text-gray-400",
-            isExpanded && "rotate-90",
-          )}
-        />
-        <span className="truncate">
-          <span
-            className={cn(
-              "tabular-nums mr-1.5",
-              hasActiveChild ? "text-blue-400" : "text-gray-400",
-            )}
-          >
-            {division.code}
-          </span>
-          {division.name}
-        </span>
-        <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
-          {division.count}
-        </span>
-      </button>
+        expandable
+        isExpanded={isExpanded}
+        hasActiveChild={hasActiveChild}
+      />
 
       {/* Collapsible children */}
       {isExpanded && division.sections.length > 0 && (
@@ -183,7 +159,7 @@ export function FilterSidebar({
 
           <div className="mx-4 my-1.5 border-t border-gray-200" />
 
-          {divisions.length > 0 ? (
+          {divisions.length > 0 || noSpecIdCount > 0 ? (
             <div className="space-y-0.5">
               {divisions.map((division) => {
                 const isDivisionActive =
@@ -203,32 +179,22 @@ export function FilterSidebar({
                   />
                 );
               })}
+
+              {/* Unclassified – products with no valid Spec ID */}
+              {noSpecIdCount > 0 && (
+                <DivisionRow
+                  code="??"
+                  name="Unclassified"
+                  count={noSpecIdCount}
+                  isActive={activeFilter?.type === "no-spec-id"}
+                  onClick={onNoSpecIdClick}
+                />
+              )}
             </div>
           ) : (
             <p className="px-4 py-8 text-sm text-gray-400 text-center">
               No divisions found
             </p>
-          )}
-
-          {/* No Spec ID filter */}
-          {noSpecIdCount > 0 && (
-            <>
-              <div className="mx-4 my-2 border-t border-gray-200" />
-              <button
-                onClick={onNoSpecIdClick}
-                className={cn(
-                  "w-full flex items-center justify-between px-4 py-2.5 text-left text-[13px] transition-colors rounded-r-md cursor-pointer",
-                  activeFilter?.type === "no-spec-id"
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700",
-                )}
-              >
-                <span>No Spec ID</span>
-                <span className="ml-3 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-medium tabular-nums shrink-0 bg-gray-100 text-gray-500">
-                  {noSpecIdCount}
-                </span>
-              </button>
-            </>
           )}
         </nav>
       </div>
