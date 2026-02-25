@@ -304,26 +304,13 @@ function groupByTag(
 }
 
 /**
- * Build an index of existing MergedProducts by tag for fast lookup.
- */
-function indexByTag(
-  mergedProducts: MergedProduct[],
-): Map<string, MergedProduct> {
-  const index = new Map<string, MergedProduct>();
-  for (const mp of mergedProducts) {
-    index.set(mp.tag, mp);
-  }
-  return index;
-}
-
-/**
  * Rebuild all MergedProducts from the full set of ExtractedProducts.
  *
  * Groups by tag, calls buildMergedProduct per group, preserves user overrides
  * from existing MergedProducts.
  *
- * This is the "rebuild the world" function, called after extraction or
- * when products change.
+ * This is the "rebuild the world" function — use for initial seeding or
+ * full reset. For incremental additions after upload, use integrateNewProducts.
  *
  * @param extractedProducts - All ExtractedProducts.
  * @param existingMergedProducts - Previous MergedProducts for override preservation.
@@ -337,7 +324,10 @@ export function rebuildAllMergedProducts(
   const groups = groupByTag(extractedProducts);
 
   // Index existing merged products for override preservation
-  const existingIndex = indexByTag(existingMergedProducts);
+  const existingIndex = new Map<string, MergedProduct>();
+  for (const mp of existingMergedProducts) {
+    existingIndex.set(mp.tag, mp);
+  }
 
   // Build one MergedProduct per group
   const result: MergedProduct[] = [];
@@ -356,6 +346,75 @@ export function rebuildAllMergedProducts(
   }
 
   return result;
+}
+
+/**
+ * Integrate new ExtractedProducts into existing MergedProducts.
+ *
+ * Same signature as rebuildAllMergedProducts, but preserves existing MP
+ * groupings instead of regrouping everything. Only EPs not already in an
+ * existing MP are grouped by tag and either added to a matching MP or
+ * used to create new MPs.
+ *
+ * Use this after document upload instead of rebuildAllMergedProducts.
+ */
+export function integrateNewProducts(
+  allExtractedProducts: ExtractedProduct[],
+  existingMergedProducts: MergedProduct[],
+): MergedProduct[] {
+  const epMap = buildExtractedProductsMap(allExtractedProducts);
+
+  // Find EPs not already in any existing MP
+  const claimedIds = new Set(
+    existingMergedProducts.flatMap((mp) => mp.extractedProductIds),
+  );
+  const newProducts = allExtractedProducts.filter(
+    (ep) => !claimedIds.has(ep.id),
+  );
+
+  // Group new products by tag (same as rebuildAll does)
+  const newGroups = groupByTag(newProducts);
+
+  // Index existing MPs by tag for matching
+  const mpByTag = new Map<string, MergedProduct>();
+  for (const mp of existingMergedProducts) {
+    mpByTag.set(mp.tag, mp);
+  }
+
+  // For each group of new EPs: merge into matching MP or create new MP
+  const updatedMps = new Map<string, MergedProduct>();
+  const newMps: MergedProduct[] = [];
+
+  for (const [groupKey, products] of newGroups) {
+    const tag = normalizeTag(products[0].tag?.value);
+    const mergedTag = tag ?? groupKey;
+
+    const existingMp = mpByTag.get(mergedTag);
+    if (existingMp) {
+      // Resolve existing MP's EPs and combine with new ones
+      const existingEps = existingMp.extractedProductIds
+        .map((id) => epMap.get(id))
+        .filter((ep): ep is ExtractedProduct => ep !== undefined);
+
+      const merged = buildMergedProduct(
+        [...existingEps, ...products],
+        existingMp,
+      );
+      merged.id = existingMp.id;
+      merged.tag = existingMp.tag;
+      updatedMps.set(existingMp.id, merged);
+    } else {
+      const merged = buildMergedProduct(products);
+      merged.tag = mergedTag;
+      newMps.push(merged);
+    }
+  }
+
+  // Return existing MPs (with updates applied) + new MPs
+  return [
+    ...existingMergedProducts.map((mp) => updatedMps.get(mp.id) ?? mp),
+    ...newMps,
+  ];
 }
 
 // ---------------------------------------------------------------------------
