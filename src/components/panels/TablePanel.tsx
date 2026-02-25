@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ReviewedTable } from "@/components/table/reviewed/ReviewedTable";
 import { BulkActionBar } from "@/components/table/shared/BulkActionBar";
 import { SelectAllBanner } from "@/components/table/shared/SelectAllBanner";
@@ -90,13 +90,28 @@ export function TablePanel({
 
   // Sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>(DEFAULT_SORT);
+  const [frozenOrder, setFrozenOrder] = useState<string[] | null>(null);
 
-  const sortedProducts = useMemo(() => {
+  const liveSortedProducts = useMemo(() => {
     return [...resolvedProducts].sort(createSortComparator(sortConfig));
   }, [resolvedProducts, sortConfig]);
 
+  // Freeze order while a row is expanded, but show fresh data
+  const sortedProducts = useMemo(() => {
+    if (!frozenOrder) return liveSortedProducts;
+    const dataMap = new Map(resolvedProducts.map((p) => [p.id, p]));
+    return frozenOrder
+      .map((id) => dataMap.get(id))
+      .filter((p): p is ResolvedProduct => p != null);
+  }, [frozenOrder, liveSortedProducts, resolvedProducts]);
+
+  // Ref for latest live sort — used by handleCollapse without stale closures
+  const liveSortedRef = useRef(liveSortedProducts);
+  liveSortedRef.current = liveSortedProducts;
+
   const handleSortChange = useCallback((config: SortConfig) => {
     setSortConfig(config);
+    setFrozenOrder(null);
   }, []);
 
   // Pagination
@@ -105,7 +120,9 @@ export function TablePanel({
   const totalPages = Math.max(1, Math.ceil(sortedProducts.length / pageSize));
 
   // Reset to page 1 and exit select-all when data, page size, or sort changes
+  // Skip while sort is frozen (during row expansion) to avoid overriding navigation
   useEffect(() => {
+    if (frozenOrder) return;
     setCurrentPage(1);
     setSelectAllMode(false);
   }, [resolvedProducts.length, pageSize, sortConfig]);
@@ -137,6 +154,22 @@ export function TablePanel({
     ? sortedProducts
     : selectedProducts;
 
+  // Freeze sort order when a row expands; navigate + highlight on collapse
+  const handleExpand = useCallback(() => {
+    setFrozenOrder(liveSortedRef.current.map((p) => p.id));
+  }, []);
+
+  const handleCollapse = useCallback(
+    (productId: string) => {
+      const index = liveSortedRef.current.findIndex((p) => p.id === productId);
+      const targetPage = index >= 0 ? Math.floor(index / pageSize) + 1 : 1;
+
+      setFrozenOrder(null);
+      setCurrentPage(targetPage);
+    },
+    [pageSize],
+  );
+
   return (
     <div className="flex flex-col flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       <TableToolbar
@@ -150,6 +183,7 @@ export function TablePanel({
         isCreating={isCreating}
         onToggleCreate={() => setIsCreating((v) => !v)}
         showCreateButton={!!onCreateManualProduct}
+        onUploadClick={() => onUploadClick?.()}
       />
 
       {/* Select-all banner — pinned above the table, outside scroll */}
@@ -188,6 +222,8 @@ export function TablePanel({
           }
           onCancelCreateManual={() => setIsCreating(false)}
           onUploadClick={onUploadClick}
+          onExpand={handleExpand}
+          onCollapse={handleCollapse}
         />
 
         <BulkActionBar

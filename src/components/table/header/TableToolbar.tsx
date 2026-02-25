@@ -13,6 +13,8 @@ import {
   Plus,
   Search,
   SlidersHorizontal,
+  SquarePen,
+  Upload,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,6 +22,12 @@ import {
   type SortConfig,
   SORT_OPTIONS,
 } from "@/components/table/shared/sorting";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TableToolbarProps {
   // Sort
@@ -36,6 +44,7 @@ interface TableToolbarProps {
   isCreating: boolean;
   onToggleCreate: () => void;
   showCreateButton: boolean;
+  onUploadClick: () => void;
 }
 
 export function TableToolbar({
@@ -49,6 +58,7 @@ export function TableToolbar({
   isCreating,
   onToggleCreate,
   showCreateButton,
+  onUploadClick,
 }: TableToolbarProps) {
   return (
     <div className="px-6 py-3 border-b border-gray-200 flex justify-between items-center bg-white gap-2">
@@ -145,20 +155,44 @@ export function TableToolbar({
 
       {/* Right: add product */}
       {showCreateButton && (
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-8 gap-1.5 text-xs shrink-0",
-            isCreating
-              ? "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
-              : "",
-          )}
-          onClick={onToggleCreate}
-        >
-          <Plus className="h-4 w-4" />
-          Add manual product
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-8 gap-1.5 text-xs shrink-0",
+                isCreating
+                  ? "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+                  : "",
+              )}
+            >
+              <Plus className="h-4 w-4" />
+              Add product
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              onClick={onToggleCreate}
+              className={cn(
+                "h-8 gap-1.5 text-xs shrink-0 cursor-pointer",
+                isCreating
+                  ? "border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+                  : "",
+              )}
+            >
+              <SquarePen className="h-4 w-4" />
+              Add manual product
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onUploadClick}
+              className={cn("h-8 gap-1.5 text-xs shrink-0 cursor-pointer")}
+            >
+              <Upload className="h-4 w-4" />
+              Upload product
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </div>
   );
