@@ -32,7 +32,8 @@ export function useSidebarFilter(
   initialFilter: SidebarFilter = null,
 ) {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<SidebarFilter>(initialFilter);
+  const [activeFilter, setActiveFilter] =
+    useState<SidebarFilter>(initialFilter);
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
   const clearFilter = useCallback(() => setActiveFilter(null), []);
@@ -133,7 +134,7 @@ export function useSidebarFilter(
     (specId: string | undefined | null): boolean => {
       if (!activeFilter) return true;
       if (activeFilter.type === "no-spec-id") {
-        return !specId || specId.trim() === "";
+        return !specId || specId.trim() === "" || specId.trim() === "N/A";
       }
       if (!specId) return false;
       if (activeFilter.type === "division") {
