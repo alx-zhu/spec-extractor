@@ -101,6 +101,23 @@ export const inboxColumns: ColumnDef<ExtractedProduct>[] = [
     },
   },
   {
+    id: "modelNumber",
+    header: getFieldLabel("modelNumber"),
+    accessorKey: "modelNumber",
+    size: columnLayout.modelNumber.width,
+    meta: {
+      fieldName: "modelNumber" as ProductFieldKey,
+    },
+    cell: ({ row }) => {
+      if (!row?.original) return <span className="text-gray-400">—</span>;
+      return (
+        <div className="text-sm font-mono text-gray-600">
+          {row.original.modelNumber?.value || "—"}
+        </div>
+      );
+    },
+  },
+  {
     id: "manufacturer",
     header: getFieldLabel("manufacturer"),
     accessorKey: "manufacturer",

@@ -17,6 +17,7 @@ export const columnLayout = {
   tag: { width: colWidth.sm },
   itemName: { width: colWidth.md },
   productDescription: { width: colWidth.lg },
+  modelNumber: { width: colWidth.md },
   manufacturer: { width: colWidth.md },
   specIdNumber: { width: colWidth.sm },
   finish: { width: colWidth.lg },

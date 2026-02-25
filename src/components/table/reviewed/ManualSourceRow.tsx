@@ -23,9 +23,9 @@ export function ManualSourceRow({
   initialValues,
   isSaving,
 }: ManualSourceRowProps) {
-  const [values, setValues] = useState<Partial<Record<ProductFieldKey, string>>>(
-    initialValues ?? {},
-  );
+  const [values, setValues] = useState<
+    Partial<Record<ProductFieldKey, string>>
+  >(initialValues ?? {});
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -66,6 +66,17 @@ export function ManualSourceRow({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            onCancel();
+          }}
+          className="flex items-center justify-center size-6 rounded-md text-red-400 hover:text-red-600 hover:bg-gray-100 transition-colors cursor-pointer"
+          title="Cancel"
+        >
+          <X className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
             handleSave();
           }}
           disabled={!hasValue || isSaving}
@@ -73,17 +84,6 @@ export function ManualSourceRow({
           title="Save"
         >
           <Check className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onCancel();
-          }}
-          className="flex items-center justify-center size-6 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-          title="Cancel"
-        >
-          <X className="size-3.5" />
         </button>
       </div>
 

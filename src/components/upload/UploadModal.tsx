@@ -334,7 +334,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                 disabled={isProcessing}
               />
               <span className="text-sm text-gray-600">
-                Generate missing Spec IDs
+                Generate missing CSI Spec Numbers
               </span>
             </label>
           </div>

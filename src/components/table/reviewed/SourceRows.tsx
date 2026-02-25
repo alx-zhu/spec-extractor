@@ -176,7 +176,12 @@ function SourceActionCell({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={() => deleteSource.mutate({ mergedProductId, extractedProductId: ep.id })}
+              onClick={() =>
+                deleteSource.mutate({
+                  mergedProductId,
+                  extractedProductId: ep.id,
+                })
+              }
             >
               Delete
             </AlertDialogAction>

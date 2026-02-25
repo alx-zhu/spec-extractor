@@ -103,6 +103,18 @@ export const resolvedColumns: ColumnDef<ResolvedProduct>[] = [
     ),
   },
   {
+    id: "modelNumber",
+    header: getFieldLabel("modelNumber"),
+    size: columnLayout.modelNumber.width,
+    meta: { fieldName: "modelNumber" as ProductFieldKey },
+    cell: ({ row }) => (
+      <ResolvedFieldCell
+        value={row.original.fields.modelNumber?.value}
+        className="font-mono"
+      />
+    ),
+  },
+  {
     id: "manufacturer",
     header: getFieldLabel("manufacturer"),
     size: columnLayout.manufacturer.width,

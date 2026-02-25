@@ -21,6 +21,7 @@ export type ProductFieldKey = keyof Pick<
   ExtractedProduct,
   | "itemName"
   | "productDescription"
+  | "modelNumber"
   | "manufacturer"
   | "tag"
   | "specIdNumber"

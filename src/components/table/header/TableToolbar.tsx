@@ -157,7 +157,7 @@ export function TableToolbar({
           onClick={onToggleCreate}
         >
           <Plus className="h-4 w-4" />
-          Add product
+          Add manual product
         </Button>
       )}
     </div>
