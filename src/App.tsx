@@ -18,6 +18,7 @@ import type { ResolvedProduct } from "@/types/resolvedProduct";
 import { useDocuments } from "./hooks/useDocuments";
 import { getPdfUrl } from "./utils/storage";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AdminModal } from "@/components/admin/AdminModal";
 
 function App() {
   // Fetch products from React Query
@@ -253,6 +254,8 @@ function App() {
           initialFilter={sidebar.activeFilter}
           initialSelection={exportSelection}
         />
+
+        <AdminModal />
       </div>
     </TooltipProvider>
   );
