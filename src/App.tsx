@@ -69,7 +69,7 @@ function App() {
 
     // Apply sidebar filter
     return sidebar.filterProducts(result);
-  }, [resolvedProducts, searchQuery, sidebar]);
+  }, [resolvedProducts, searchQuery, sidebar.filterProducts]);
 
   // Build a map of document ID → filename for source document display in table
   const documentMap = useMemo(() => {
