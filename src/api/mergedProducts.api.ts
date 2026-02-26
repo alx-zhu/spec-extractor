@@ -6,24 +6,16 @@
  */
 
 import type { ProductFieldKey } from "@/types/product";
-import type { MergedFieldSelection, MergedProduct } from "@/types/mergedProduct";
+import type {
+  MergedFieldSelection,
+  MergedProduct,
+} from "@/types/mergedProduct";
 import { PRODUCT_FIELDS } from "@/config/fields";
 import { simulateApiCall } from "./client";
-import { mockProducts, mockReviewedProducts } from "@/data/mockData";
-import { rebuildAllMergedProducts } from "@/utils/mergeProducts";
+// import { rebuildAllMergedProducts } from "@/utils/mergeProducts";
 
 // Storage key for localStorage
 const MERGED_PRODUCTS_STORAGE_KEY = "sabana:merged-products";
-
-/**
- * Initialize localStorage with merged products from reviewed mock data if empty
- */
-const initializeStorage = (): void => {
-  if (!localStorage.getItem(MERGED_PRODUCTS_STORAGE_KEY)) {
-    const seeded = rebuildAllMergedProducts([...mockProducts, ...mockReviewedProducts]);
-    localStorage.setItem(MERGED_PRODUCTS_STORAGE_KEY, JSON.stringify(seeded));
-  }
-};
 
 const ALL_FIELD_KEYS = PRODUCT_FIELDS.map((f) => f.key);
 
@@ -58,10 +50,7 @@ function migrateFieldSelections(products: MergedProduct[]): MergedProduct[] {
   });
 
   if (didMigrate) {
-    localStorage.setItem(
-      MERGED_PRODUCTS_STORAGE_KEY,
-      JSON.stringify(migrated),
-    );
+    localStorage.setItem(MERGED_PRODUCTS_STORAGE_KEY, JSON.stringify(migrated));
   }
 
   return migrated;
@@ -71,7 +60,6 @@ function migrateFieldSelections(products: MergedProduct[]): MergedProduct[] {
  * Get merged products from storage
  */
 const getMergedProductsFromStorage = (): MergedProduct[] => {
-  initializeStorage();
   const stored = localStorage.getItem(MERGED_PRODUCTS_STORAGE_KEY);
   if (!stored) return [];
   return migrateFieldSelections(JSON.parse(stored));
@@ -223,9 +211,7 @@ export const deleteMergedProducts = async (
 ): Promise<void> => {
   const products = getMergedProductsFromStorage();
   const idSet = new Set(mergedProductIds);
-  const updatedProducts = products.filter(
-    (product) => !idSet.has(product.id),
-  );
+  const updatedProducts = products.filter((product) => !idSet.has(product.id));
   saveMergedProductsToStorage(updatedProducts);
 
   return simulateApiCall(undefined);

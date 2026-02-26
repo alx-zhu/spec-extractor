@@ -7,28 +7,14 @@
 
 import type { ProductDocument, ProductDocumentType } from "@/types/product";
 import { simulateApiCall } from "./client";
-import { mockDocuments, mockDocumentsReviewed } from "@/data/mockData";
 
 // Storage key for localStorage
 const DOCUMENTS_STORAGE_KEY = "sabana:documents";
 
 /**
- * Initialize localStorage with empty array if not exists
- */
-const initializeStorage = (): void => {
-  if (!localStorage.getItem(DOCUMENTS_STORAGE_KEY)) {
-    localStorage.setItem(
-      DOCUMENTS_STORAGE_KEY,
-      JSON.stringify([...mockDocuments, ...mockDocumentsReviewed]),
-    );
-  }
-};
-
-/**
  * Get documents from storage
  */
 const getDocumentsFromStorage = (): ProductDocument[] => {
-  initializeStorage();
   const stored = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
 };
