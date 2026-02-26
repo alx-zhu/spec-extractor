@@ -44,6 +44,7 @@ function App() {
   const [exportSelection, setExportSelection] = useState<string[] | undefined>(
     undefined,
   );
+  const [tableSelection, setTableSelection] = useState<ResolvedProduct[]>([]);
 
   // Track which merged group is active for scoped PDF navigation
   const [activeMergedGroupId, setActiveMergedGroupId] = useState<string | null>(
@@ -226,6 +227,7 @@ function App() {
               onAddManualSource={handleAddManualSource}
               onCreateManualProduct={handleCreateManualProduct}
               onUploadClick={() => setIsUploadModalOpen(true)}
+              onSelectionChange={setTableSelection}
             />
           </main>
         </div>
@@ -255,7 +257,7 @@ function App() {
           initialSelection={exportSelection}
         />
 
-        <AdminModal />
+        <AdminModal selectedProducts={tableSelection} />
       </div>
     </TooltipProvider>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Loader2, Sparkles, ShieldCheck, Clipboard, ClipboardPaste, Check, AlertCircle } from "lucide-react";
+import type { ResolvedProduct } from "@/types/resolvedProduct";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,11 @@ const STORAGE_KEYS = [
 
 type ActionState = "idle" | "running" | "success" | "error";
 
-export function AdminModal() {
+interface AdminModalProps {
+  selectedProducts?: ResolvedProduct[];
+}
+
+export function AdminModal({ selectedProducts = [] }: AdminModalProps) {
   const [open, setOpen] = useState(false);
   const [regenProgress, setRegenProgress] = useState<{
     completed: number;
@@ -55,37 +60,43 @@ export function AdminModal() {
   }, []);
 
   const isRunning = regenProgress !== null;
+  const selectedEps = selectedProducts.flatMap(
+    (rp) => rp.source.extractedProducts,
+  );
 
   // Reset a feedback state back to idle after a delay
   const resetAfter = (setter: (s: ActionState) => void, ms = 2000) => {
     setTimeout(() => setter("idle"), ms);
   };
 
-  const handleRegenerateAll = async () => {
-    setRegenProgress({ completed: 0, total: products.length });
-    try {
-      for (const product of products) {
-        const specId = await classifySpecId(
-          product.itemName?.value ?? "",
-          product.productDescription?.value ?? "",
-          product.manufacturer?.value ?? "",
-        );
-        if (specId !== "N/A") {
-          await updateProduct.mutateAsync({
-            productId: product.id,
-            updates: { specIdNumber: { value: specId, citations: [] } },
-          });
+  const handleRegenerate = useCallback(
+    async (targets: typeof products) => {
+      setRegenProgress({ completed: 0, total: targets.length });
+      try {
+        for (const product of targets) {
+          const specId = await classifySpecId(
+            product.itemName?.value ?? "",
+            product.productDescription?.value ?? "",
+            product.manufacturer?.value ?? "",
+          );
+          if (specId !== "N/A") {
+            await updateProduct.mutateAsync({
+              productId: product.id,
+              updates: { specIdNumber: { value: specId, citations: [] } },
+            });
+          }
+          setRegenProgress((prev) =>
+            prev ? { ...prev, completed: prev.completed + 1 } : null,
+          );
         }
-        setRegenProgress((prev) =>
-          prev ? { ...prev, completed: prev.completed + 1 } : null,
-        );
+      } catch (error) {
+        console.error("[AdminModal] Spec ID regeneration failed:", error);
+      } finally {
+        setRegenProgress(null);
       }
-    } catch (error) {
-      console.error("[AdminModal] Spec ID regeneration failed:", error);
-    } finally {
-      setRegenProgress(null);
-    }
-  };
+    },
+    [updateProduct],
+  );
 
   const handleCopy = useCallback(async () => {
     try {
@@ -150,30 +161,56 @@ export function AdminModal() {
         </DialogHeader>
 
         <div className="flex flex-col gap-2">
-          <ActionRow
-            label="Regenerate all spec IDs"
-            description="Re-classifies every product using AI. Overwrites existing values."
-          >
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleRegenerateAll}
-              disabled={isRunning || products.length === 0}
-              className="shrink-0 min-w-[72px]"
-            >
-              {isRunning ? (
-                <>
-                  <Loader2 className="size-3.5 animate-spin" />
-                  {regenProgress.completed}/{regenProgress.total}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="size-3.5" />
-                  Run
-                </>
+          <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 flex flex-col gap-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Regenerate spec IDs</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Re-classifies products using AI. Overwrites existing values.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {selectedEps.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleRegenerate(selectedEps)}
+                  disabled={isRunning}
+                  className="min-w-[80px]"
+                >
+                  {isRunning ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      {regenProgress.completed}/{regenProgress.total}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-3.5" />
+                      {selectedEps.length} selected
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
-          </ActionRow>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleRegenerate(products)}
+                disabled={isRunning || products.length === 0}
+                className="min-w-[80px]"
+              >
+                {isRunning && selectedEps.length === 0 ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    {regenProgress.completed}/{regenProgress.total}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="size-3.5" />
+                    All
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
 
           <ActionRow
             label="Copy data"

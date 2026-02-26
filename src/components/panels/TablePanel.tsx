@@ -52,6 +52,8 @@ interface TablePanelProps {
   ) => void;
   /** Called to open the upload modal from the empty state */
   onUploadClick?: () => void;
+  /** Called whenever the effective selection changes (used by parent to share selection with other components) */
+  onSelectionChange?: (products: ResolvedProduct[]) => void;
 }
 
 export function TablePanel({
@@ -70,6 +72,7 @@ export function TablePanel({
   onAddManualSource,
   onCreateManualProduct,
   onUploadClick,
+  onSelectionChange,
 }: TablePanelProps) {
   const [selectedProducts, setSelectedProducts] = useState<ResolvedProduct[]>(
     [],
@@ -153,6 +156,10 @@ export function TablePanel({
   const effectiveSelectedProducts = selectAllMode
     ? sortedProducts
     : selectedProducts;
+
+  useEffect(() => {
+    onSelectionChange?.(effectiveSelectedProducts);
+  }, [effectiveSelectedProducts, onSelectionChange]);
 
   // Freeze sort order when a row expands; navigate + highlight on collapse
   const handleExpand = useCallback(() => {
