@@ -65,6 +65,7 @@ Description: ${productDescription}
 Manufacturer: ${manufacturer}
 
 ${sectionsBlock}
+If furniture, bias towards 12 51 00 Office Furniture.
 
 If the product does not fit any allowed section, return "N/A".
 Return ONLY the section number (e.g., "09 51 00") or "N/A". No explanation.`;
