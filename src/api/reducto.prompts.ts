@@ -840,11 +840,372 @@ VALIDATION CHECKLIST (verify EVERY item before returning):
 12. Details: Have I consolidated supplementary columns (provided by, contact, comments, notes) here?`;
 
 /**
+ * JSON Schema for submittal product extraction
+ */
+const SUBMITTAL_SCHEMA = {
+  type: "object",
+  properties: {
+    products: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          itemName: {
+            type: "string",
+            description:
+              "The CONCISE, HUMAN-RECOGNIZABLE product name that immediately tells an architect what the product IS in common industry terms. This must be a real product name — not a bare category, and not a long manufacturer description. Use the FULL descriptive product name when available, including adjectives and qualifiers that distinguish this product from similar ones. CORRECT: 'LED Downlight' (NOT 'EVO4 4\" LED Downlight'), 'Pendant Light' (NOT 'Volo Pendant 24\"'), 'Pull-Down Kitchen Faucet' (NOT 'Simplice Single-Hole Pull-Down Kitchen Faucet'), 'Linear Suspended Light', 'Self-Rimming Kitchen Sink', 'Basket Strainer', 'Dimming Module', 'Occupancy Sensor', 'Wall Covering', 'Perimeter Linear Light'. WRONG (manufacturer-specific descriptions, NOT names): 'Gotham EVO4 Downlight' → should be 'LED Downlight', 'Kohler Mayfield' → should be 'Self-Rimming Kitchen Sink', 'Lithonia LSIX' → should be 'Linear Suspended Light'. If the document does NOT clearly indicate a recognizable product name, output 'N/A' — do NOT guess. NEVER include: manufacturer name, model/line name, detailed feature lists, tag, spec ID, finish, size, price, or dimensions.",
+          },
+          productDescription: {
+            type: "string",
+            description:
+              "The FULL product description including manufacturer product line, model name, and all key configuration details. If the architect has annotated a CORRECTION to the product specification (e.g., 'Specification to be: Manuf.: Cerno, Product: Volo Pendant 24\"'), use the CORRECTED description instead of the original. Include distinguishing characteristics, features, and configuration options for the selected variant. MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price, or ANY information already captured in other fields. N/A if no description is available beyond the product name.",
+          },
+          modelNumber: {
+            type: "string",
+            description:
+              "The manufacturer-specific model number, product code, or catalog number. When the architect has marked a selection in a variant table (arrow, highlight, box, circle), extract the SELECTED model number only. If an architect annotation specifies a different model, use the corrected model. Examples: 'EVO4-4RD-L850-9-UNV-EZ1-WH', 'K-3894', 'K-22972', 'Z8741-SS',LSIX-8-DI-L96T80-DERA'. Use 'N/A' for: full product names, product line names ('EVO4', 'Simplice', 'Mayfield'), manufacturer names, or generic descriptors.",
+          },
+          manufacturer: {
+            type: "string",
+            description:
+              "The company or brand name that manufactures the product. If the architect has corrected the manufacturer in an annotation, use the corrected value. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain, use 'N/A'.",
+          },
+          tag: {
+            type: "string",
+            description:
+              "The submittal type/group code from the submittal header, index, or section header (e.g., 'LT1', 'LT2', 'LT3A', 'P-1', 'P-2', 'EQ-1'). STRICT FORMAT: Must be CAPITAL LETTERS followed by DIGITS, with optional dash or letter suffix for sub-variants (e.g., 'LT3A', 'LT3B'). REJECT and use 'N/A' for: pure numbers ('01', '123'), pure letters ('ACC', 'EQ'), lowercase ('lt1', 'p-1'), descriptions ('Sink', 'Downlight'), model numbers ('K-22972', 'EVO4-4RD'). Each tag must appear in exactly ONE product entry. If a group contains multiple products, assign the tag to the PRIMARY product only.",
+          },
+          specIdNumber: {
+            type: "string",
+            description:
+              "The CSI Masterformat code from the submittal transmittal page, cover page, or section header. Structure: 'DD SS ss' (2-digit division, 2-digit section, 2-digit subsection). Separators may be spaces, periods, dashes, or none. Only extract if value matches this numeric pattern. N/A if not found.",
+          },
+          project: {
+            type: "string",
+            description:
+              "The project name or identifier from the submittal cover page, transmittal, or header. N/A if not found.",
+          },
+          finish: {
+            type: "string",
+            description:
+              "The ARCHITECT-SELECTED finish, color, or surface treatment. When data sheets show multiple finish options and the architect has marked one (arrow, highlight, box, circle), extract ONLY the selected finish. If an architect annotation specifies a different finish (e.g., 'Finish: Deux'), use the corrected value. Include finish codes, color codes, or material grades if present. N/A if not specified.",
+          },
+          size: {
+            type: "string",
+            description:
+              "The ARCHITECT-SELECTED size or dimensions. When data sheets show multiple size options and the architect has marked one, extract ONLY the selected size. If an architect annotation specifies a different size (e.g., 'Size to be 6\\'-0\" long'), use the corrected value. N/A if not specified.",
+          },
+          price: {
+            type: "string",
+            description: "N/A (submittals do not contain pricing).",
+          },
+          details: {
+            type: "string",
+            description:
+              "Architect review notes, status, and corrections. Include: review status stamps ('HOLD', 'Approved as Noted', 'Revise and Resubmit'), architect text annotations or correction notes (e.g., 'GC to verify sizing', 'Please revise for Mothers Room to match sink at Cafe'), and any special instructions that affect procurement or installation. N/A if no architect notes are present. Limit to 1-3 concise notes.",
+          },
+        },
+        required: [
+          "itemName",
+          "productDescription",
+          "modelNumber",
+          "manufacturer",
+          "tag",
+          "specIdNumber",
+          "project",
+          "finish",
+          "size",
+          "price",
+          "details",
+        ],
+      },
+      description:
+        "List of all non-rejected products extracted from the submittal. Each tag must appear in only one product entry.",
+    },
+  },
+  required: ["products"],
+} as const;
+
+/**
+ * System prompt for submittal product extraction
+ */
+const SUBMITTAL_PROMPT = `EXTRACTION TASK: Extract ALL products from construction submittals into precise, structured data. Use the architect's visual review markings to determine which variants are selected and which products are rejected.
+
+═══════════════════════════════════════════════════════════════════
+FOUNDATIONAL RULE — VISIBLE TEXT ONLY:
+═══════════════════════════════════════════════════════════════════
+
+Extract ONLY from text and data that is explicitly visible in the document. NEVER infer, guess, or fabricate any field value. If a piece of information is not clearly printed or written on the page, it does not exist — use "N/A".
+
+- Do NOT infer a manufacturer from a logo or visual branding alone unless the name is printed as text.
+- Do NOT guess a model number from partial text or blurry content.
+- Do NOT assume field values based on context from other products.
+- Architect handwritten annotations count as visible text — extract them.
+
+═══════════════════════════════════════════════════════════════════
+FOUNDATIONAL RULE — MINIMUM REQUIRED FIELDS:
+═══════════════════════════════════════════════════════════════════
+
+Every product entry MUST have at least ONE of the following:
+  1. A valid tag (type/group code like LT1, P-1), OR
+  2. A recognizable item name (not "N/A")
+
+If a candidate product has NEITHER a tag NOR an identifiable name, DO NOT include it in the output. A product cannot exist in the extraction if it cannot be identified by tag or name.
+
+═══════════════════════════════════════════════════════════════════
+DOCUMENT STRUCTURE — WHAT SUBMITTALS LOOK LIKE:
+═══════════════════════════════════════════════════════════════════
+
+Submittals typically contain:
+
+1. A COVER or TRANSMITTAL PAGE with project name, submittal number, and spec section reference.
+2. An INDEX or SUMMARY TABLE listing products by type/group code (e.g., LT1, LT2, P-1, P-2) with page numbers. Some submittals use a VENDOR PARTS TABLE listing individual component products (model number, vendor, description).
+3. DETAILED PRODUCT SECTIONS for each type/group, containing:
+   - Header with type code, catalog number, and manufacturer
+   - One or more manufacturer product data sheets
+   - Variant/option tables showing available sizes, finishes, models, and configurations
+   - Architect review markings (arrows, highlights, stamps, annotations)
+
+The SAME product often appears TWICE: once in the summary/vendor table (brief) and once in the detailed section (full specs). Extract each product ONCE, using the most complete information available by combining the table entry with its detailed section.
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #1 — STRICT ROW ISOLATION IN TABLES:
+═══════════════════════════════════════════════════════════════════
+
+When extracting from summary tables or vendor parts tables, each product entry MUST contain ONLY information from its own table row. NEVER pull data from adjacent rows.
+
+- If a field is empty in a row, output "N/A" — do NOT fill it with data from the row above or below.
+- If a description spans multiple lines WITHIN the same cell, consolidate it. But NEVER merge data across rows.
+- Double-check: for every field you extract, verify it belongs to the SAME row as the tag/identifier for that product.
+
+VIOLATION EXAMPLES (these are WRONG):
+  - Copying the manufacturer from the row above because the current row's manufacturer cell is empty
+  - Using a finish value from a different product's row
+  - Combining descriptions from two separate row entries into one product
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #2 — ONE TAG = ONE PRODUCT (TAG CONSOLIDATION):
+═══════════════════════════════════════════════════════════════════
+
+Each type/group code (e.g., LT1, LT2, LT3A, P-1, P-2) represents EXACTLY ONE product in your output.
+
+- A tagged product section may span MULTIPLE PAGES of data sheets. ALL information from those pages belongs to that ONE product entry — consolidate it.
+- Do NOT create separate product entries for different pages within the same tagged section.
+- Combine manufacturer info, model number, specifications, and architect markings from ALL pages of a tagged section into a SINGLE product entry.
+- If a group (e.g., "P-1 BREAK SINK") contains multiple distinct products in a vendor parts table (sink, faucet, strainer as separate rows), the group tag (P-1) belongs to the PRIMARY product (the one the group is named after). Other products in the group get "N/A" for tag but are STILL extracted as separate entries.
+- After extraction, verify: does each tag appear exactly ONCE? If the same tag appears on multiple entries, consolidate them.
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #3 — EXTRACT EVERY NON-REJECTED PRODUCT:
+═══════════════════════════════════════════════════════════════════
+
+You MUST extract EVERY product that appears in the submittal, UNLESS it is explicitly crossed out or rejected (see Rule #5). Missing even one product is a critical error.
+
+- Count the products in the summary table or index. Your output must account for ALL of them (minus any that are fully rejected/crossed-out).
+- If a group contains multiple distinct products in a vendor parts table (e.g., a plumbing group lists a sink, faucet, and strainer as separate rows), extract EACH as a separate product entry.
+- If a row has sparse data (only a model number and vendor, no other fields), STILL extract it with "N/A" for missing fields.
+- Products on HOLD: STILL extract. Note "HOLD" in the details field.
+- Products marked "APPROVED AS NOTED": Extract with the noted modifications applied. Note status in details.
+- Products marked "REVISE AND RESUBMIT": STILL extract. Note status in details.
+- After extraction, verify: "Did I extract every non-rejected product? Is my product count correct?"
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #4 — ARCHITECT MARKINGS = VARIANT SELECTION:
+═══════════════════════════════════════════════════════════════════
+
+Product data sheets often present MULTIPLE variants of a product (sizes, finishes, models, configurations) in tables or option lists. The reviewing architect uses visual markings to indicate which specific variant is SELECTED for the project.
+
+SELECTION INDICATORS — use this variant's data:
+- Colored arrows (→) pointing to a specific row, option, or value
+- Yellow or colored highlighting on a row, cell, or option
+- Colored boxes or rectangles drawn around a specific option
+- Colored circles drawn around a specific option
+- Checkmarks (✓) next to an option
+
+When you see selection markings in a variant/option table:
+- Extract ONLY the data for the marked/selected variant
+- Use the selected variant's model number, finish, size, and configuration
+- IGNORE all non-selected variants in the same table
+
+If NO architect markings are present on a variant table, extract the product's primary/default information as presented in the submittal header or summary table.
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #5 — SKIP CROSSED-OUT / REJECTED PRODUCTS:
+═══════════════════════════════════════════════════════════════════
+
+DO NOT extract products that the architect has explicitly rejected.
+
+REJECTION INDICATORS — skip these products entirely:
+- Large X marks drawn diagonally across an ENTIRE PAGE or product section
+- Full-page strikethrough lines crossing out all content on the page
+- "REJECTED" or "NOT APPROVED" stamps
+
+IMPORTANT DISTINCTION — page-level vs. option-level:
+- A large X across an ENTIRE PAGE = the product on that page is REJECTED → DO NOT extract it
+- A small x or strikethrough on a SINGLE OPTION within a variant table = that specific option was not selected → STILL extract the product, but use the architect-selected variant instead
+- Crossed-out text within an architect annotation = old value being replaced by a correction → use the new corrected value
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #6 — ARCHITECT CORRECTIONS OVERRIDE SUBMITTAL DATA:
+═══════════════════════════════════════════════════════════════════
+
+The architect may add text annotations that CORRECT or MODIFY the original submitted product data. These corrections take PRIORITY over the original submittal.
+
+Common correction patterns:
+- "This fixture is incorrect. Specification to be: [corrected manufacturer, product, finish]"
+- "Revise to: [corrected product or model]"
+- "Size to be: [corrected dimension]"
+- "Please revise for [location] to match [reference product]"
+- Colored text boxes or margin notes with corrected specifications
+- "EQ. 3 TO BE [manufacturer] [model] IN [finish]. PLEASE REVISE AND RESUBMIT."
+
+When you encounter a correction annotation:
+- Use the CORRECTED values for all affected fields (manufacturer, product description, model, finish, size)
+- The architect's correction REPLACES the original submitted data in those fields
+- Note the correction in the details field (e.g., "Architect correction: revised from [original] to [corrected]")
+
+═══════════════════════════════════════════════════════════════════
+CRITICAL RULE #7 — TAG FORMAT ENFORCEMENT:
+═══════════════════════════════════════════════════════════════════
+
+Tags are the type/group codes from the submittal header, index, or section headers.
+
+They MUST match: one or more CAPITAL LETTERS, followed by one or more DIGITS, with optional dash separator or letter suffix for sub-variants.
+Valid examples: LT1, LT2, LT3A, LT3B, LT3C, P-1, P-2, EQ-1, WC-1, ACC-01
+Invalid examples that MUST be rejected (use "N/A" instead):
+  - Pure numbers: "01", "123", "4"
+  - Pure letters: "ACC", "EQ", "LIGHT"
+  - Lowercase: "lt1", "p-1"
+  - Descriptions: "Sink", "Downlight", "Wall Covering"
+  - Model numbers: "K-22972", "EVO4-4RD-L850", "Z8741-SS"
+  - Page numbers or sequential line numbers
+
+If a value does not match the LETTERS+DIGITS pattern, it is NOT a tag — always output "N/A".
+Each valid tag MUST appear in exactly ONE product entry.
+
+═══════════════════════════════════════════════════════════════════
+MOST IMPORTANT DISTINCTION — Product Name vs. Product Description:
+═══════════════════════════════════════════════════════════════════
+
+These two fields are SEPARATE and serve very different purposes:
+
+** Product Name (itemName) ** — The CONCISE, HUMAN-RECOGNIZABLE product name.
+   This is what an architect would call this product in plain language.
+   It must be a real, descriptive product name that ANYONE would understand.
+
+   IMPORTANT: Use the FULL descriptive name, not just the shortest category.
+   Include adjectives and qualifiers that distinguish the product.
+
+   CORRECT examples (note: descriptive, but still concise):
+     "LED Downlight" — NOT just "Downlight" or "Light"
+     "Pendant Light" — NOT just "Light"
+     "Linear Suspended Light" — NOT just "Light"
+     "Pull-Down Kitchen Faucet" — NOT just "Faucet"
+     "Self-Rimming Kitchen Sink" — NOT just "Sink"
+     "Basket Strainer"
+     "Dimming Module"
+     "Occupancy Sensor"
+     "Wall Covering"
+     "Perimeter Linear Light"
+     "Electric Water Cooler"
+     "Tankless Water Heater"
+
+   WRONG examples (these are manufacturer descriptions, NOT names):
+     "Gotham EVO4 4-inch LED Downlight" → should be "LED Downlight"
+     "Cerno Volo Pendant 24" → should be "Pendant Light"
+     "Kohler Mayfield Self-Rimming Kitchen Sink" → should be "Self-Rimming Kitchen Sink"
+     "Lithonia LSIX 8FT Direct/Indirect" → should be "Linear Suspended Light"
+     "Simplice Single-Hole Pull-Down Kitchen Faucet" → should be "Pull-Down Kitchen Faucet"
+
+   NEVER include in the product name:
+     - Manufacturer name (e.g., "Gotham", "Kohler", "Lithonia", "Cerno")
+     - Model number or line name (e.g., "EVO4", "Mayfield", "LSIX", "Simplice")
+     - Detailed feature lists (e.g., "Mesh Back, 4D Arm, Asymmetrical Lumbar")
+     - Tag, spec ID, finish, size, or price
+
+   If you CANNOT determine a clear, common product name, use "N/A".
+   STRONGLY prefer "N/A" over guessing — an incorrect name is worse than no name.
+
+** Product Description (productDescription) ** — The FULL manufacturer-specific description.
+   This is the detailed product line, model name, configuration, and features.
+   If the architect CORRECTED the specification, use the corrected description.
+
+   CORRECT examples:
+     "Gotham EVO4, 4" Round, 800 Lumen, 90 CRI, 3500K, 120-277V, 0-10V Dimming, White Trim"
+     "Cerno Volo Pendant 24", Finish: Deux"
+     "Kohler Mayfield K-3894, Self-Rimming Kitchen Sink, Single Basin"
+     "Lithonia LSIX 8FT Direct/Indirect, L96T80, Dimmable"
+     "Lutron Maestro, Single-Pole Dimmer, 120V"
+
+   MUST NOT include: tag, spec ID number, finish/color, size/dimensions, price,
+   or ANY information already captured in other columns.
+   N/A if no description beyond the product name is available.
+
+═══════════════════════════════════════════════════════════════════
+
+CORE FIELDS (populate with "N/A" if information is genuinely absent):
+
+- Item Name (Product Name): See above — the CONCISE, DESCRIPTIVE product name. Use the full descriptive name when the document provides it (e.g., "Pull-Down Kitchen Faucet" not just "Faucet").
+
+- Product Description: See above — the FULL manufacturer-specific description. Use architect-corrected values when applicable.
+
+- Model Number: The manufacturer-specific model number, product code, or catalog number. When the architect has marked a selection in a variant table (arrow, highlight, box), extract the SELECTED model number. If an architect annotation specifies a different model, use the corrected model. This is typically a SHORT or MEDIUM alphanumeric code. Use "N/A" for: product line names ("EVO4", "Mayfield", "LSIX"), manufacturer names, or generic descriptors.
+
+- Manufacturer: The company or brand name. Use the architect-corrected value if an annotation specifies a different manufacturer.
+
+- Tag: The submittal type/group code from the section header or index. Assign the tag to the PRIMARY product if a group contains multiple products. Each tag appears in exactly ONE entry.
+
+- Spec ID Number (Masterformat Code): The CSI section number from the transmittal or section header if present. Format as shown in the document. N/A if not found.
+
+- Project: From the submittal cover page, transmittal, or header. N/A if not found.
+
+SECONDARY FIELDS (populate with "N/A" if absent):
+
+- Finish: The ARCHITECT-SELECTED finish or color. When multiple finish options are shown and one is marked, extract only the marked one. Use corrected value if annotated.
+
+- Size: The ARCHITECT-SELECTED size or dimensions. When multiple sizes are shown and one is marked, extract only the marked one. Use corrected value if annotated.
+
+- Price: N/A (submittals do not contain pricing).
+
+- Details: Architect review notes, status, and instructions. Include: review stamps (HOLD, Approved as Noted, Revise and Resubmit), text corrections or annotations, special instructions (e.g., "GC to verify sizing", "Please revise for Mothers Room to match sink at Cafe"). Note any architect corrections applied. N/A if no architect notes present.
+
+EXTRACTION GUIDELINES:
+
+- VISIBLE TEXT ONLY: Every field value must come from text explicitly visible in the document. Never infer or fabricate values.
+- MINIMUM FIELDS: Every product must have a valid tag OR an identifiable item name. Drop entries that have neither.
+- Extract ALL non-rejected products. Missing products is a critical error.
+- ONE product entry per tag. Consolidate all pages under a tag into one entry.
+- In tables, strict ROW ISOLATION — never mix data between rows.
+- Apply architect corrections when present — corrected values OVERRIDE original data.
+- Use architect markings to select the correct variant from option tables.
+- Skip products with full-page X marks or explicit rejection stamps.
+- Still extract products marked HOLD, APPROVED AS NOTED, or REVISE AND RESUBMIT — note status in details.
+- For Product Name: if you cannot determine a clear common product name, use "N/A". Do NOT put the full description here.
+- Use "N/A" when information cannot be confidently identified — do not guess or infer.
+
+OUTPUT: Return valid JSON array of product objects. Each object must include all defined fields (use "N/A" for missing values).
+
+VALIDATION CHECKLIST (verify EVERY item before returning):
+
+1. VISIBLE TEXT ONLY: For every field value I extracted, is it explicitly visible as text in the document? If I inferred or guessed ANY value, that is WRONG — change it to "N/A".
+2. MINIMUM FIELDS: Does every product entry have at least a valid tag OR an identifiable item name (not "N/A")? If a product has NEITHER, remove it from the output entirely.
+3. REJECTED PRODUCTS: Did I skip every product whose page has a full-page X or rejection stamp? Did I still include products on HOLD or marked REVISE AND RESUBMIT?
+4. PRODUCT COUNT: Did I count products in the summary table/index and verify my output accounts for all non-rejected ones? If counts don't match, go back and find missing products.
+5. ROW ISOLATION: For products extracted from tables, did every field value come from that product's own row? If I filled a blank field with data from a neighboring row, that is WRONG — change it to "N/A".
+6. TAG CONSOLIDATION: Does each tag appear exactly ONCE? If I created multiple entries with the same tag, consolidate them into one.
+7. SELECTED VARIANTS: For each variant table with architect markings (arrows, highlights, boxes), did I extract the MARKED variant's data? Did I ignore non-selected variants?
+8. ARCHITECT CORRECTIONS: Did I use corrected values from architect annotations instead of the original submittal data? Did I note corrections in details?
+9. TAG FORMAT: Does every tag match the pattern LETTERS+DIGITS (e.g., LT1, LT3A, P-1)? Model numbers, descriptions, and pure numbers are NOT tags — use "N/A".
+10. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
+11. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "LED Downlight" or "Pull-Down Kitchen Faucet"? If it contains a manufacturer name, model name, or detailed feature list, it is WRONG.
+12. Product Description: Does this contain the full manufacturer-specific description (using corrected values if applicable) WITHOUT duplicating tag, spec ID, finish, size, or price?
+13. Model Number: Is this a manufacturer-specific alphanumeric code, or N/A? Product line names ("EVO4", "Mayfield") are NOT model numbers — use "N/A".
+14. Details: Did I capture architect review status (HOLD, Approved as Noted, Revise and Resubmit) and any text annotations or corrections?`;
+
+/**
  * Extraction configs per document type.
  *
- * Each document type maps to its own prompt and schema. For now, some types
- * share the purchase order config as a placeholder until dedicated prompts
- * are developed.
+ * Each document type maps to its own prompt and schema.
  */
 const EXTRACTION_CONFIGS: Record<ProductDocumentType, ExtractionConfig> = {
   purchase_order: {
@@ -864,8 +1225,8 @@ const EXTRACTION_CONFIGS: Record<ProductDocumentType, ExtractionConfig> = {
     prompt: PURCHASE_ORDER_PROMPT,
   },
   submittal: {
-    schema: PURCHASE_ORDER_SCHEMA,
-    prompt: PURCHASE_ORDER_PROMPT,
+    schema: SUBMITTAL_SCHEMA,
+    prompt: SUBMITTAL_PROMPT,
   },
 };
 

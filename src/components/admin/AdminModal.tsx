@@ -118,8 +118,10 @@ export function AdminModal({ selectedProducts = [] }: AdminModalProps) {
   const handlePaste = useCallback(async () => {
     setPasteState("running");
     try {
-      const text = await navigator.clipboard.readText();
-      const snapshot = JSON.parse(text) as Record<string, unknown>;
+      const raw = await navigator.clipboard.readText();
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("No JSON object found in clipboard.");
+      const snapshot = JSON.parse(match[0]) as Record<string, unknown>;
 
       // Validate that the pasted data looks like a sabana snapshot
       const hasAnyKey = STORAGE_KEYS.some((k) => k in snapshot);

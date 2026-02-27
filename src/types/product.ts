@@ -111,6 +111,5 @@ export const DOCUMENT_TYPES: Record<
     abbreviation: "SUB",
     color: "text-pink-700",
     bgColor: "bg-pink-50",
-    disabled: true,
   },
 };
