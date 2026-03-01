@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,17 @@ import { useSpecIdGeneration } from "@/hooks/useSpecIdGeneration";
 import { savePdfToPublic } from "@/utils/storage";
 import { SelectedFile } from "./SelectedFile";
 import type { ProductDocumentType } from "@/types/product";
+import type { ExtractionStage } from "@/api/reducto.client";
+
+const STAGE_LABELS: Record<ExtractionStage | "preparing" | "saving" | "specIds", string> = {
+  preparing: "Preparing document...",
+  uploading: "Uploading to Reducto...",
+  parsing: "Parsing layout...",
+  cropping: "Cropping schedule...",
+  extracting: "Extracting products...",
+  specIds: "Generating spec IDs...",
+  saving: "Saving products...",
+};
 
 interface UploadModalProps {
   open: boolean;
@@ -34,8 +45,10 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   >({});
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState<string>("");
+  const [processingDoc, setProcessingDoc] = useState<{ index: number; total: number } | null>(null);
+  const [processingStage, setProcessingStage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [generateSpecIds, setGenerateSpecIds] = useState(true);
 
   const createDocument = useCreateDocument();
@@ -104,16 +117,21 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
 
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    const { signal } = abortController;
+
     setIsProcessing(true);
     setError(null);
 
     try {
       // Process each file
       for (let i = 0; i < selectedFiles.length; i++) {
+        // Stop iterating if cancelled between files
+        if (signal.aborted) break;
+
         const file = selectedFiles[i];
-        setProcessingStatus(
-          `Processing ${i + 1}/${selectedFiles.length}: ${file.name}`,
-        );
+        setProcessingDoc({ index: i + 1, total: selectedFiles.length });
 
         console.log(
           `[Upload] Processing file ${i + 1}/${selectedFiles.length}:`,
@@ -121,11 +139,11 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         );
 
         // Step 1: Save PDF to public folder (for localhost demo)
+        setProcessingStage(STAGE_LABELS.preparing);
         const pdfPath = await savePdfToPublic(file);
         console.log(`[Upload] PDF path:`, pdfPath);
 
         // Step 2: Create document entry in "processing" state
-        setProcessingStatus(`Creating document record...`);
         const document = await createDocument.mutateAsync({
           file,
           localPath: pdfPath,
@@ -134,12 +152,14 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         console.log(`[Upload] Document created:`, document.id);
 
         // Step 3: Extract products using Reducto
-        setProcessingStatus(`Extracting products with Reducto AI...`);
+        // onProgress fires at each sub-stage so the user sees live updates
         const extractedProducts = await reductoExtraction.mutateAsync({
           file,
           documentId: document.id,
           documentType: documentTypeMap[file.name] || "specification",
           pdfPath,
+          onProgress: (stage) => setProcessingStage(STAGE_LABELS[stage]),
+          signal,
         });
 
         console.log(
@@ -149,14 +169,14 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         // Step 3.5: Generate missing spec IDs if enabled
         let productsToSave = extractedProducts;
         if (generateSpecIds && extractedProducts.length > 0) {
-          setProcessingStatus(`Generating spec IDs for missing products...`);
+          setProcessingStage(STAGE_LABELS.specIds);
           productsToSave =
             await specIdGeneration.mutateAsync(extractedProducts);
         }
 
         // Step 4: Save extracted products
         if (productsToSave.length > 0) {
-          setProcessingStatus(`Saving ${productsToSave.length} products...`);
+          setProcessingStage(STAGE_LABELS.saving);
           await createProducts.mutateAsync(
             productsToSave.map((p) => ({
               itemName: p.itemName,
@@ -189,7 +209,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
 
       // Success - reset and close
       setSelectedFiles([]);
-      setProcessingStatus("");
+      setProcessingDoc(null);
+      setProcessingStage("");
       onOpenChange(false);
 
       // Show success message
@@ -197,15 +218,23 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         `Successfully processed ${selectedFiles.length} document(s)!\n\nNote: PDFs are referenced from /public/uploads/. Make sure files are saved there.`,
       );
     } catch (error) {
+      // User-initiated cancellation — reset silently, keep files selected so
+      // they can retry without re-adding everything.
+      if (abortControllerRef.current?.signal.aborted) {
+        console.log("[Upload] Extraction cancelled by user");
+        setProcessingDoc(null);
+        setProcessingStage("");
+        return;
+      }
+
       console.error("[Upload] Processing failed:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       setError(errorMessage);
-      setProcessingStatus("");
-
-      // Update any documents to error state if needed
-      // (In production, you'd track which document failed)
+      setProcessingDoc(null);
+      setProcessingStage("");
     } finally {
+      abortControllerRef.current = null;
       setIsProcessing(false);
     }
   };
@@ -213,8 +242,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const handleCancel = () => {
     setSelectedFiles([]);
     setError(null);
-    setProcessingStatus("");
+    setProcessingDoc(null);
+    setProcessingStage("");
     onOpenChange(false);
+  };
+
+  const handleCancelProcessing = () => {
+    abortControllerRef.current?.abort();
   };
 
   const handleDocumentTypeChange = (file: File, type: ProductDocumentType) =>
@@ -291,10 +325,17 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           )}
 
           {/* Processing Status */}
-          {isProcessing && processingStatus && (
+          {isProcessing && processingDoc && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-blue-600 animate-spin shrink-0" />
-              <p className="text-sm text-blue-900">{processingStatus}</p>
+              <div className="flex flex-col min-w-0">
+                <p className="text-sm font-medium text-blue-900">
+                  Document {processingDoc.index} of {processingDoc.total}
+                </p>
+                {processingStage && (
+                  <p className="text-xs text-blue-700 mt-0.5">{processingStage}</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -341,8 +382,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           <div className="flex items-center justify-end gap-3 mt-3">
             <Button
               variant="outline"
-              onClick={handleCancel}
-              disabled={isProcessing}
+              onClick={isProcessing ? handleCancelProcessing : handleCancel}
             >
               Cancel
             </Button>

@@ -987,12 +987,26 @@ VIOLATION EXAMPLES (these are WRONG):
 CRITICAL RULE #2 — ONE TAG = ONE PRODUCT (TAG CONSOLIDATION):
 ═══════════════════════════════════════════════════════════════════
 
-Each type/group code (e.g., LT1, LT2, LT3A, P-1, P-2) represents EXACTLY ONE product in your output.
+Each type/group code (e.g., LT1, LT2, LT3A, P-1, P-2, ACT-01) represents EXACTLY ONE product in your output.
 
-- A tagged product section may span MULTIPLE PAGES of data sheets. ALL information from those pages belongs to that ONE product entry — consolidate it.
-- Do NOT create separate product entries for different pages within the same tagged section.
-- Combine manufacturer info, model number, specifications, and architect markings from ALL pages of a tagged section into a SINGLE product entry.
-- If a group (e.g., "P-1 BREAK SINK") contains multiple distinct products in a vendor parts table (sink, faucet, strainer as separate rows), the group tag (P-1) belongs to the PRIMARY product (the one the group is named after). Other products in the group get "N/A" for tag but are STILL extracted as separate entries.
+TAG SCOPE — how to determine which pages belong to which tag:
+A tag's scope begins on the page where the tag first appears and extends through ALL subsequent pages until the NEXT tag is encountered or the document ends.
+
+- If a page has no tag of its own, it inherits the MOST RECENT tag from a prior page.
+- Architect selections (finish, size, model choices marked with arrows, boxes, highlights, circles) on ANY page within a tag's scope belong to that tag's product.
+- Data sheets for COMPONENTS or accessories that appear within a tag's scope (e.g., a suspension system in a ceiling tile section, a trim piece in a fixture section) are PART of the tagged product — NOT separate product entries. Note relevant component selections in the details field.
+
+EXAMPLE:
+  Page 3 introduces tag ACT-01 (Ultima ceiling tile), red box around "White (WH)" finish.
+  Pages 4-8 show variant tables and a suspension system data sheet with its own red box around "White (WH)" — but no new tag appears.
+  Page 9 introduces tag ACT-02 (Dune ceiling tile).
+  → Pages 3-8 ALL belong to ACT-01. The suspension system's "White (WH)" selection is attributed to ACT-01. Note "Suprafine XL suspension system, White (WH)" in ACT-01's details.
+  → Pages 9+ belong to ACT-02.
+
+CONSOLIDATION:
+- Do NOT create separate product entries for different pages within the same tag's scope.
+- Combine manufacturer info, model number, specifications, and architect markings from ALL pages within the tag's scope into a SINGLE product entry.
+- If a group (e.g., "P-1 BREAK SINK") contains multiple distinct products listed as separate ROWS in a vendor parts TABLE, the table's row isolation rule takes precedence — extract each row as a separate product. The group tag (P-1) is assigned to the PRIMARY product (the one the group is named after). Other products in the group get "N/A" for tag but are STILL extracted as separate entries.
 - After extraction, verify: does each tag appear exactly ONCE? If the same tag appears on multiple entries, consolidate them.
 
 ═══════════════════════════════════════════════════════════════════
@@ -1193,14 +1207,15 @@ VALIDATION CHECKLIST (verify EVERY item before returning):
 4. PRODUCT COUNT: Did I count products in the summary table/index and verify my output accounts for all non-rejected ones? If counts don't match, go back and find missing products.
 5. ROW ISOLATION: For products extracted from tables, did every field value come from that product's own row? If I filled a blank field with data from a neighboring row, that is WRONG — change it to "N/A".
 6. TAG CONSOLIDATION: Does each tag appear exactly ONCE? If I created multiple entries with the same tag, consolidate them into one.
-7. SELECTED VARIANTS: For each variant table with architect markings (arrows, highlights, boxes), did I extract the MARKED variant's data? Did I ignore non-selected variants?
-8. ARCHITECT CORRECTIONS: Did I use corrected values from architect annotations instead of the original submittal data? Did I note corrections in details?
-9. TAG FORMAT: Does every tag match the pattern LETTERS+DIGITS (e.g., LT1, LT3A, P-1)? Model numbers, descriptions, and pure numbers are NOT tags — use "N/A".
-10. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
-11. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "LED Downlight" or "Pull-Down Kitchen Faucet"? If it contains a manufacturer name, model name, or detailed feature list, it is WRONG.
-12. Product Description: Does this contain the full manufacturer-specific description (using corrected values if applicable) WITHOUT duplicating tag, spec ID, finish, size, or price?
-13. Model Number: Is this a manufacturer-specific alphanumeric code, or N/A? Product line names ("EVO4", "Mayfield") are NOT model numbers — use "N/A".
-14. Details: Did I capture architect review status (HOLD, Approved as Noted, Revise and Resubmit) and any text annotations or corrections?`;
+7. TAG SCOPE: For pages without an explicit tag, did I attribute their content (architect selections, component details) to the most recent prior tag? Did I avoid creating separate products for component data sheets within a tag's scope?
+8. SELECTED VARIANTS: For each variant table with architect markings (arrows, highlights, boxes), did I extract the MARKED variant's data? Did I ignore non-selected variants?
+9. ARCHITECT CORRECTIONS: Did I use corrected values from architect annotations instead of the original submittal data? Did I note corrections in details?
+10. TAG FORMAT: Does every tag match the pattern LETTERS+DIGITS (e.g., LT1, LT3A, P-1)? Model numbers, descriptions, and pure numbers are NOT tags — use "N/A".
+11. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
+12. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "LED Downlight" or "Pull-Down Kitchen Faucet"? If it contains a manufacturer name, model name, or detailed feature list, it is WRONG.
+13. Product Description: Does this contain the full manufacturer-specific description (using corrected values if applicable) WITHOUT duplicating tag, spec ID, finish, size, or price?
+14. Model Number: Is this a manufacturer-specific alphanumeric code, or N/A? Product line names ("EVO4", "Mayfield") are NOT model numbers — use "N/A".
+15. Details: Did I capture architect review status (HOLD, Approved as Noted, Revise and Resubmit), component selections within tag scope, and any text annotations or corrections?`;
 
 /**
  * Extraction configs per document type.
