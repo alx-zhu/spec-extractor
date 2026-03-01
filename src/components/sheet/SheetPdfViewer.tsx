@@ -9,6 +9,7 @@ import {
 } from "@/types/product";
 import { cn } from "@/lib/utils";
 import type { ReductoFieldValue } from "@/types/reducto";
+import { getScheduleBounds } from "@/api/reducto.drawing";
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -201,6 +202,23 @@ export function SheetPdfViewer({
                 onRenderSuccess={scrollToCitation}
               />
             </Document>
+
+            {/* Debug: schedule crop region overlay */}
+            {(() => {
+              const sb = getScheduleBounds(product.productDocumentId);
+              if (!sb || sb.page !== pageNumber) return null;
+              return (
+                <div
+                  className="absolute border-2 border-dashed border-green-500 bg-green-500/5 pointer-events-none"
+                  style={{
+                    left: `${sb.left * 100}%`,
+                    top: `${sb.top * 100}%`,
+                    width: `${sb.width * 100}%`,
+                    height: `${sb.height * 100}%`,
+                  }}
+                />
+              );
+            })()}
 
             {/* Citation bounding boxes */}
             {!documentError && renderCitations()}
