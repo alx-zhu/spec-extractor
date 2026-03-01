@@ -36,7 +36,7 @@ const PURCHASE_ORDER_SCHEMA = {
           modelNumber: {
             type: "string",
             description:
-              "The manufacturer-specific model number, product code, or catalog number that uniquely identifies this product in the manufacturer's catalog. This is typically a SHORT alphanumeric code (e.g., 'DERA4224LLT', '795-WT', 'DPM2SA', 'FD1-LNGEPP-CL', 'MZ-1036-E-OA', 'A6024R', '50093'). EXTRACTION PRIORITY: (1) Dedicated MODEL / MODEL # / Cat. No. column first. (2) If no dedicated column, look for manufacturer-specific product codes in descriptions or other cells — especially near keywords like 'model', 'model #', 'model number', 'catalog number', 'cat. no.', 'item #', or 'part #'. (3) If no identifiable product code exists, use 'N/A'. Use 'N/A' for: full product names ('Mesh-Back Task Chair', 'Mobile Ottoman'), product line names ('Zody II', 'Ravel', 'M/Flex'), manufacturer names ('Humanscale', 'Haworth'), generic descriptors ('Custom', 'Standard', 'Custom Booth'), tags (e.g., 'C-01'), or spec IDs.",
+              "How the manufacturer names this product — the model name, product line, series, or catalog number. Look in: (1) a dedicated MODEL column, (2) the description (typically the first distinctive term before config details, e.g., 'Zody II' from 'Zody II - Mesh Back...', 'Ravel' from 'Ravel Lounge with Solid Ash Frame'), (3) near keywords 'model', 'model number', 'product model', 'catalog number'. Catalog codes also qualify (e.g., 'K-39989-8'). Include both name and code when both exist (e.g., 'Billet K-39989-8'). NEVER the architect's tag (e.g., NOT 'ACC-04', 'CH-01', 'PO-01'). NOT the generic product name ('Task Chair') or manufacturer name ('Haworth'). N/A only if no model identifier exists.",
           },
           manufacturer: {
             type: "string",
@@ -219,7 +219,7 @@ CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
 - Product Description: See above — the FULL manufacturer-specific description.
 
-- Model Number: The manufacturer-specific model number, product code, or catalog number (e.g., "DERA4224LLT", "795-WT", "FD1-LNGEPP-CL", "50093"). This is a SHORT alphanumeric code used to look up the exact product in the manufacturer's catalog. LOOK FOR: a dedicated MODEL / MODEL # column first, then scan descriptions or other cells for codes near keywords like "model", "model #", "catalog number". It is NOT a product name, product line name, or description. Use "N/A" only when no manufacturer-specific product code is identifiable — generic words like "Custom Booth" or "Standard" are NOT model numbers.
+- Model: How the manufacturer names this product. Look in a MODEL column first, then in the description for the product line/model name (e.g., "Zody II", "M/Flex", "Ravel"), then near keywords like "model", "model number", "catalog number". Catalog codes qualify too (e.g., "K-39989-8"). Include both name and code when both exist. CRITICAL: This is NEVER the architect's tag (e.g., NOT "ACC-04", "CH-01"). Not the generic product name or manufacturer name.
 
 - Manufacturer: The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use "N/A".
 
@@ -263,7 +263,7 @@ VALIDATION CHECKLIST (verify EVERY item before returning):
 4. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
 5. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "Dual Monitor Arm" or "Mesh-Back Task Chair"? If it contains a model name, brand, or detailed feature lists, it is WRONG — move that to Product Description.
 6. Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-7. Model Number: Is this a SHORT alphanumeric manufacturer code (e.g., "DERA4224LLT", "795-WT")? If it's a product name, line name, or generic descriptor, it is WRONG — use "N/A". Did I check for model codes in descriptions or near "model"/"catalog" keywords if no dedicated MODEL column exists?
+7. Model: Is this the manufacturer's model name or catalog code? Is it DEFINITELY NOT the architect's tag? Tags like "ACC-04", "CH-01", "PO-01" are NEVER valid model values.
 8. Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
 9. Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
 10. Finish: Have I captured all finish, color, fabric, and material specifications?
@@ -291,7 +291,7 @@ const SPECIFICATION_SCHEMA = {
           modelNumber: {
             type: "string",
             description:
-              "The manufacturer-specific model number, product code, or catalog number if referenced in the specification. Often N/A in specifications, as they typically describe product categories rather than specific SKUs. EXTRACTION PRIORITY: (1) Look for explicit model/catalog numbers in the basis-of-design product description or product subsections. (2) Look for codes near keywords like 'model', 'model number', 'catalog number', 'cat. no.' in Part 2 text. (3) If no identifiable product code exists, use 'N/A'. Use 'N/A' for: product line names ('SylvaSquash', 'Ultima', 'ND-series'), generic descriptors, or manufacturer names.",
+              "How the manufacturer names this product — the model name, product line, series, or catalog number. Look for the basis-of-design product line name (e.g., 'SylvaSquash' from 'Junckers SylvaSquash', 'Ultima' from 'Armstrong Ultima'), and codes near keywords 'model', 'model number', 'catalog number'. Include both name and code when both exist. Often N/A in specs when only generic categories are described. NEVER the architect's tag. NOT the generic product category ('Door Hardware') or manufacturer name ('Schlage'). N/A only if no model identifier exists.",
           },
           manufacturer: {
             type: "string",
@@ -483,7 +483,7 @@ CORE FIELDS:
 
 - Product Description: See above — the FULL manufacturer-specific description from the specification.
 
-- Model Number: The manufacturer-specific model number or catalog number, if referenced in the specification (e.g., "ND-80PD", "1190LFC"). Often N/A in specifications — they typically describe product categories, not specific SKUs. Look for explicit model/catalog codes in the basis-of-design description or near keywords like "model", "catalog number". Do NOT use product line names (e.g., "SylvaSquash", "Ultima") as model numbers. Use "N/A" when no manufacturer-specific product code is identifiable.
+- Model: How the manufacturer names this product. Extract the basis-of-design product line name (e.g., "SylvaSquash", "Ultima", "ND-series") and any catalog codes near "model" or "catalog number" keywords. Include both name and code when both exist. Often N/A in specs. CRITICAL: This is NEVER the architect's tag. Not the generic product category or manufacturer name.
 
 - Manufacturer: List manufacturers from the manufacturer approval subsection in order of preference. Basis-of-Design manufacturer FIRST if specified, then other approved manufacturers, then "or approved equal" if stated. Format as comma-separated string. ONLY extract from explicit manufacturer approval subsections.
 
@@ -527,7 +527,7 @@ VALIDATION CHECKLIST (verify EVERY item before returning):
 5. Masterformat Alignment: Does this product belong to the CSI Masterformat section being specified? Is this product the reason this spec section exists?
 6. Item Name: Is this a CONCISE, DESCRIPTIVE product category like "Wood Athletic Flooring" or "Door Hardware"? If it contains a model name, brand, or detailed features, it is WRONG.
 7. Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-8. Model Number: Is this a SHORT alphanumeric catalog code, or N/A? Product line names like "SylvaSquash" or "Ultima" are NOT model numbers — use "N/A". Did I check for model codes near "model"/"catalog" keywords in the product subsections?
+8. Model: Is this the manufacturer's model name or catalog code? Is it DEFINITELY NOT the architect's tag? Tags are NEVER valid model values.
 9. Spec ID Number: Does this match the section number from the header?
 10. Supporting Materials: Have I avoided extracting materials from other Masterformat sections?`;
 
@@ -555,7 +555,7 @@ const DRAWING_SCHEMA = {
           modelNumber: {
             type: "string",
             description:
-              "The manufacturer-specific model number, product code, or catalog number. EXTRACTION PRIORITY: (1) Dedicated MODEL / MODEL NUMBER / Cat. No. column in the schedule first. (2) If no dedicated column, look for manufacturer-specific product codes in the description column or other cells — especially near keywords like 'model', 'model #', 'model number', 'catalog number'. (3) If no identifiable product code exists in the row, use 'N/A'. Examples: '5T524', 'CA362', 'CSP-395', '9923-ML', 'R611', 'AA60013', '4112V'. Use 'N/A' for: full product names ('Carpet Tile', 'Acoustic Panel'), product line names ('Sierra Tile', 'Ultima', 'Ricochet'), manufacturer names, or generic descriptors.",
+              "How the manufacturer names this product — the model name, product line, series, or catalog number. Look in: (1) a dedicated MODEL / MODEL NUMBER / Cat. No. column, (2) the description (e.g., 'EVOX' from 'GOTHAM - EVOX SERIES', 'Billet' from 'KOHLER BILLET MODEL NO K-39989-8'), (3) near keywords 'model', 'model number', 'catalog number'. Include both name and code when both exist (e.g., 'Billet K-39989-8'). NEVER the architect's tag (e.g., NOT 'EQ-01', 'P-1', 'B-01'). NOT the generic product name ('Faucet') or manufacturer name ('Kohler'). N/A only if no model identifier exists.",
           },
           manufacturer: {
             type: "string",
@@ -708,7 +708,7 @@ Schedule columns do NOT have a fixed format. Different schedule types use differ
 - TAG / Type / Mark / ID → tag
 - DESCRIPTION / Name → used for both itemName and productDescription (see rules below)
 - MFGR / MANUFACTURER / Mfr → manufacturer
-- MODEL / MODEL NAME / MODEL NUMBER / Cat. No. → modelNumber (the short alphanumeric code only; also include in productDescription for full context)
+- MODEL / MODEL NAME / MODEL NUMBER / Cat. No. → modelNumber (NOT the tag column)
 - FINISH / COLOR / Material → finish
 - SIZE / Dimensions → size
 - PROVIDED BY / CONTACT / COMMENTS / NOTE / Remarks → details (consolidate all of these into the details field)
@@ -787,7 +787,7 @@ CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
 - Product Description: See above — the FULL manufacturer-specific description.
 
-- Model Number: The manufacturer-specific model number, product code, or catalog number. LOOK FOR: a dedicated MODEL / MODEL NUMBER / Cat. No. column in the schedule first, then scan descriptions or other cells for codes near keywords like "model", "model #", "catalog number" (e.g., "5T524", "CA362", "CSP-395", "9923-ML", "R611"). This is a SHORT alphanumeric code, NOT a product name or description. Use "N/A" only when no manufacturer-specific product code is identifiable in the row.
+- Model: How the manufacturer names this product. Look in a MODEL column first, then in the description for the product line/model name (e.g., "EVOX" from "GOTHAM - EVOX SERIES", "Billet" from "KOHLER BILLET MODEL NO K-39989-8"), then near "model" or "catalog number" keywords. Catalog codes qualify too (e.g., "5T524", "K-39989-8"). Include both name and code when both exist. CRITICAL: This is NEVER the architect's tag (e.g., NOT "EQ-01", "P-1"). Not the generic product name or manufacturer name.
 
 - Manufacturer: The company or brand name that produces the product. Verify this is an actual manufacturer, not a product descriptor or category. If uncertain whether a term is a manufacturer or product descriptor, use "N/A".
 
@@ -833,7 +833,7 @@ VALIDATION CHECKLIST (verify EVERY item before returning):
 5. Schedule Source: Did I extract ONLY from tables labeled as schedules? Did I ignore elevations, plans, legends, and other non-schedule content?
 6. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "Pull Down Faucet" or "Carpet Tile"? If it contains a model name, brand, or detailed feature lists, it is WRONG.
 7. Product Description: Does this contain the full manufacturer-specific description WITHOUT duplicating tag, spec ID, finish, size, or price?
-8. Model Number: Is this a SHORT alphanumeric catalog code (e.g., "5T524", "CA362")? If it's a product name, line name, or description, it is WRONG — use "N/A". Did I check for model codes in the description column or near "model"/"catalog" keywords if there is no dedicated MODEL column?
+8. Model: Is this the manufacturer's model name or catalog code? Is it DEFINITELY NOT the architect's tag (e.g., NOT "EQ-01", "P-1", "B-01")? Tags are NEVER valid model values.
 9. Manufacturer: Is this verifiably a company/brand name, not a product descriptor?
 10. Spec ID Number: Does this match a CSI Section Number / Masterformat structure exactly?
 11. Finish: Have I captured all finish, color, fabric, and material specifications from the schedule?
@@ -863,7 +863,7 @@ const SUBMITTAL_SCHEMA = {
           modelNumber: {
             type: "string",
             description:
-              "The manufacturer-specific model number, product code, or catalog number. When the architect has marked a selection in a variant table (arrow, highlight, box, circle), extract the SELECTED model number only. If an architect annotation specifies a different model, use the corrected model. Examples: 'EVO4-4RD-L850-9-UNV-EZ1-WH', 'K-3894', 'K-22972', 'Z8741-SS',LSIX-8-DI-L96T80-DERA'. Use 'N/A' for: full product names, product line names ('EVO4', 'Simplice', 'Mayfield'), manufacturer names, or generic descriptors.",
+              "How the manufacturer names this product — the model name, product line, series, or catalog number. When the architect has marked a selection in a variant table, extract the SELECTED model only. Use architect-corrected model if annotated. Look in: (1) data sheet product line name (e.g., 'EVO4', 'Simplice', 'Volo', 'Mayfield'), (2) near keywords 'model', 'model number', 'catalog number', (3) catalog codes (e.g., 'EVO4-4RD-L850-9-UNV-EZ1-WH', 'K-3894'). Include both name and code when both exist. NEVER the architect's tag (e.g., NOT 'LT1', 'P-1'). NOT the generic product name ('Downlight') or manufacturer name ('Gotham'). N/A only if no model identifier exists.",
           },
           manufacturer: {
             type: "string",
@@ -1163,7 +1163,7 @@ CORE FIELDS (populate with "N/A" if information is genuinely absent):
 
 - Product Description: See above — the FULL manufacturer-specific description. Use architect-corrected values when applicable.
 
-- Model Number: The manufacturer-specific model number, product code, or catalog number. When the architect has marked a selection in a variant table (arrow, highlight, box), extract the SELECTED model number. If an architect annotation specifies a different model, use the corrected model. This is typically a SHORT or MEDIUM alphanumeric code. Use "N/A" for: product line names ("EVO4", "Mayfield", "LSIX"), manufacturer names, or generic descriptors.
+- Model: How the manufacturer names this product. Extract the SELECTED model when the architect has marked a variant table selection; use architect-corrected model if annotated. Look for product line/series name on data sheets (e.g., "EVO4", "Volo", "Mayfield") and catalog codes (e.g., "K-3894"). Include both name and code when both exist. CRITICAL: This is NEVER the architect's tag (e.g., NOT "LT1", "P-1"). Not the generic product name or manufacturer name.
 
 - Manufacturer: The company or brand name. Use the architect-corrected value if an annotation specifies a different manufacturer.
 
@@ -1214,7 +1214,7 @@ VALIDATION CHECKLIST (verify EVERY item before returning):
 11. TAG UNIQUENESS: Does each tag appear only ONCE in the output?
 12. Item Name: Is this a CONCISE, DESCRIPTIVE product name like "LED Downlight" or "Pull-Down Kitchen Faucet"? If it contains a manufacturer name, model name, or detailed feature list, it is WRONG.
 13. Product Description: Does this contain the full manufacturer-specific description (using corrected values if applicable) WITHOUT duplicating tag, spec ID, finish, size, or price?
-14. Model Number: Is this a manufacturer-specific alphanumeric code, or N/A? Product line names ("EVO4", "Mayfield") are NOT model numbers — use "N/A".
+14. Model: Is this the manufacturer's model name or catalog code? Is it DEFINITELY NOT the architect's tag (e.g., NOT "LT1", "P-1")? Tags are NEVER valid model values.
 15. Details: Did I capture architect review status (HOLD, Approved as Noted, Revise and Resubmit), component selections within tag scope, and any text annotations or corrections?`;
 
 /**

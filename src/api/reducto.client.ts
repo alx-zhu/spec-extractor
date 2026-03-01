@@ -10,6 +10,8 @@ import type { ReductoFieldValue } from "@/types/reducto";
 import type { ProductDocumentType, ExtractedProduct } from "@/types/product";
 import { getExtractionConfig } from "./reducto.prompts";
 
+export type ExtractionStage = "uploading" | "extracting";
+
 /**
  * ReductoClient class for document extraction
  */
@@ -43,11 +45,16 @@ export class ReductoClient {
     documentId: string,
     documentType: ProductDocumentType,
     pdfPath: string,
+    onProgress?: (stage: ExtractionStage) => void,
+    signal?: AbortSignal,
   ): Promise<ExtractedProduct[]> {
     try {
       console.log("[Reducto] Starting upload and extraction for:", file.name);
 
       // Step 1: Upload the file
+      onProgress?.("uploading");
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+
       const upload = await this.client.upload({
         file: file,
       });
@@ -55,7 +62,20 @@ export class ReductoClient {
       console.log("[Reducto] File uploaded:", upload);
 
       // Step 2: Extract with citations enabled using document-type-specific config
+      onProgress?.("extracting");
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+
       const { schema, prompt } = getExtractionConfig(documentType);
+
+      // Debug: log schema field keys to verify modelNumber is included
+      const schemaProperties =
+        (schema as { properties?: { products?: { items?: { properties?: Record<string, unknown> } } } })
+          ?.properties?.products?.items?.properties;
+      console.log(
+        "[Reducto] Schema field keys being sent:",
+        schemaProperties ? Object.keys(schemaProperties) : "unknown",
+      );
+
       const result = await this.client.extract.run({
         input: upload,
         instructions: {
@@ -101,6 +121,15 @@ export class ReductoClient {
 
       // Log each product individually for better visibility
       resultArray.forEach((product, index) => {
+        const productObj = product as Record<string, unknown>;
+        console.log(
+          `[Reducto] Product ${index + 1} keys:`,
+          Object.keys(productObj),
+        );
+        console.log(
+          `[Reducto] Product ${index + 1} modelNumber:`,
+          JSON.stringify(productObj.modelNumber, null, 2),
+        );
         console.log(
           `[Reducto] Product ${index + 1}:`,
           JSON.stringify(product, null, 2),
@@ -151,9 +180,26 @@ export class ReductoClient {
 
       console.log(`[Reducto] Mapping product ${index + 1}:`, {
         itemName: extractedProduct.itemName?.value,
+        modelNumber: extractedProduct.modelNumber?.value,
         manufacturer: extractedProduct.manufacturer?.value,
         citationsCount: extractedProduct.itemName?.citations?.length,
       });
+
+      // Guardrail: clear modelNumber if it's actually a tag
+      const modelVal = extractedProduct.modelNumber?.value?.trim();
+      const tagVal = extractedProduct.tag?.value?.trim();
+      if (modelVal && modelVal !== "N/A") {
+        const isTagValue = tagVal && modelVal.toUpperCase() === tagVal.toUpperCase();
+        // Tag pattern: 1-4 letters, optional dash, 1-3 digits, optional trailing letter
+        const isTagPattern = /^[A-Z]{1,5}-?\d{1,3}[A-Z]?$/i.test(modelVal);
+
+        if (isTagValue || isTagPattern) {
+          console.warn(
+            `[Reducto] Clearing modelNumber "${modelVal}" — matches tag pattern or equals tag "${tagVal}"`,
+          );
+          extractedProduct.modelNumber = { value: "N/A", citations: [] };
+        }
+      }
 
       // Generate product ID
       const productId = `prod-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 9)}`;

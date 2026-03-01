@@ -12,8 +12,7 @@ export interface FieldConfig {
 export const PRODUCT_FIELDS: FieldConfig[] = [
   { key: "tag", label: "Tag" },
   { key: "itemName", label: "Name" },
-  { key: "productDescription", label: "Description" },
-  { key: "modelNumber", label: "Model Number" },
+  { key: "modelNumber", label: "Model" },
   { key: "manufacturer", label: "Manufacturer" },
   { key: "specIdNumber", label: "CSI Spec" },
   { key: "project", label: "Project" },
@@ -21,6 +20,7 @@ export const PRODUCT_FIELDS: FieldConfig[] = [
   { key: "size", label: "Size" },
   { key: "price", label: "Price" },
   { key: "details", label: "Details" },
+  { key: "productDescription", label: "Description" },
 ];
 
 export function getFieldLabel(key: ProductFieldKey): string {

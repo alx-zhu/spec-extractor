@@ -71,6 +71,7 @@ export const useRebuildMergedProducts = () => {
       return mergedProductsApi.saveMergedProducts(newMergedProducts);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
       queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
     },
   });
@@ -100,6 +101,7 @@ export const useIntegrateNewProducts = () => {
       return mergedProductsApi.saveMergedProducts(updatedMergedProducts);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
       queryClient.invalidateQueries({ queryKey: mergedProductKeys.all });
     },
   });

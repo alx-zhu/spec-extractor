@@ -23,11 +23,12 @@ import { SelectedFile } from "./SelectedFile";
 import type { ProductDocumentType } from "@/types/product";
 import type { ExtractionStage } from "@/api/reducto.client";
 
-const STAGE_LABELS: Record<ExtractionStage | "preparing" | "saving" | "specIds", string> = {
+const STAGE_LABELS: Record<
+  ExtractionStage | "preparing" | "saving" | "specIds",
+  string
+> = {
   preparing: "Preparing document...",
   uploading: "Uploading to Reducto...",
-  parsing: "Parsing layout...",
-  cropping: "Cropping schedule...",
   extracting: "Extracting products...",
   specIds: "Generating spec IDs...",
   saving: "Saving products...",
@@ -45,7 +46,11 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   >({});
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingDoc, setProcessingDoc] = useState<{ index: number; total: number } | null>(null);
+  const [processingDoc, setProcessingDoc] = useState<{
+    index: number;
+    total: number;
+    fileName: string;
+  } | null>(null);
   const [processingStage, setProcessingStage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -131,7 +136,11 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         if (signal.aborted) break;
 
         const file = selectedFiles[i];
-        setProcessingDoc({ index: i + 1, total: selectedFiles.length });
+        setProcessingDoc({
+          index: i + 1,
+          total: selectedFiles.length,
+          fileName: file.name,
+        });
 
         console.log(
           `[Upload] Processing file ${i + 1}/${selectedFiles.length}:`,
@@ -181,6 +190,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
             productsToSave.map((p) => ({
               itemName: p.itemName,
               productDescription: p.productDescription,
+              modelNumber: p.modelNumber,
               manufacturer: p.manufacturer,
               specIdNumber: p.specIdNumber,
               tag: p.tag,
@@ -211,6 +221,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       setSelectedFiles([]);
       setProcessingDoc(null);
       setProcessingStage("");
+
       onOpenChange(false);
 
       // Show success message
@@ -224,6 +235,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         console.log("[Upload] Extraction cancelled by user");
         setProcessingDoc(null);
         setProcessingStage("");
+
         return;
       }
 
@@ -256,6 +268,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       ...prev,
       [file.name]: type,
     }));
+
+  const getFileStatus = (index: number) => {
+    if (!isProcessing || !processingDoc) return "idle" as const;
+    if (index < processingDoc.index - 1) return "completed" as const;
+    if (index === processingDoc.index - 1) return "processing" as const;
+    return "idle" as const;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -330,11 +349,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
               <Loader2 className="w-5 h-5 text-blue-600 animate-spin shrink-0" />
               <div className="flex flex-col min-w-0">
                 <p className="text-sm font-medium text-blue-900">
-                  Document {processingDoc.index} of {processingDoc.total}
+                  Processing document {processingDoc.index} of{" "}
+                  {processingDoc.total}
                 </p>
-                {processingStage && (
-                  <p className="text-xs text-blue-700 mt-0.5">{processingStage}</p>
-                )}
+                <p className="text-xs text-blue-700 mt-0.5 truncate">
+                  {processingDoc.fileName}
+                  {processingStage && <> &middot; {processingStage}</>}
+                </p>
               </div>
             </div>
           )}
@@ -358,6 +379,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                     }
                     onRemove={() => removeFile(index)}
                     isProcessing={isProcessing}
+                    status={getFileStatus(index)}
+                    stageLabel={processingStage}
                   />
                 ))}
               </div>
