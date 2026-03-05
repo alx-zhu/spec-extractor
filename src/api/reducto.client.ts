@@ -6,11 +6,25 @@
  */
 
 import Reducto from "reductoai";
+import type { Upload } from "reductoai/resources/shared";
 import type { ReductoFieldValue } from "@/types/reducto";
 import type { ProductDocumentType, ExtractedProduct } from "@/types/product";
 import { getExtractionConfig } from "./reducto.prompts";
+import {
+  findScheduleHeaderIndex,
+  detectScheduleBounds,
+  cropToSchedule,
+  transformCitations,
+  type ParseChunk,
+} from "./reducto.drawing";
+import { updateDocument } from "./documents.api";
 
-export type ExtractionStage = "uploading" | "extracting";
+export type ExtractionStage =
+  | "uploading"
+  | "parsing"
+  | "detecting"
+  | "cropping"
+  | "extracting";
 
 /**
  * ReductoClient class for document extraction
@@ -33,12 +47,8 @@ export class ReductoClient {
   }
 
   /**
-   * Upload file and extract products with citations
-   *
-   * @param file - PDF file to process
-   * @param documentId - Document ID to associate products with
-   * @param pdfPath - Path where PDF is stored (for reference in Product)
-   * @returns Array of products with bounding boxes and citations
+   * Upload file and extract products with citations.
+   * For drawings, runs parse → detect schedule → crop → extract pipeline.
    */
   async uploadAndExtract(
     file: File,
@@ -51,105 +61,182 @@ export class ReductoClient {
     try {
       console.log("[Reducto] Starting upload and extraction for:", file.name);
 
-      // Step 1: Upload the file
       onProgress?.("uploading");
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-      const upload = await this.client.upload({
-        file: file,
-      });
-
+      const upload = await this.client.upload({ file }, { signal });
       console.log("[Reducto] File uploaded:", upload);
 
-      // Step 2: Extract with citations enabled using document-type-specific config
+      // Drawing pipeline: parse → detect → crop → extract → transform
+      if (documentType === "drawing") {
+        return this.uploadAndExtractDrawing(
+          file,
+          upload,
+          documentId,
+          pdfPath,
+          onProgress,
+          signal,
+        );
+      }
+
       onProgress?.("extracting");
-      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      return this.extractFromUpload(
+        upload,
+        documentId,
+        documentType,
+        pdfPath,
+        signal,
+      );
+    } catch (error) {
+      console.error("[Reducto] Extraction failed:", error);
+      throw error;
+    }
+  }
 
-      const { schema, prompt } = getExtractionConfig(documentType);
+  /**
+   * Drawing-specific pipeline: parse layout → find schedule header →
+   * LLM block detection → crop to schedule → extract → transform citations.
+   */
+  private async uploadAndExtractDrawing(
+    file: File,
+    upload: Upload,
+    documentId: string,
+    pdfPath: string,
+    onProgress?: (stage: ExtractionStage) => void,
+    signal?: AbortSignal,
+  ): Promise<ExtractedProduct[]> {
+    // Step 1: Parse to get layout blocks with bboxes
+    console.log("[Reducto] Drawing: parsing layout...");
+    onProgress?.("parsing");
+    const parseResult = await this.client.parse.run(
+      { input: upload },
+      { signal },
+    );
 
-      // Debug: log schema field keys to verify modelNumber is included
-      const schemaProperties =
-        (schema as { properties?: { products?: { items?: { properties?: Record<string, unknown> } } } })
-          ?.properties?.products?.items?.properties;
+    if (!("result" in parseResult)) {
+      throw new Error("Unexpected async parse response");
+    }
+    if (parseResult.result.type === "url") {
+      throw new Error("Parse result too large for inline response");
+    }
+
+    const chunks = parseResult.result.chunks as ParseChunk[];
+    const blocks = chunks.flatMap((c) => c.blocks);
+
+    // Step 2: Heuristic gate — find schedule header
+    const headerIndex = findScheduleHeaderIndex(blocks);
+
+    let extractInput: Upload;
+    let bounds: import("@/types/reducto").ReductoBBox | null = null;
+
+    if (headerIndex >= 0) {
       console.log(
-        "[Reducto] Schema field keys being sent:",
-        schemaProperties ? Object.keys(schemaProperties) : "unknown",
+        `[Reducto] Drawing: schedule header found at block ${headerIndex}: "${blocks[headerIndex].content.trim()}"`,
       );
 
-      const result = await this.client.extract.run({
+      // Step 3: LLM-assisted block detection
+      onProgress?.("detecting");
+      signal?.throwIfAborted();
+      bounds = await detectScheduleBounds(blocks, headerIndex);
+
+      if (bounds) {
+        console.log("[Reducto] Drawing: schedule bounds detected:", bounds);
+        onProgress?.("cropping");
+        await updateDocument(documentId, { scheduleBounds: bounds });
+
+        signal?.throwIfAborted();
+        const cropped = await cropToSchedule(file, bounds);
+        extractInput = await this.client.upload(
+          { file: cropped },
+          { signal },
+        );
+      } else {
+        console.warn(
+          "[Reducto] Drawing: LLM could not determine schedule bounds, extracting full page",
+        );
+        extractInput = upload;
+      }
+    } else {
+      console.warn(
+        "[Reducto] Drawing: no schedule header found, extracting full page",
+      );
+      extractInput = upload;
+    }
+
+    // Step 4: Extract from the (possibly cropped) upload
+    onProgress?.("extracting");
+    let products = await this.extractFromUpload(
+      extractInput,
+      documentId,
+      "drawing",
+      pdfPath,
+      signal,
+    );
+
+    // Step 5: Transform citations back to original PDF space
+    if (bounds) {
+      products = transformCitations(products, bounds);
+    }
+
+    return products;
+  }
+
+  /**
+   * Run extract on an already-uploaded file and map results to products.
+   * Shared by both the standard and drawing pipelines.
+   */
+  private async extractFromUpload(
+    upload: Upload,
+    documentId: string,
+    documentType: ProductDocumentType,
+    pdfPath: string,
+    signal?: AbortSignal,
+  ): Promise<ExtractedProduct[]> {
+    const { schema, prompt } = getExtractionConfig(documentType);
+
+    const result = await this.client.extract.run(
+      {
         input: upload,
         instructions: {
           schema,
           system_prompt: prompt,
         },
         settings: {
-          array_extract: true, // Enable for extracting arrays of products
+          array_extract: true,
           citations: {
-            enabled: true, // Get bboxes for each field
-            numerical_confidence: true, // Get numeric confidence scores
+            enabled: true,
+            numerical_confidence: true,
           },
         },
-      });
+      },
+      { signal },
+    );
 
-      // Check if this is an async response (job_id only)
-      if ("job_id" in result && !("result" in result)) {
-        throw new Error(
-          "Received async response. Please use synchronous extraction or poll for results.",
-        );
-      }
-
-      // Type guard: result is V3ExtractResponse with result field
-      if (!("result" in result)) {
-        throw new Error("Invalid response format from Reducto API");
-      }
-
-      // Log extraction results
-      // The result has a "products" array wrapper based on our schema
-      const extractedData = result.result as { products?: unknown[] };
-      const resultArray = extractedData.products || [];
-
-      console.log("[Reducto] Extraction complete:", {
-        job_id: result.job_id,
-        num_products: resultArray.length,
-        usage: result.usage,
-        studio_link: result.studio_link,
-      });
-
-      // Log the raw result array with deep inspection
-      console.log("[Reducto] Raw result array:");
-      console.dir(resultArray, { depth: null, colors: true });
-
-      // Log each product individually for better visibility
-      resultArray.forEach((product, index) => {
-        const productObj = product as Record<string, unknown>;
-        console.log(
-          `[Reducto] Product ${index + 1} keys:`,
-          Object.keys(productObj),
-        );
-        console.log(
-          `[Reducto] Product ${index + 1} modelNumber:`,
-          JSON.stringify(productObj.modelNumber, null, 2),
-        );
-        console.log(
-          `[Reducto] Product ${index + 1}:`,
-          JSON.stringify(product, null, 2),
-        );
-      });
-
-      // Step 3: Map Reducto response to our Product type
-      const products = this.mapReductoToProducts(
-        resultArray,
-        documentId,
-        documentType,
-        pdfPath,
+    if ("job_id" in result && !("result" in result)) {
+      throw new Error(
+        "Received async response. Please use synchronous extraction or poll for results.",
       );
-
-      console.log(`[Reducto] Mapped ${products.length} products`);
-      return products;
-    } catch (error) {
-      console.error("[Reducto] Extraction failed:", error);
-      throw error;
     }
+    if (!("result" in result)) {
+      throw new Error("Invalid response format from Reducto API");
+    }
+
+    const extractedData = result.result as { products?: unknown[] };
+    const resultArray = extractedData.products || [];
+
+    console.log("[Reducto] Extraction complete:", {
+      job_id: result.job_id,
+      num_products: resultArray.length,
+      usage: result.usage,
+      studio_link: result.studio_link,
+    });
+
+    return this.mapReductoToProducts(
+      resultArray,
+      documentId,
+      documentType,
+      pdfPath,
+    );
   }
 
   /**

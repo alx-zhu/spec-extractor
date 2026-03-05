@@ -9,6 +9,7 @@ import {
 } from "@/types/product";
 import { cn } from "@/lib/utils";
 import type { ReductoFieldValue } from "@/types/reducto";
+import { useDocuments } from "@/hooks/useDocuments";
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -28,6 +29,12 @@ export function SheetPdfViewer({
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [documentError, setDocumentError] = useState<string | null>(null);
+
+  // Look up the parent document to get scheduleBounds (persisted)
+  const { data: documents } = useDocuments();
+  const scheduleBounds = documents?.find(
+    (d) => d.id === product.productDocumentId,
+  )?.scheduleBounds;
 
   // Get the target page from the selected field's first citation
   const targetPage = (() => {
@@ -201,6 +208,19 @@ export function SheetPdfViewer({
                 onRenderSuccess={scrollToCitation}
               />
             </Document>
+
+            {/* Schedule crop region overlay */}
+            {scheduleBounds && scheduleBounds.page === pageNumber && (
+              <div
+                className="absolute border-2 border-dashed border-green-500 bg-green-500/5 pointer-events-none"
+                style={{
+                  left: `${scheduleBounds.left * 100}%`,
+                  top: `${scheduleBounds.top * 100}%`,
+                  width: `${scheduleBounds.width * 100}%`,
+                  height: `${scheduleBounds.height * 100}%`,
+                }}
+              />
+            )}
 
             {/* Citation bounding boxes */}
             {!documentError && renderCitations()}
