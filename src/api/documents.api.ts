@@ -118,6 +118,30 @@ export const updateDocumentStatus = async (
 };
 
 /**
+ * Update a document with partial fields (e.g., scheduleBounds after drawing crop).
+ */
+export const updateDocument = async (
+  documentId: string,
+  updates: Partial<ProductDocument>,
+): Promise<ProductDocument> => {
+  const documents = getDocumentsFromStorage();
+
+  const updatedDocuments = documents.map((doc) => {
+    if (doc.id === documentId) {
+      return { ...doc, ...updates };
+    }
+    return doc;
+  });
+
+  saveDocumentsToStorage(updatedDocuments);
+
+  const updatedDocument = updatedDocuments.find((d) => d.id === documentId);
+  if (!updatedDocument) throw new Error(`Document ${documentId} not found`);
+
+  return simulateApiCall(updatedDocument);
+};
+
+/**
  * Delete a document
  *
  * Future Supabase implementation will also delete the file from storage:

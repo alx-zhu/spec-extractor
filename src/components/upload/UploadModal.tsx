@@ -29,6 +29,9 @@ const STAGE_LABELS: Record<
 > = {
   preparing: "Preparing document...",
   uploading: "Uploading to Reducto...",
+  parsing: "Analyzing layout...",
+  detecting: "Locating schedule...",
+  cropping: "Cropping to schedule...",
   extracting: "Extracting products...",
   specIds: "Generating spec IDs...",
   saving: "Saving products...",

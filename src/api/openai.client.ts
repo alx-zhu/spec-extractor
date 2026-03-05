@@ -9,7 +9,7 @@ import OpenAI from "openai";
 
 let openaiClient: OpenAI | null = null;
 
-function getOpenAIClient(): OpenAI {
+export function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     const key = import.meta.env.VITE_OPENAI_API_KEY;
     if (!key) {

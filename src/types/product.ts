@@ -1,4 +1,5 @@
 import type {
+  ReductoBBox,
   ReductoCitation,
   ReductoExtractedProduct,
   ReductoFieldValue,
@@ -54,6 +55,8 @@ export interface ProductDocument {
   uploadDate: Date;
   status: "processing" | "completed" | "error";
   type: ProductDocumentType;
+  /** For drawings: the detected schedule crop region (normalized 0-1 coords). */
+  scheduleBounds?: ReductoBBox;
 }
 
 export type ProductDocumentType =
