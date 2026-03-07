@@ -5,6 +5,7 @@ import { ProductSheet } from "@/components/sheet/ProductSheet";
 import { FilterSidebar } from "@/components/sidebar/FilterSidebar";
 import { UploadModal } from "@/components/upload/UploadModal";
 import { ExportModal } from "@/components/export/ExportModal";
+import { DashboardPage } from "@/components/dashboard/DashboardPage";
 import { useProducts } from "@/hooks/useProducts";
 import { useResolvedProducts } from "@/hooks/useResolvedProducts";
 import {
@@ -20,7 +21,11 @@ import { getPdfUrl } from "./utils/storage";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminModal } from "@/components/admin/AdminModal";
 
+type AppView = "dashboard" | "project";
+
 function App() {
+  const [currentView, setCurrentView] = useState<AppView>("dashboard");
+
   // Fetch products from React Query
   const { data: products = [], isLoading } = useProducts();
   const { data: documents = [] } = useDocuments();
@@ -184,7 +189,10 @@ function App() {
   return (
     <TooltipProvider>
       <div className="h-screen flex flex-col bg-gray-50">
+        {/* Persistent header with tab switcher */}
         <Header
+          currentView={currentView}
+          onViewChange={setCurrentView}
           onUploadClick={() => setIsUploadModalOpen(true)}
           onExportClick={() => {
             setExportSelection(undefined);
@@ -194,45 +202,51 @@ function App() {
           isSidebarOpen={sidebar.isOpen}
         />
 
-        <div className="flex-1 flex overflow-hidden">
-          {/* Filter sidebar — pushes table right */}
-          <FilterSidebar
-            isOpen={sidebar.isOpen}
-            divisions={sidebar.divisions}
-            activeFilter={sidebar.activeFilter}
-            expandedDivision={sidebar.expandedDivision}
-            noSpecIdCount={sidebar.noSpecIdCount}
-            totalCount={resolvedProducts.length}
-            onDivisionClick={sidebar.selectDivision}
-            onSectionClick={sidebar.selectSection}
-            onNoSpecIdClick={sidebar.selectNoSpecId}
-            onClearFilter={sidebar.clearFilter}
-          />
+        {/* Dashboard view */}
+        {currentView === "dashboard" && <DashboardPage />}
 
-          <main className="flex-1 flex overflow-hidden p-8">
-            {/* Table Panel */}
-            <TablePanel
-              resolvedProducts={filteredProducts}
-              selectedProductId={selectedProductId}
-              selectedFieldKey={selectedFieldKey}
-              onViewSource={handleViewSource}
-              onOverrideField={handleOverrideField}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onFilterToggle={sidebar.toggleSidebar}
-              activeFilterLabel={sidebar.activeFilterLabel}
+        {/* Project view */}
+        {currentView === "project" && (
+          <div className="flex-1 flex overflow-hidden">
+            {/* Filter sidebar — pushes table right */}
+            <FilterSidebar
+              isOpen={sidebar.isOpen}
+              divisions={sidebar.divisions}
+              activeFilter={sidebar.activeFilter}
+              expandedDivision={sidebar.expandedDivision}
+              noSpecIdCount={sidebar.noSpecIdCount}
+              totalCount={resolvedProducts.length}
+              onDivisionClick={sidebar.selectDivision}
+              onSectionClick={sidebar.selectSection}
+              onNoSpecIdClick={sidebar.selectNoSpecId}
               onClearFilter={sidebar.clearFilter}
-              documentMap={documentMap}
-              onExportSelection={handleExportSelection}
-              onAddManualSource={handleAddManualSource}
-              onCreateManualProduct={handleCreateManualProduct}
-              onUploadClick={() => setIsUploadModalOpen(true)}
-              onSelectionChange={setTableSelection}
             />
-          </main>
-        </div>
 
-        {/* Product detail sheet — overlays the table */}
+            <main className="flex-1 flex overflow-hidden p-8">
+              {/* Table Panel */}
+              <TablePanel
+                resolvedProducts={filteredProducts}
+                selectedProductId={selectedProductId}
+                selectedFieldKey={selectedFieldKey}
+                onViewSource={handleViewSource}
+                onOverrideField={handleOverrideField}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onFilterToggle={sidebar.toggleSidebar}
+                activeFilterLabel={sidebar.activeFilterLabel}
+                onClearFilter={sidebar.clearFilter}
+                documentMap={documentMap}
+                onExportSelection={handleExportSelection}
+                onAddManualSource={handleAddManualSource}
+                onCreateManualProduct={handleCreateManualProduct}
+                onUploadClick={() => setIsUploadModalOpen(true)}
+                onSelectionChange={setTableSelection}
+              />
+            </main>
+          </div>
+        )}
+
+        {/* Overlays — always mounted, always available regardless of view */}
         <ProductSheet
           open={!!selectedProductId}
           onOpenChange={handleSheetOpenChange}
